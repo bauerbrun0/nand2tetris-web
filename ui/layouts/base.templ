@@ -1,0 +1,21 @@
+package layouts
+
+templ head() {
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width"/>
+		<title>Nand2Tetris Web App</title>
+		<link rel="stylesheet" href="/static/css/main.css"/>
+		<script defer src="/static/js/main.js"></script>
+	</head>
+}
+
+templ BaseLayout() {
+	<!DOCTYPE html>
+	<html>
+		@head()
+		<body>
+			{ children... }
+		</body>
+	</html>
+}

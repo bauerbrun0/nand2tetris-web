@@ -1,0 +1,7 @@
+@import "tailwindcss" source(none); /* disable automatic source to register sources explicitly */
+@import "flowbite/src/themes/default";
+
+@source "../../node_modules/flowbite";
+@source "../**/*.{templ,ts}";
+
+@plugin "flowbite/plugin";
