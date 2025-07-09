@@ -13,7 +13,7 @@ func (app *application) routes() http.Handler {
 
 	mux.HandleFunc("GET /{$}", app.home)
 
-	commonChain := alice.New(app.recoverPanic, app.logRequest)
+	commonChain := alice.New(app.recoverPanic, app.logRequest, app.disableCacheInDevMode, app.commonHeaders)
 
 	return commonChain.Then(mux)
 }

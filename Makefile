@@ -8,7 +8,7 @@ dev/templ:
 # run air to detect any go file changes to re-build and re-run the server.
 dev/server:
 	go tool github.com/air-verse/air \
-	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" \
+	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" --build.args_bin "--dev" \
 	--build.exclude_dir "node_modules" \
 	--build.include_ext "go" \
 	--build.stop_on_error "false" \
