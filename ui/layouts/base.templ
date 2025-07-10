@@ -27,11 +27,7 @@ templ BaseLayout() {
 		@head()
 		<body class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark">
 			@components.Header()
-			<div>
-				<div class="inner-container">
-					{ children... }
-				</div>
-			</div>
+			{ children... }
 			@components.Footer()
 		</body>
 	</html>
