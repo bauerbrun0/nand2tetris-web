@@ -1,5 +1,7 @@
 package layouts
 
+import "github.com/bauerbrun0/nand2tetris-web/ui/components"
+
 templ head() {
 	<head>
 		<meta charset="utf-8"/>
@@ -12,10 +14,16 @@ templ head() {
 
 templ BaseLayout() {
 	<!DOCTYPE html>
-	<html>
+	<html class="dark">
 		@head()
-		<body>
-			{ children... }
+		<body class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark">
+			@components.Header()
+			<div>
+				<div class="inner-container">
+					{ children... }
+				</div>
+			</div>
+			@components.Footer()
 		</body>
 	</html>
 }
