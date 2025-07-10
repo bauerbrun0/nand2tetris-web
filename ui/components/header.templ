@@ -1,5 +1,17 @@
 package components
 
+templ Header() {
+	<div>
+		<div class="inner-container py-3">
+			<div class="flex justify-between">
+				@title()
+				@navigation()
+			</div>
+		</div>
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
+	</div>
+}
+
 templ title() {
 	<div>
 		<a href="/" class="flex space-x-3 items-center">
@@ -11,18 +23,16 @@ templ title() {
 
 templ navigation() {
 	<div class="flex space-x-3 md:space-x-5 items-center">
-		<button class="hover:cursor-pointer">
-			@SunIcon("w-6 h-6")
-		</button>
+		@themeToggle()
 		<a href="/">
 			<button
 				type="button"
-				class={`
+				class={ `
 					hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
 					focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg
 					text-sm px-5 py-2.5 text-center dark:border-white dark:text-white dark:hover:text-primary-700
 				 	dark:focus:ring-primary-800
-				`}
+				` }
 			>
 				Register
 			</button>
@@ -30,12 +40,12 @@ templ navigation() {
 		<a href="/">
 			<button
 				type="button"
-				class={`
+				class={ `
 					hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
 					focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
 					text-sm px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
 					dark:focus:ring-primary-800
-				`}
+				` }
 			>
 				Login
 			</button>
@@ -43,14 +53,21 @@ templ navigation() {
 	</div>
 }
 
-templ Header() {
-	<div>
-		<div class="inner-container py-3">
-			<div class="flex justify-between">
-				@title()
-				@navigation()
-			</div>
-		</div>
-		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
-	</div>
+templ themeToggle() {
+	<template x-data x-if="$store.theme.current === 'dark'">
+		<button
+			@click="$store.theme.switchTheme('light')"
+			class="hover:cursor-pointer hover:text-primary-700"
+		>
+			@SunIcon("w-6 h-6")
+		</button>
+	</template>
+	<template x-data x-if="$store.theme.current === 'light'">
+		<button
+			@click="$store.theme.switchTheme('dark')"
+			class="hover:cursor-pointer hover:stroke-primary-700"
+		>
+			@MoonIcon("w-6 h-6 hover:text-primary-700 stroke-[1.5px]")
+		</button>
+	</template>
 }
