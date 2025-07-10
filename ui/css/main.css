@@ -20,6 +20,9 @@
     --color-divider: #9ca3af;
     --color-divider-dark: #585858;
 
+    --color-footer-link: #585858;
+    --color-footer-link-dark: #9ca3af;
+
     --color-primary: oklch(69.783% 0.13138 224.28);
     --color-primary-50: oklch(97.052% 0.02399 212.9);
     --color-primary-100: oklch(94.694% 0.04058 215.88);

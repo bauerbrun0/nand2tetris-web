@@ -1,7 +1,38 @@
 package components
 
+templ titleFooter() {
+	<div>
+		<a href="/" class="flex space-x-3 items-center">
+			<img src="/static/images/logo.svg" alt="Logo" class="w-11 h-11"/>
+			<h1 class="font-medium hidden md:block">Nand2Tetris Web App</h1>
+		</a>
+	</div>
+}
+
+templ links() {
+	<div class="flex justify-between">
+		<div class="flex flex-col space-y-3 mr-10 md:mr-30">
+			<span class="font-medium">SOCIAL</span>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">GitHub</a>
+		</div>
+		<div class="flex flex-col space-y-3">
+			<span class="font-medium">LEGAL</span>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">License</a>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">Terms & Conditions</a>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">Privacy Policy</a>
+		</div>
+		<div></div>
+	</div>
+}
+
 templ Footer() {
-	<div class="inner-container">
-		footer
+	<div>
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
+		<div class="inner-container py-5">
+			<div class="flex justify-between">
+				@titleFooter()
+				@links()
+			</div>
+		</div>
 	</div>
 }
