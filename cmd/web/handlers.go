@@ -7,5 +7,9 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
+	msg := app.sessionManager.GetString(r.Context(), "message")
+	app.logger.Info("getting message from session", "message", msg)
+	app.sessionManager.Put(r.Context(), "message", "Hello World!")
+	app.logger.Info("stored message to session")
 	app.render(r.Context(), w, r, landingpage.Page())
 }
