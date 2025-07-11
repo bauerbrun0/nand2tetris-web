@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,20 +14,29 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type config struct {
+	port int
+	env  string
+	dsn  string
+}
+
 type application struct {
 	logger         *slog.Logger
 	dev            bool
+	config         config
 	sessionManager *scs.SessionManager
 }
 
 func main() {
-	addr := flag.String("addr", ":3000", "HTTP network address")
-	dev := flag.Bool("dev", false, "Development mode")
+	var cfg config
+	flag.IntVar(&cfg.port, "port", 3000, "HTTP server port")
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|production )")
+	flag.StringVar(&cfg.dsn, "dsn", "postgres://nand2tetris_web:password@localhost/nand2tetris_web?sslmode=disable", "Database Connection String")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	pool, err := pgxpool.New(context.Background(), "postgres://nand2tetris_web:password@localhost/nand2tetris_web?sslmode=disable")
+	pool, err := pgxpool.New(context.Background(), cfg.dsn)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -36,16 +46,16 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(pool)
 	sessionManager.Lifetime = 12 * time.Hour
-	sessionManager.Cookie.Secure = *dev == false
+	sessionManager.Cookie.Secure = cfg.env == "production"
 
 	app := &application{
 		logger:         logger,
-		dev:            *dev,
+		config:         cfg,
 		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{
-		Addr:         *addr,
+		Addr:         fmt.Sprintf(":%d", cfg.port),
 		Handler:      app.routes(),
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		IdleTimeout:  time.Minute,
@@ -53,7 +63,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	logger.Info("Starting application", slog.String("addr", *addr))
+	logger.Info("Starting application", slog.String("env", cfg.env), slog.Int("port", cfg.port))
 
 	err = srv.ListenAndServe()
 	logger.Error(err.Error())
