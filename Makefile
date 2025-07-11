@@ -66,7 +66,7 @@ dev:
 
 # build for production
 build/prod:
-	make build/templ build/esbuild/prod build/tailwind/prod build/web
+	make build/templ build/esbuild/prod build/tailwind/prod build/sqlc build/web
 
 # remove generated templ files
 rm/templ:

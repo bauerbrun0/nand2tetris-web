@@ -41,7 +41,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 }
 
 func (app *application) disableCacheInDevMode(next http.Handler) http.Handler {
-	if !app.dev {
+	if app.config.env == "production" {
 		return next
 	}
 
