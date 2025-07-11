@@ -52,6 +52,10 @@ build/tailwind:
 build/tailwind/prod:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --minify
 
+# generate sqlc files
+build/sqlc:
+	go tool sqlc generate
+
 # build go web server for production
 build/web:
 	go build -o build/bin/web ./cmd/web
@@ -68,6 +72,17 @@ build/prod:
 rm/templ:
 	find . -type f \( -name '*_templ.go' -o -name '*_templ.txt' \) -exec rm {} +
 
-# remove generated files
+# remove sqlc generated db access files
+rm/sqlc:
+	rm internal/models/db.go internal/models/models.go internal/models/queryt.sql.go
+
+# migrate db
+db/migrate:
+	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" up
+
+db/migrate/down:
+	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" down
+
+# remove generated files (excluding sqlc generated files)
 clear:
 	rm -rf build ui/static/css ui/static/js && make rm/templ

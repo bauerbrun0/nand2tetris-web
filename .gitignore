@@ -10,6 +10,11 @@ ui/static/css/*
 *_templ.go
 *_templ.txt
 
+# sqlc generated database access files
+internal/models/db.go
+internal/models/models.go
+internal/models/sessions.sql.go
+
 # tmp directory
 tmp/
 
