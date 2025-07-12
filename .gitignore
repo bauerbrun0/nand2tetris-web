@@ -1,0 +1,22 @@
+node_modules
+
+# esbuild generated js files
+ui/static/js/*
+
+# tailwind generated css files
+ui/static/css/*
+
+# templ generated _templ.go and _templ.txt files
+*_templ.go
+*_templ.txt
+
+# sqlc generated database access files
+internal/models/db.go
+internal/models/models.go
+internal/models/sessions.sql.go
+
+# tmp directory
+tmp/
+
+# build directory
+build/

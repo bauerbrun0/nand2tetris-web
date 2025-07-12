@@ -1,0 +1,27 @@
+{
+  "name": "nand2tetris-web",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names templ,server,esbuild,tailwind,sync_static --prefix \"[{index}] {name}\" --prefix-colors blue,blueBright,green,yellow,pink \"make dev/templ\" \"make dev/server\" \"make dev/esbuild\" \"make dev/tailwind\" \"make dev/sync_static\"",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@tailwindcss/cli": "^4.1.11",
+    "@types/alpinejs": "^3.13.11",
+    "@types/bun": "latest",
+    "concurrently": "^9.2.0",
+    "esbuild": "^0.25.6",
+    "husky": "^9.1.7",
+    "tailwindcss": "^4.1.11"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.9",
+    "flowbite": "^3.1.2"
+  }
+}

@@ -1,0 +1,35 @@
+package layouts
+
+import "github.com/bauerbrun0/nand2tetris-web/ui/components"
+
+templ head() {
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width"/>
+		<title>Nand2Tetris Web App</title>
+		<link rel="icon" type="image/svg+xml" href="/static/images/logo.svg"/>
+		<link rel="stylesheet" href="/static/css/main.css"/>
+		<script>
+		  // setting the initial theme
+		  // best to add inline in `head` to avoid FOUC
+          if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark')
+          }
+        </script>
+		<script defer src="/static/js/main.js"></script>
+	</head>
+}
+
+templ BaseLayout() {
+	<!DOCTYPE html>
+	<html class="">
+		@head()
+		<body class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark">
+			@components.Header()
+			{ children... }
+			@components.Footer()
+		</body>
+	</html>
+}

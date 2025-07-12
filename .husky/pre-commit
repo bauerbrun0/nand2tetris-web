@@ -1,0 +1,2 @@
+gofmt -l -s -w .
+go tool templ fmt .
