@@ -11,6 +11,7 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -27,6 +28,7 @@ type application struct {
 	config         config
 	sessionManager *scs.SessionManager
 	formDecoder    *form.Decoder
+	emailService   *services.EmailService
 }
 
 func main() {
@@ -50,11 +52,15 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = cfg.env == "production"
 
+	emailSender := services.NewConsoleEmailSender(logger)
+	emailService := services.NewEmailService(emailSender)
+
 	app := &application{
 		logger:         logger,
 		config:         cfg,
 		sessionManager: sessionManager,
 		formDecoder:    form.NewDecoder(),
+		emailService:   emailService,
 	}
 
 	srv := &http.Server{

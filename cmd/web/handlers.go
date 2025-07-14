@@ -45,5 +45,7 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	app.emailService.SendVerificationEmail(form.Email, "abc123")
+
 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 }
