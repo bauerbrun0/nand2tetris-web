@@ -11,6 +11,7 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -25,6 +26,7 @@ type application struct {
 	dev            bool
 	config         config
 	sessionManager *scs.SessionManager
+	formDecoder    *form.Decoder
 }
 
 func main() {
@@ -52,6 +54,7 @@ func main() {
 		logger:         logger,
 		config:         cfg,
 		sessionManager: sessionManager,
+		formDecoder:    form.NewDecoder(),
 	}
 
 	srv := &http.Server{

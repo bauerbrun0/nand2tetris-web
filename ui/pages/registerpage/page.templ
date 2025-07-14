@@ -2,37 +2,49 @@ package registerpage
 
 import (
 	"fmt"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
 )
 
-templ Page() {
+type RegisterForm struct {
+	Email                string `form:"email"`
+	Username             string `form:"username"`
+	Password             string `form:"password"`
+	PasswordConfirmation string `form:"password-confirmation"`
+	Terms                string `form:"terms"`
+	validator.Validator  `form:-`
+}
+
+templ Page(formData *RegisterForm) {
 	@layouts.BaseLayout() {
 		<div class="inner-container min-h-full flex justify-center items-center">
-			@form()
+			@form(formData)
 		</div>
 	}
 }
 
-templ form() {
+templ form(formData *RegisterForm) {
 	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
-		<form class="space-y-6" action="/user/register" method="POST">
+		<form class="space-y-6" action="/user/register" method="POST" novalidate>
 			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Create an Account</h5>
 			@formInput(&inputOptions{
 				label:       "Email",
 				name:        "email",
+				value:       formData.Email,
 				placeholder: "user@example.com",
 				fieldType:   "email",
 				icon:        components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
-				error:       "",
+				error:       formData.FieldErrors["email"],
 			})
 			@formInput(&inputOptions{
 				label:       "Username",
 				name:        "username",
 				placeholder: "Username",
+				value:       formData.Username,
 				fieldType:   "text",
 				icon:        components.UserIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
-				error:       "",
+				error:       formData.FieldErrors["username"],
 			})
 			@formInput(&inputOptions{
 				label:       "Password",
@@ -40,7 +52,7 @@ templ form() {
 				placeholder: "••••••••",
 				fieldType:   "password",
 				icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
-				error:       "",
+				error:       formData.FieldErrors["password"],
 			})
 			@formInput(&inputOptions{
 				label:       "Confirm Password",
@@ -48,9 +60,9 @@ templ form() {
 				placeholder: "••••••••",
 				fieldType:   "password",
 				icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
-				error:       "",
+				error:       formData.FieldErrors["password-confirmation"],
 			})
-			@termsCheckboxInput()
+			@termsCheckboxInput(formData.FieldErrors["terms"])
 			@registerButton()
 			@divider()
 			@ssoButtons()
@@ -64,6 +76,7 @@ templ form() {
 type inputOptions struct {
 	label       string
 	name        string
+	value       string
 	placeholder string
 	fieldType   string
 	icon        templ.Component
@@ -94,6 +107,7 @@ templ formInput(options *inputOptions) {
 			type={ options.fieldType }
 			id={ options.name }
 			name={ options.name }
+			value={ options.value }
 			if options.error == "" {
 				class={ inputClasses }
 			} else {
@@ -104,21 +118,31 @@ templ formInput(options *inputOptions) {
 	</div>
 }
 
-templ termsCheckboxInput() {
-	<div class="flex items-start">
+templ termsCheckboxInput(err string) {
+	{{
+		inputClasses := `
+			w-4 h-4 rounded-sm text-primary-700
+			bg-white-500 dark:bg-silver-800
+			border border-silver-800 dark:border-silver-700
+			focus:border-primary-500 dark:focus:border-primary-500
+			focus:ring-3 focus:ring-primary-500 dark:focus:ring-primary-500
+		`
+	}}
+	<div class="flex flex-col items-start space-y-2">
+		if err != "" {
+			<span class="text-red-500">{ err }</span>
+		}
 		<div class="flex items-center">
 			<div class="flex items-center h-5">
 				<input
 					id="terms"
+					name="terms"
 					type="checkbox"
-					value=""
-					class={ `
-						w-4 h-4 rounded-sm text-primary-700
-						bg-white-500 dark:bg-silver-800
-						border border-silver-800 dark:border-silver-700
-						focus:border-primary-500 dark:focus:border-primary-500
-						focus:ring-3 focus:ring-primary-500 dark:focus:ring-primary-500
-					` }
+					if err == "" {
+						class={ inputClasses }
+					} else {
+						class={ fmt.Sprintf("%s !border-red-500", inputClasses) }
+					}
 					required
 				/>
 			</div>
