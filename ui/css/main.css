@@ -21,7 +21,7 @@
     --color-divider-dark: #585858;
 
     --color-link: #00aeda;
-    --color-link: #00aeda;
+    --color-link-dark: #00aeda;
 
     --color-footer-link: #585858;
     --color-footer-link-dark: #9ca3af;
@@ -51,6 +51,29 @@
     --color-secondary-800: oklch(48.609% 0.0804 197.12);
     --color-secondary-900: oklch(32.029% 0.05197 194.87);
     --color-secondary-950: oklch(22.637% 0.03528 198.11);
+
+    --color-silver-50: #d1d1d1;
+    --color-silver-100: #c7c7c7;
+    --color-silver-200: #b3b3b3;
+    --color-silver-300: #9e9e9e;
+    --color-silver-400: #8a8a8a;
+    --color-silver-500: #767676;
+    --color-silver-600: #616161;
+    --color-silver-700: #4d4d4d;
+    --color-silver-800: #383838;
+    --color-silver-900: #242424;
+
+    --color-white-50: oklch(100% 0 none);
+    --color-white-100: oklch(99.703% 0 none);
+    --color-white-200: oklch(99.107% 0 none);
+    --color-white-300: oklch(98.212% 0 none);
+    --color-white-400: oklch(97.614% 0 none);
+    --color-white-500: oklch(96.715% 0 none);
+    --color-white-600: oklch(94.309% 0 none);
+    --color-white-700: oklch(92.191% 0 none);
+    --color-white-800: oklch(89.755% 0 none);
+    --color-white-900: oklch(87.302% 0 none);
+    --color-white-950: oklch(86.378% 0 none);
 }
 
 .inner-container {

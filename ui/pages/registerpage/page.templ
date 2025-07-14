@@ -1,0 +1,182 @@
+package registerpage
+
+import (
+	"fmt"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+)
+
+templ Page() {
+	@layouts.BaseLayout() {
+		<div class="inner-container min-h-full flex justify-center items-center">
+			@form()
+		</div>
+	}
+}
+
+templ form() {
+	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+		<form class="space-y-6" action="/user/register" method="POST">
+			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Create an Account</h5>
+			@formInput(&inputOptions{
+				label:       "Email",
+				name:        "email",
+				placeholder: "user@example.com",
+				fieldType:   "email",
+				icon:        components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				error:       "",
+			})
+			@formInput(&inputOptions{
+				label:       "Username",
+				name:        "username",
+				placeholder: "Username",
+				fieldType:   "text",
+				icon:        components.UserIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				error:       "",
+			})
+			@formInput(&inputOptions{
+				label:       "Password",
+				name:        "password",
+				placeholder: "••••••••",
+				fieldType:   "password",
+				icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				error:       "",
+			})
+			@formInput(&inputOptions{
+				label:       "Confirm Password",
+				name:        "password-confirmation",
+				placeholder: "••••••••",
+				fieldType:   "password",
+				icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				error:       "",
+			})
+			@termsCheckboxInput()
+			@registerButton()
+			@divider()
+			@ssoButtons()
+			<div class="text-sm font-medium text-silver-600">
+				Already have an account? <a href="/user/login" class="text-link dark:text-link-dark">Login here</a>
+			</div>
+		</form>
+	</div>
+}
+
+type inputOptions struct {
+	label       string
+	name        string
+	placeholder string
+	fieldType   string
+	icon        templ.Component
+	error       string
+}
+
+templ formInput(options *inputOptions) {
+	{{
+		inputClasses := `
+			block w-full ps-10 p-2.5 rounded-lg
+			bg-white-500 focus:bg-white-200 dark:bg-silver-800 dark:focus:bg-silver-900
+			text-silver-800 dark:text-silver-100
+			border border-silver-800 dark:border-silver-700
+			focus:border-primary-500 dark:focus:border-primary-500
+			focus:ring-primary-500 dark:focus:ring-primary-500
+		`
+	}}
+	if options.error == "" {
+		<label for="username" class="block mb-2 font-medium text-text-light dark:text-text-dark">{ options.label }</label>
+	} else {
+		<label for="username" class="block mb-2 font-medium text-red-500">{ options.label } - { options.error }</label>
+	}
+	<div class="relative mb-6">
+		<div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+			@options.icon
+		</div>
+		<input
+			type={ options.fieldType }
+			id={ options.name }
+			name={ options.name }
+			if options.error == "" {
+				class={ inputClasses }
+			} else {
+				class={ fmt.Sprintf("%s !border-red-500", inputClasses) }
+			}
+			placeholder={ options.placeholder }
+		/>
+	</div>
+}
+
+templ termsCheckboxInput() {
+	<div class="flex items-start">
+		<div class="flex items-center">
+			<div class="flex items-center h-5">
+				<input
+					id="terms"
+					type="checkbox"
+					value=""
+					class={ `
+						w-4 h-4 rounded-sm text-primary-700
+						bg-white-500 dark:bg-silver-800
+						border border-silver-800 dark:border-silver-700
+						focus:border-primary-500 dark:focus:border-primary-500
+						focus:ring-3 focus:ring-primary-500 dark:focus:ring-primary-500
+					` }
+					required
+				/>
+			</div>
+			<label for="terms" class="ms-2 text-sm font-medium">
+				I agree to the <a href="/" class="text-link dark:text-link-dark">Terms & Conditions</a>
+			</label>
+		</div>
+	</div>
+}
+
+templ registerButton() {
+	<button
+		type="submit"
+		class={ `
+			w-full
+			hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+			focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+			px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+			dark:focus:ring-primary-800
+		` }
+	>
+		Create Account
+	</button>
+}
+
+templ divider() {
+	<div class="flex items-center space-x-2 w-full">
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+		<span class="text-divider dark:text-divider-dark text-sm font-medium">or</span>
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+	</div>
+}
+
+templ ssoButtons() {
+	<div class="flex mx-auto w-full justify-center space-x-4">
+		<a
+			href="#"
+		>
+			@ssoButton(components.GitHubIcon("w-4 h-4"))
+		</a>
+		<a
+			href="#"
+		>
+			@ssoButton(components.GoogleIcon("w-4 h-4"))
+		</a>
+	</div>
+}
+
+templ ssoButton(icon templ.Component) {
+	<button
+		type="button"
+		class={ `
+			rounded-lg py-3 px-4 text-center inline-flex items-center
+			bg-white dark:bg-silver-800 hover:bg-white-600 dark:hover:bg-silver-600
+			focus:ring-4 focus:outline-none focus:ring-primary-500 font-medium
+			cursor-pointer
+		` }
+	>
+		@icon
+	</button>
+}
