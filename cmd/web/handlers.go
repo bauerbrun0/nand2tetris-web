@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
@@ -45,7 +47,22 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.emailService.SendVerificationEmail(form.Email, "abc123")
+	_, err = app.userService.CreateUser(form.Email, form.Username, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			form.AddFieldError("email", "Email address is already in use")
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			app.render(r.Context(), w, r, registerpage.Page(&form))
+			return
+		}
+		if errors.Is(err, models.ErrDuplicateUsername) {
+			form.AddFieldError("username", "Username is already in use")
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			app.render(r.Context(), w, r, registerpage.Page(&form))
+			return
+		}
+		app.serverError(w, r, err)
+	}
 
-	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
 }

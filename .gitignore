@@ -14,6 +14,8 @@ ui/static/css/*
 internal/models/db.go
 internal/models/models.go
 internal/models/sessions.sql.go
+internal/models/users.sql.go
+internal/models/email_verification_requests.sql.go
 
 # tmp directory
 tmp/

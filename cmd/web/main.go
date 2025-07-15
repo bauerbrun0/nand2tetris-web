@@ -29,6 +29,7 @@ type application struct {
 	sessionManager *scs.SessionManager
 	formDecoder    *form.Decoder
 	emailService   *services.EmailService
+	userService    *services.UserService
 }
 
 func main() {
@@ -40,7 +41,8 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	pool, err := pgxpool.New(context.Background(), cfg.dsn)
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, cfg.dsn)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -53,7 +55,8 @@ func main() {
 	sessionManager.Cookie.Secure = cfg.env == "production"
 
 	emailSender := services.NewConsoleEmailSender(logger)
-	emailService := services.NewEmailService(emailSender)
+	emailService := services.NewEmailService(emailSender, logger)
+	userService := services.NewUserService(logger, emailService, pool, ctx)
 
 	app := &application{
 		logger:         logger,
@@ -61,6 +64,7 @@ func main() {
 		sessionManager: sessionManager,
 		formDecoder:    form.NewDecoder(),
 		emailService:   emailService,
+		userService:    userService,
 	}
 
 	srv := &http.Server{

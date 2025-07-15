@@ -1,14 +1,19 @@
 package services
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog"
+)
 
 type EmailService struct {
 	sender EmailSender
+	logger *slog.Logger
 }
 
-func NewEmailService(sender EmailSender) *EmailService {
+func NewEmailService(sender EmailSender, logger *slog.Logger) *EmailService {
 	return &EmailService{
 		sender: sender,
+		logger: logger,
 	}
 }
 
