@@ -8,6 +8,8 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailpage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailsendcodepage"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -64,5 +66,15 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 		app.serverError(w, r, err)
 	}
 
+	app.sessionManager.Put(r.Context(), "email-to-verify", form.Email)
 	http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
+}
+
+func (app *application) userVerifyEmail(w http.ResponseWriter, r *http.Request) {
+	email := app.sessionManager.PopString(r.Context(), "email-to-verify")
+	app.render(r.Context(), w, r, verifyemailpage.Page(email, &verifyemailpage.VerifyEmailForm{}))
+}
+
+func (app *application) userVerifyEmailResendCode(w http.ResponseWriter, r *http.Request) {
+	app.render(r.Context(), w, r, verifyemailsendcodepage.Page(&verifyemailsendcodepage.VerifyEmailSendCodeForm{}))
 }
