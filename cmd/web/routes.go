@@ -26,7 +26,9 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /user/register", dynamicChain.ThenFunc(app.userRegister))
 	mux.Handle("POST /user/register", dynamicChain.ThenFunc(app.userRegisterPost))
 	mux.Handle("GET /user/verify-email", dynamicChain.ThenFunc(app.userVerifyEmail))
+	mux.Handle("POST /user/verify-email", dynamicChain.ThenFunc(app.userVerifyEmailPost))
 	mux.Handle("GET /user/verify-email/send-code", dynamicChain.ThenFunc(app.userVerifyEmailResendCode))
+	mux.Handle("POST /user/verify-email/send-code", dynamicChain.ThenFunc(app.userVerifyEmailResendCodePost))
 
 	commonChain := alice.New(app.recoverPanic, app.logRequest, app.commonHeaders)
 

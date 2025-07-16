@@ -10,6 +10,15 @@ RETURNING *;
 SELECT * FROM email_verification_requests WHERE
     code = $1;
 
--- name: DeleteEmailVerificationRequest :exec
-DELETE FROM email_verification_requests WHERE
+-- name: InvalidateEmailVerificationRequest :exec
+UPDATE email_verification_requests
+SET expiry = sqlc.arg(now)::timestamptz
+WHERE
     id = $1;
+
+-- name: InvalidateEmailVerificationRequestsOfUser :exec
+UPDATE email_verification_requests
+SET expiry = sqlc.arg(now)::timestamptz
+WHERE
+    user_id = $1 AND
+    expiry > sqlc.arg(now)::timestamptz;

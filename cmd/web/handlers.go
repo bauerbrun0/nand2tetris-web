@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
+	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
@@ -75,6 +76,68 @@ func (app *application) userVerifyEmail(w http.ResponseWriter, r *http.Request) 
 	app.render(r.Context(), w, r, verifyemailpage.Page(email, &verifyemailpage.VerifyEmailForm{}))
 }
 
+func (app *application) userVerifyEmailPost(w http.ResponseWriter, r *http.Request) {
+	var form verifyemailpage.VerifyEmailForm
+	form.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	form.CheckFieldError(form.Validate.Var(form.Code, "required"), "code", "Code field is required")
+
+	if !form.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, verifyemailpage.Page(form.Email, &form))
+		return
+	}
+
+	ok, err := app.userService.VerifyEmail(form.Code)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	if !ok {
+		form.AddFieldError("code", "The verification code you entered is invalid or has expired. Please try again.")
+		app.render(r.Context(), w, r, verifyemailpage.Page(form.Email, &form))
+		return
+	}
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
 func (app *application) userVerifyEmailResendCode(w http.ResponseWriter, r *http.Request) {
 	app.render(r.Context(), w, r, verifyemailsendcodepage.Page(&verifyemailsendcodepage.VerifyEmailSendCodeForm{}))
+}
+
+func (app *application) userVerifyEmailResendCodePost(w http.ResponseWriter, r *http.Request) {
+	var form verifyemailsendcodepage.VerifyEmailSendCodeForm
+	form.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	form.CheckFieldError(form.Validate.Var(form.Email, "required"), "email", "Email field is required")
+	form.CheckFieldError(form.Validate.Var(form.Email, "email"), "email", "Email field must be a valid email")
+
+	if !form.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, verifyemailsendcodepage.Page(&form))
+		return
+	}
+
+	_, err = app.userService.ResendEmailVerificationCode(form.Email)
+
+	if err != nil && !errors.Is(err, models.ErrUserDoesNotExist) && !errors.Is(err, services.ErrEmailAlreadyVerified) {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "email-to-verify", form.Email)
+	http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
 }

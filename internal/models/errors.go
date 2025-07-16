@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrDuplicateEmail    = errors.New("db: duplicate email")
 	ErrDuplicateUsername = errors.New("db: duplicate username")
+	ErrUserDoesNotExist  = errors.New("db: user does not exist")
 )
 
 const (

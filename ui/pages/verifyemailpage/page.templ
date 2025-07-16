@@ -8,6 +8,7 @@ import (
 
 type VerifyEmailForm struct {
 	Code                string `form:"code"`
+	Email				string `form:"email"`
 	validator.Validator `form:-`
 }
 
@@ -43,6 +44,7 @@ templ formWithEmail(email string, formData *VerifyEmailForm) {
 			code to <strong>{ email }</strong>.
 			Enter the code below to verify your email address.
 		</p>
+		<input type="hidden" id="email" name="email" value={ email }>
 		if formData.FieldErrors["code"] != "" {
 			<label for="code" class="block mb-2 font-medium text-red-500">{ formData.FieldErrors["code"] }</label>
 		}
