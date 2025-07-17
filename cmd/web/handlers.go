@@ -8,6 +8,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/loginpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailsendcodepage"
@@ -23,6 +24,10 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) userRegister(w http.ResponseWriter, r *http.Request) {
 	app.render(r.Context(), w, r, registerpage.Page(&registerpage.RegisterForm{}))
+}
+
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	app.render(r.Context(), w, r, loginpage.Page(&loginpage.LoginForm{}))
 }
 
 func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request) {
