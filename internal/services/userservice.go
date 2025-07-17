@@ -16,6 +16,8 @@ import (
 
 var (
 	ErrEmailAlreadyVerified = errors.New("userservice: user email already verified")
+	ErrInvalidCredentials   = errors.New("userservice: invalid credentials")
+	ErrEmailNotVerified     = errors.New("userservice: email not verified")
 )
 
 type UserService struct {
@@ -250,4 +252,46 @@ func (s *UserService) getUniqueEmailVerificationCode(qtx *models.Queries) (strin
 			return code, nil
 		}
 	}
+}
+
+func (s *UserService) AuthenticateUser(username, password string) (*models.User, error) {
+	queries := models.New(s.pool)
+
+	user, err := queries.GetUserByUsernameOrEmail(s.ctx, username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil, err
+	}
+
+	var hasher crypto.PasswordHasher
+	ok, err := hasher.ComparePasswordAndHash(password, user.PasswordHash.String)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, ErrInvalidCredentials
+	}
+
+	if !user.EmailVerified.Bool {
+		return &user, ErrEmailNotVerified
+	}
+
+	return &user, nil
+}
+
+func (s *UserService) UserExists(id int32) (*models.GetUserInfoRow, error) {
+	queries := models.New(s.pool)
+
+	user, err := queries.GetUserInfo(s.ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
 }

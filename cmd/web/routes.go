@@ -20,7 +20,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Handle("GET /static/", app.disableCacheInDevMode(fs))
 
-	dynamicChain := alice.New(app.sessionManager.LoadAndSave)
+	dynamicChain := alice.New(app.sessionManager.LoadAndSave, app.authenticate)
 
 	mux.Handle("GET /{$}", dynamicChain.ThenFunc(app.home))
 	mux.Handle("GET /user/register", dynamicChain.ThenFunc(app.userRegister))
@@ -30,6 +30,7 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /user/verify-email/send-code", dynamicChain.ThenFunc(app.userVerifyEmailResendCode))
 	mux.Handle("POST /user/verify-email/send-code", dynamicChain.ThenFunc(app.userVerifyEmailResendCodePost))
 	mux.Handle("GET /user/login", dynamicChain.ThenFunc(app.userLogin))
+	mux.Handle("POST /user/login", dynamicChain.ThenFunc(app.userLoginPost))
 
 	commonChain := alice.New(app.recoverPanic, app.logRequest, app.commonHeaders)
 

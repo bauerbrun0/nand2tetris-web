@@ -5,8 +5,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
+	"github.com/bauerbrun0/nand2tetris-web/internal/models"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 )
 
@@ -42,4 +45,29 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 		return err
 	}
 	return nil
+}
+
+func (app *application) newPageData(r *http.Request) pages.PageData {
+	return pages.PageData{
+		CurrentYear:     time.Now().Year(),
+		IsAuthenticated: app.isAuthenticated(r),
+		UserInfo:        app.getAuthenticatedUserInfo(r),
+	}
+}
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return isAuthenticated
+}
+
+func (app *application) getAuthenticatedUserInfo(r *http.Request) *models.GetUserInfoRow {
+	user, ok := r.Context().Value(authenticatedUserInfoKey).(*models.GetUserInfoRow)
+	if !ok {
+		return nil
+	}
+	return user
 }

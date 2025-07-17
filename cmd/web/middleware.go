@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -59,6 +60,31 @@ func (app *application) commonHeaders(next http.Handler) http.Handler {
 		w.Header().Set("X-XSS-Protection", "0")
 
 		w.Header().Set("Server", "Go")
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := app.sessionManager.GetInt32(r.Context(), "authenticatedUserId")
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+		app.logger.Info("authenticate middleware", "id", id)
+
+		user, err := app.userService.UserExists(id)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+
+		if user != nil {
+			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
+			ctx = context.WithValue(ctx, authenticatedUserInfoKey, user)
+			r = r.WithContext(ctx)
+		}
 
 		next.ServeHTTP(w, r)
 	})

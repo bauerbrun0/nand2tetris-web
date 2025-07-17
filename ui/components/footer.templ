@@ -1,5 +1,7 @@
 package components
 
+import "github.com/bauerbrun0/nand2tetris-web/ui/pages"
+
 templ titleFooter() {
 	<div>
 		<a href="/" class="flex space-x-3 items-center">
@@ -25,7 +27,7 @@ templ links() {
 	</div>
 }
 
-templ Footer() {
+templ Footer(data pages.PageData) {
 	<div>
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
 		<div class="inner-container py-5">
