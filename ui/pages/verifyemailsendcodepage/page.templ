@@ -1,7 +1,6 @@
 package verifyemailsendcodepage
 
 import (
-	"fmt"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
@@ -13,16 +12,6 @@ type VerifyEmailSendCodeForm struct {
 }
 
 templ Page(formData *VerifyEmailSendCodeForm) {
-	{{
-		inputClasses := `
-			block w-full ps-10 p-2.5 rounded-lg
-			bg-white-500 focus:bg-white-200 dark:bg-silver-800 dark:focus:bg-silver-900
-			text-silver-800 dark:text-silver-100
-			border border-silver-800 dark:border-silver-700
-			focus:border-primary-500 dark:focus:border-primary-500
-			focus:ring-primary-500 dark:focus:ring-primary-500
-		`
-	}}
 	@layouts.BaseLayout() {
 		<div class="inner-container min-h-full flex justify-center items-center">
 			<div class="w-full max-w-sm p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
@@ -31,26 +20,15 @@ templ Page(formData *VerifyEmailSendCodeForm) {
 					<p class="text-center text-sm">
 						Please enter your email address below to receive a verification code by email.
 					</p>
-					if formData.FieldErrors["email"] != "" {
-						<label for="code" class="block mb-2 font-medium text-red-500">{ formData.FieldErrors["email"] }</label>
-					}
-					<div class="relative mb-6">
-						<div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-							@components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100")
-						</div>
-						<input
-							type="email"
-							id="email"
-							name="email"
-							value={ formData.Email }
-							if formData.FieldErrors["email"] == "" {
-								class={ inputClasses }
-							} else {
-								class={ fmt.Sprintf("%s !border-red-500", inputClasses) }
-							}
-							placeholder="user@example.com"
-						/>
-					</div>
+					@components.Input(components.InputOptions{
+						Label:       "",
+						Name:        "email",
+						Value:       formData.Email,
+						Placeholder: "user@example.com",
+						FieldType:   "email",
+						Icon:        components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+						Err:         formData.FieldErrors["email"],
+					})
 					<button
 						type="submit"
 						class={ `
