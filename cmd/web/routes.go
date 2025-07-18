@@ -32,6 +32,10 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /user/login", dynamicChain.ThenFunc(app.userLogin))
 	mux.Handle("POST /user/login", dynamicChain.ThenFunc(app.userLoginPost))
 
+	protectedChain := dynamicChain.Append(app.requireAuthentication)
+
+	mux.Handle("POST /user/logout", protectedChain.ThenFunc(app.userLogoutPost))
+
 	commonChain := alice.New(app.recoverPanic, app.logRequest, app.commonHeaders)
 
 	return commonChain.Then(mux)
