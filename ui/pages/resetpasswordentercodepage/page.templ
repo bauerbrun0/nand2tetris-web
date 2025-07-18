@@ -1,0 +1,56 @@
+package resetpasswordentercodepage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+type ResetPasswordEnterCodePageData struct {
+	Code                string `form:"code"`
+	Email               string `form:"email"`
+	validator.Validator `form:-`
+	pages.PageData      `form:-`
+}
+
+templ Page(data ResetPasswordEnterCodePageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container min-h-full flex justify-center items-center">
+			<div class="w-full max-w-sm p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+				@form(data)
+			</div>
+		</div>
+	}
+}
+
+templ form(data ResetPasswordEnterCodePageData) {
+	<form class="space-y-6" action="/user/reset-password/enter-code" method="POST" novalidate>
+		<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Check your inbox</h5>
+		<p class="text-center text-sm">
+			We’ve sent a verification code to <strong>{ data.Email }</strong>. Enter the code below to continue resetting your password.
+		</p>
+		<input type="hidden" name="email" value={ data.Email }/>
+		@components.Input(components.InputOptions{
+			Label:       "",
+			Name:        "code",
+			Value:       data.Code,
+			Placeholder: "Reset Code",
+			FieldType:   "text",
+			Icon:        nil,
+			Err:         data.FieldErrors["code"],
+		})
+		<button
+			type="submit"
+			class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+		>
+			Reset Password
+		</button>
+	</form>
+}

@@ -44,7 +44,7 @@ templ form(data LoginPageData) {
 				Icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
 				Err:         data.FieldErrors["password"],
 			})
-			<a href="/user/reset-password" class="text-sm text-link dark:text-link-dark inline-block">Forgot password?</a>
+			<a href="/user/reset-password/send-code" class="text-sm text-link dark:text-link-dark inline-block">Forgot password?</a>
 			@loginButton()
 			@divider()
 			@ssoButtons()

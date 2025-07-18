@@ -11,6 +11,9 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/loginpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordentercodepage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordpage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordsendcodepage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailsendcodepage"
 )
@@ -234,5 +237,114 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Remove(r.Context(), "authenticatedUserId")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) userResetPasswordSendCode(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordsendcodepage.ResetPasswordSendCodePageData{
+		PageData: basePageData,
+	}
+	app.render(r.Context(), w, r, resetpasswordsendcodepage.Page(pageData))
+}
+
+func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordsendcodepage.ResetPasswordSendCodePageData{
+		PageData: basePageData,
+	}
+	pageData.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &pageData)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "required"), "email", "Email field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "email"), "email", "Email field must be a valid email")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, resetpasswordsendcodepage.Page(pageData))
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "reset-password-email", pageData.Email)
+	http.Redirect(w, r, "/user/reset-password/enter-code", http.StatusSeeOther)
+}
+
+func (app *application) userResetPasswordEnterCode(w http.ResponseWriter, r *http.Request) {
+	email := app.sessionManager.PopString(r.Context(), "reset-password-email")
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordentercodepage.ResetPasswordEnterCodePageData{
+		PageData: basePageData,
+		Email:    email,
+	}
+	app.render(r.Context(), w, r, resetpasswordentercodepage.Page(pageData))
+}
+
+func (app *application) userResetPasswordEnterCodePost(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordentercodepage.ResetPasswordEnterCodePageData{
+		PageData: basePageData,
+	}
+	pageData.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &pageData)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Code, "required"), "code", "Code field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "required"), "email", "Email field is required")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, resetpasswordentercodepage.Page(pageData))
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "password-reset-code", pageData.Code)
+	http.Redirect(w, r, "/user/reset-password", http.StatusSeeOther)
+}
+
+func (app *application) userResetPassword(w http.ResponseWriter, r *http.Request) {
+	code := app.sessionManager.PopString(r.Context(), "password-reset-code")
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordpage.ResetPasswordPageData{
+		PageData: basePageData,
+		Code:     code,
+	}
+
+	app.render(r.Context(), w, r, resetpasswordpage.Page(pageData))
+}
+
+func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := resetpasswordpage.ResetPasswordPageData{
+		PageData: basePageData,
+	}
+	pageData.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &pageData)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Code, "required"), "code", "Code field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "required"), "new-password", "New password field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "min=8"), "new-password", "New password must contain at least 8 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPasswordConfirmation, "required"), "new-password-confirmation", "Field is required")
+	pageData.CheckFieldBool(pageData.NewPassword == pageData.NewPasswordConfirmation, "new-password", "Passwords do not match")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, resetpasswordpage.Page(pageData))
+		return
+	}
+
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
