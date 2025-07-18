@@ -11,7 +11,7 @@ import {
 
 // @ts-expect-error
 window.Alpine = Alpine;
-
+Alpine.store("profileDropDown", false);
 Alpine.store("theme", {
   current: "dark",
 
