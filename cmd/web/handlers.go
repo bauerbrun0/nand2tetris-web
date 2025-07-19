@@ -395,7 +395,7 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 
 	err = app.sessionManager.Iterate(r.Context(), func(ctx context.Context) error {
 		userID := app.sessionManager.GetInt32(ctx, "authenticatedUserId")
-		if userID == request.ID {
+		if userID == request.UserID {
 			return app.sessionManager.Destroy(ctx)
 		}
 		return nil
