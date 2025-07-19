@@ -59,9 +59,19 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "required"), "email", "field is required")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "email"), "email", "field must be a valid email")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "max=128"), "email", "cannot contain more than 128 characters")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Username, "required"), "username", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Username, "min=3"), "username", "must contain at least 3 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Username, "max=64"), "username", "cannot contain more than 64 characters")
+	err = pageData.Validate.Var(pageData.Username, "email")
+	if err == nil {
+		pageData.AddFieldError("username", "field must not be an email")
+	}
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Username, "no_whitespace"), "username", "field cannot contain whitespace characters")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "required"), "password", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "no_whitespace"), "password", "field cannot contain whitespace characters")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "min=8"), "password", "must contain at least 8 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "max=64"), "password", "cannot contain more than 64 characters")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.PasswordConfirmation, "required"), "password-confirmation", "field is required")
 	pageData.CheckFieldBool(pageData.Password == pageData.PasswordConfirmation, "password", "passwords do not match")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Terms, "required,eq=on"), "terms", "You must agree to the Terms & Conditions")
@@ -194,6 +204,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Username, "required"), "username", "field is required")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "required"), "password", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.Password, "max=64"), "password", "cannot contain more than 64 characters")
 
 	if !pageData.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -356,7 +367,9 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Code, "required"), "code", "Code field is required")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "required"), "new-password", "New password field is required")
-	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "min=8"), "new-password", "New password must contain at least 8 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "no_whitespace"), "new-password", "Password cannot contain whitespace characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "min=8"), "new-password", "Must contain at least 8 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPassword, "max=64"), "new-password", "Cannot contain more than 64 characters")
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.NewPasswordConfirmation, "required"), "new-password-confirmation", "Field is required")
 	pageData.CheckFieldBool(pageData.NewPassword == pageData.NewPasswordConfirmation, "new-password", "Passwords do not match")
 

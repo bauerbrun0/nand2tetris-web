@@ -1,6 +1,10 @@
 package validator
 
-import "github.com/go-playground/validator/v10"
+import (
+	"unicode"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type Validator struct {
 	FieldErrors    map[string]string
@@ -9,7 +13,16 @@ type Validator struct {
 }
 
 func NewValidator() *validator.Validate {
-	return validator.New(validator.WithRequiredStructEnabled())
+	v := validator.New(validator.WithRequiredStructEnabled())
+	v.RegisterValidation("no_whitespace", func(fl validator.FieldLevel) bool {
+		for _, r := range fl.Field().String() {
+			if unicode.IsSpace(r) {
+				return false
+			}
+		}
+		return true
+	})
+	return v
 }
 
 func (v *Validator) Valid() bool {
