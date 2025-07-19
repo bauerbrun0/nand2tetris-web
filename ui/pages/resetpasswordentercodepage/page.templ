@@ -27,10 +27,16 @@ templ Page(data ResetPasswordEnterCodePageData) {
 templ form(data ResetPasswordEnterCodePageData) {
 	<form class="space-y-6" action="/user/reset-password/enter-code" method="POST" novalidate>
 		<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Check your inbox</h5>
-		<p class="text-center text-sm">
-			We’ve sent a verification code to <strong>{ data.Email }</strong>. Enter the code below to continue resetting your password.
-		</p>
-		<input type="hidden" name="email" value={ data.Email }/>
+		if data.Email != "" {
+			<p class="text-center text-sm">
+				We’ve sent a verification code to <strong>{ data.Email }</strong>. Enter the code below to continue resetting your password.
+			</p>
+			<input type="hidden" name="email" value={ data.Email }/>
+		} else {
+			<p class="text-center text-sm">
+				We’ve sent a verification code to your email. Enter the code below to continue resetting your password.
+			</p>
+		}
 		@components.Input(components.InputOptions{
 			Label:       "",
 			Name:        "code",
@@ -53,4 +59,16 @@ templ form(data ResetPasswordEnterCodePageData) {
 			Reset Password
 		</button>
 	</form>
+	if data.Email != "" {
+		<form action="/user/reset-password/send-code" method="POST">
+			<input type="hidden" id="email" name="email" value={ data.Email }/>
+			<div class="text-sm font-medium text-silver-600 mt-6">
+				Did not receive an email? <button type="submit" class="text-link dark:text-link-dark cursor-pointer">Resend Code</button>
+			</div>
+		</form>
+	} else {
+		<div class="text-sm font-medium text-silver-600 mt-6">
+			Did not receive an email? <a href="/user/reset-password/send-code" class="text-link dark:text-link-dark cursor-pointer">Resend Code</a>
+		</div>
+	}
 }

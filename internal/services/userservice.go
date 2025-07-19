@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	ErrEmailAlreadyVerified = errors.New("userservice: user email already verified")
-	ErrInvalidCredentials   = errors.New("userservice: invalid credentials")
-	ErrEmailNotVerified     = errors.New("userservice: email not verified")
+	ErrEmailAlreadyVerified     = errors.New("userservice: user email already verified")
+	ErrInvalidCredentials       = errors.New("userservice: invalid credentials")
+	ErrEmailNotVerified         = errors.New("userservice: email not verified")
+	ErrPasswordResetCodeInvalid = errors.New("userservice: password reset code is invalid")
 )
 
 type UserService struct {
@@ -294,4 +295,177 @@ func (s *UserService) UserExists(id int32) (*models.GetUserInfoRow, error) {
 	}
 
 	return &user, nil
+}
+
+func (s *UserService) SendPasswordResetCode(email string) (*models.PasswordResetRequest, error) {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	user, err := qtx.GetUserByEmail(s.ctx, email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, models.ErrUserDoesNotExist
+		}
+		return nil, err
+	}
+
+	now := time.Now()
+
+	// invalidate all previous password reset codes
+	err = qtx.InvalidatePasswordResetRequestsOfUser(s.ctx, models.InvalidatePasswordResetRequestsOfUserParams{
+		UserID: user.ID,
+		Now: pgtype.Timestamptz{
+			Time:  now,
+			Valid: true,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	code, err := s.getUniquePasswordResetCode(qtx)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := qtx.CreatePasswordResetRequest(s.ctx, models.CreatePasswordResetRequestParams{
+		UserID: user.ID,
+		Email:  user.Email,
+		Code:   code,
+		VerifyEmailAfter: pgtype.Bool{
+			Bool:  !user.EmailVerified.Bool,
+			Valid: true,
+		},
+		Expiry: pgtype.Timestamptz{
+			Time:  now.Add(15 * time.Minute),
+			Valid: true,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.emailService.SendPasswordResetEmail(user.Email, code)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &request, nil
+}
+
+func (s *UserService) VerifyPasswordResetCode(code string) (bool, error) {
+	queries := models.New(s.pool)
+
+	request, err := queries.GetPasswordResetRequestByCode(s.ctx, code)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return false, err
+	}
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+
+	if time.Now().After(request.Expiry.Time) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (s *UserService) ResetPassword(newPassword, code string) (*models.PasswordResetRequest, error) {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	request, err := s.verifyAndInvalidatePasswordResetCode(qtx, code)
+	if err != nil {
+		return nil, err
+	}
+
+	var hasher crypto.PasswordHasher
+	hash, err := hasher.GenerateFromPassword(newPassword, crypto.DefaultPasswordHashParams)
+
+	err = qtx.ChangeUserPasswordHash(s.ctx, models.ChangeUserPasswordHashParams{
+		ID: request.UserID,
+		PasswordHash: pgtype.Text{
+			String: hash,
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return request, nil
+}
+
+func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, code string) (*models.PasswordResetRequest, error) {
+	request, err := qtx.GetPasswordResetRequestByCode(s.ctx, code)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrPasswordResetCodeInvalid
+	}
+
+	now := time.Now()
+
+	if now.After(request.Expiry.Time) {
+		return nil, ErrPasswordResetCodeInvalid
+	}
+
+	err = qtx.InvalidatePasswordResetRequest(s.ctx, models.InvalidatePasswordResetRequestParams{
+		ID: request.ID,
+		Now: pgtype.Timestamptz{
+			Time:  now,
+			Valid: true,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &request, nil
+}
+
+func (s *UserService) getUniquePasswordResetCode(qtx *models.Queries) (string, error) {
+	var code string
+	var err error
+
+	for {
+		code = crypto.GeneratePasswordResetCode()
+		_, err = qtx.GetPasswordResetRequestByCode(s.ctx, code)
+
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return "", err
+		}
+
+		if err != nil && errors.Is(err, pgx.ErrNoRows) {
+			return code, nil
+		}
+	}
 }

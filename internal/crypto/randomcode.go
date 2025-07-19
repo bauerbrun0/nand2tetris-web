@@ -14,6 +14,14 @@ func GenerateEmailVerificationCode() string {
 	return result
 }
 
+func GeneratePasswordResetCode() string {
+	var result string
+	for range 12 {
+		result += strconv.FormatUint(uint64(GenerateRandomUint32(9)), 10)
+	}
+	return result
+}
+
 func GenerateRandomUint32(max uint32) uint32 {
 	bytes := make([]byte, 4)
 	rand.Read(bytes)

@@ -23,3 +23,8 @@ UPDATE users SET email_verified = true WHERE
 SELECT id, username, email, created FROM users
 WHERE
     id = $1;
+
+-- name: ChangeUserPasswordHash :exec
+UPDATE users SET password_hash = $2
+WHERE
+    id = $1;

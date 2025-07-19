@@ -22,3 +22,9 @@ func (es *EmailService) SendVerificationEmail(to string, code string) error {
 	body := fmt.Sprintf("Your code is: %s", code)
 	return es.sender.Send(to, subject, body)
 }
+
+func (es *EmailService) SendPasswordResetEmail(to string, code string) error {
+	subject := "Password reset code"
+	body := fmt.Sprintf("Your code is: %s", code)
+	return es.sender.Send(to, subject, body)
+}

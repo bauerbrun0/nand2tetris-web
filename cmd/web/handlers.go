@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -270,6 +271,12 @@ func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *
 		return
 	}
 
+	_, err = app.userService.SendPasswordResetCode(pageData.Email)
+	if err != nil && !errors.Is(err, models.ErrUserDoesNotExist) {
+		app.serverError(w, r, err)
+		return
+	}
+
 	app.sessionManager.Put(r.Context(), "reset-password-email", pageData.Email)
 	http.Redirect(w, r, "/user/reset-password/enter-code", http.StatusSeeOther)
 }
@@ -301,6 +308,19 @@ func (app *application) userResetPasswordEnterCodePost(w http.ResponseWriter, r 
 	pageData.CheckFieldError(pageData.Validate.Var(pageData.Email, "required"), "email", "Email field is required")
 
 	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, resetpasswordentercodepage.Page(pageData))
+		return
+	}
+
+	valid, err := app.userService.VerifyPasswordResetCode(pageData.Code)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	if !valid {
+		pageData.AddFieldError("code", "Provided code is invalid or has expired")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		app.render(r.Context(), w, r, resetpasswordentercodepage.Page(pageData))
 		return
@@ -343,6 +363,32 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 	if !pageData.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		app.render(r.Context(), w, r, resetpasswordpage.Page(pageData))
+		return
+	}
+
+	request, err := app.userService.ResetPassword(pageData.NewPassword, pageData.Code)
+
+	if err != nil && errors.Is(err, services.ErrPasswordResetCodeInvalid) {
+		pageData.AddFieldError("code", "Provided password reset code is invalid")
+		w.WriteHeader(http.StatusUnauthorized)
+		app.render(r.Context(), w, r, resetpasswordpage.Page(pageData))
+		return
+	}
+
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	err = app.sessionManager.Iterate(r.Context(), func(ctx context.Context) error {
+		userID := app.sessionManager.GetInt32(ctx, "authenticatedUserId")
+		if userID == request.ID {
+			return app.sessionManager.Destroy(ctx)
+		}
+		return nil
+	})
+	if err != nil {
+		app.serverError(w, r, err)
 		return
 	}
 
