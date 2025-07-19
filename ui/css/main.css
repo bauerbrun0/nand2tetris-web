@@ -79,3 +79,7 @@
 .inner-container {
     @apply w-full 2xl:max-w-(--max-container-width) 2xl:min-w-(--max-container-width) mx-auto px-2 md:px-4 min-w-0;
 }
+
+[x-cloak] {
+    display: none !important;
+}
