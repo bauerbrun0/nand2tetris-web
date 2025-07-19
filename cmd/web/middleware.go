@@ -100,3 +100,32 @@ func (app *application) requireAuthentication(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func (app *application) requireUnathenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.isAuthenticated(r) {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) requireUnverifiedEmail(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !app.isAuthenticated(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user := app.getAuthenticatedUserInfo(r)
+
+		if !user.EmailVerified.Bool {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})
+}

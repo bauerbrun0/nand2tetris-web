@@ -20,7 +20,7 @@ UPDATE users SET email_verified = true WHERE
     id = $1;
 
 -- name: GetUserInfo :one
-SELECT id, username, email, created FROM users
+SELECT id, username, email, email_verified, created FROM users
 WHERE
     id = $1;
 
