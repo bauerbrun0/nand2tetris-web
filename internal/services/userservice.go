@@ -421,6 +421,56 @@ func (s *UserService) ResetPassword(newPassword, code string) (*models.PasswordR
 	return request, nil
 }
 
+func (s *UserService) ChangePassword(userId int32, currentPassword, newPassword string) error {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	user, err := qtx.GetUserById(s.ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	var hasher crypto.PasswordHasher
+	ok, err := hasher.ComparePasswordAndHash(currentPassword, user.PasswordHash.String)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+		return ErrInvalidCredentials
+	}
+
+	newPasswordHash, err := hasher.GenerateFromPassword(newPassword, crypto.DefaultPasswordHashParams)
+	if err != nil {
+		return err
+	}
+
+	err = qtx.ChangeUserPasswordHash(s.ctx, models.ChangeUserPasswordHashParams{
+		ID: userId,
+		PasswordHash: pgtype.Text{
+			String: newPasswordHash,
+			Valid:  true,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, code string) (*models.PasswordResetRequest, error) {
 	request, err := qtx.GetPasswordResetRequestByCode(s.ctx, code)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {

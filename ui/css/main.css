@@ -10,6 +10,7 @@
 
 @theme {
     --max-container-width: 1750px;
+    --max-container-width-small: 1200px;
 
     --color-bg: #e8e8e8;
     --color-bg-dark: #181818;
@@ -78,6 +79,10 @@
 
 .inner-container {
     @apply w-full 2xl:max-w-(--max-container-width) 2xl:min-w-(--max-container-width) mx-auto px-2 md:px-4 min-w-0;
+}
+
+.inner-container-small {
+    @apply w-full 2xl:max-w-(--max-container-width-small) 2xl:min-w-(--max-container-width-small) mx-auto px-2 md:px-4 min-w-0;
 }
 
 [x-cloak] {

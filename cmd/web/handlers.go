@@ -15,6 +15,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordentercodepage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordsendcodepage"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages/usersettingspage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailsendcodepage"
 )
@@ -396,6 +397,83 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 	err = app.sessionManager.Iterate(r.Context(), func(ctx context.Context) error {
 		userID := app.sessionManager.GetInt32(ctx, "authenticatedUserId")
 		if userID == request.UserID {
+			return app.sessionManager.Destroy(ctx)
+		}
+		return nil
+	})
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) userSettings(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := usersettingspage.UserSettingsPageData{
+		PageData: basePageData,
+	}
+	pageData.Validate = validator.NewValidator()
+	app.render(r.Context(), w, r, usersettingspage.Page(pageData))
+}
+
+func (app *application) userSettingsPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := app.newPageData(r)
+	pageData := usersettingspage.UserSettingsPageData{
+		PageData: basePageData,
+	}
+	pageData.Validate = validator.NewValidator()
+
+	err := app.decodePostForm(r, &pageData)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	if pageData.Form == "change-password" {
+		app.handleUserSettingsChangePasswordPost(w, r, &pageData)
+		return
+	}
+
+	pageData.AddFieldError("form", "Invalid form field")
+	w.WriteHeader(http.StatusBadRequest)
+	app.render(r.Context(), w, r, usersettingspage.Page(pageData))
+}
+
+func (app *application) handleUserSettingsChangePasswordPost(w http.ResponseWriter, r *http.Request, pageData *usersettingspage.UserSettingsPageData) {
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpCurrentPassword, "required"), "chp-current-password", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpCurrentPassword, "max=64"), "chp-current-password", "cannot contain more than 64 characters")
+
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpNewPassword, "required"), "chp-new-password", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpNewPassword, "no_whitespace"), "chp-new-password", "cannot contain whitespace characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpNewPassword, "min=8"), "chp-new-password", "must contain at least 8 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpNewPassword, "max=64"), "chp-new-password", "cannot contain more than 64 characters")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChpNewPasswordConfirmation, "required"), "chp-new-password-confirmation", "Field is required")
+	pageData.CheckFieldBool(pageData.ChpNewPassword == pageData.ChpNewPasswordConfirmation, "chp-new-password", "passwords do not match")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	err := app.userService.ChangePassword(pageData.UserInfo.ID, pageData.ChpCurrentPassword, pageData.ChpNewPassword)
+	if err != nil && errors.Is(err, services.ErrInvalidCredentials) {
+		pageData.AddFieldError("chp-current-password", "incorrect password")
+		w.WriteHeader(http.StatusUnauthorized)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	err = app.sessionManager.Iterate(r.Context(), func(ctx context.Context) error {
+		userID := app.sessionManager.GetInt32(ctx, "authenticatedUserId")
+		if userID == pageData.UserInfo.ID {
 			return app.sessionManager.Destroy(ctx)
 		}
 		return nil
