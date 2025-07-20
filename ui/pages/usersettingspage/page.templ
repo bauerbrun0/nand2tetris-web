@@ -8,20 +8,20 @@ import (
 )
 
 type UserSettingsPageData struct {
-	Form                       string `form:"form"` // change-password || change-email
+	Form                       string `form:"form"` // change-password || change-email || change-email-send-code
 	ChpCurrentPassword         string `form:"chp-current-password"`
 	ChpNewPassword             string `form:"chp-new-password"`
 	ChpNewPasswordConfirmation string `form:"chp-new-password-confirmation"`
+	ChePassword                string `form:"che-password"`
 	CheNewEmail                string `form:"che-new-email"`
+	ChescCode                  string `form:"chesc-code"`
 	validator.Validator        `form:-`
 	pages.PageData             `form:-`
 }
 
 templ Page(data UserSettingsPageData) {
 	@layouts.BaseLayout(data.PageData) {
-		<div
-			class="min-h-full inner-container-small py-6"
-		>
+		<div class="min-h-full inner-container-small py-6">
 			<h1 class="text-xl md:text-2xl font-bold">Settings</h1>
 			<h2 class="text-lg md:text-xl my-6">Account</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
@@ -29,6 +29,16 @@ templ Page(data UserSettingsPageData) {
 			<h2 class="md:text-lg mt-12 mb-6">Account security</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
 			@emailSection(data)
+			@emailChangeModal(data)
+			<button
+				class="hidden"
+				data-modal-target="email-change-send-code-modal"
+				data-modal-toggle="email-change-send-code-modal"
+				if data.Form == "change-email-send-code" {
+					x-init="$nextTick(() => $el.click())"
+				}
+			></button>
+			@emailChangeSendCodeModal(data)
 			@passwordSection(data)
 			@passwordChangeModal(data)
 		</div>
@@ -55,19 +65,23 @@ templ emailSection(data UserSettingsPageData) {
 			<span>Email</span>
 			<span class="font-light text-sm">{ data.UserInfo.Email }</span>
 		</div>
-		<form class="flex items-center ml-5">
+		<div class="flex items-center ml-5">
 			<button
-				type="submit"
+				data-modal-target="email-change-modal"
+				data-modal-toggle="email-change-modal"
+				if data.Form == "change-email" {
+					x-init="$nextTick(() => $el.click())"
+				}
 				class={ `
 					hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
 					focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg
 					text-sm px-5 py-2.5 text-center dark:border-white dark:text-white dark:hover:text-primary-700
-				 	dark:focus:ring-primary-800
+				 	dark:focus:ring-primary-800 whitespace-nowrap
 				` }
 			>
 				Change email
 			</button>
-		</form>
+		</div>
 	</div>
 }
 
@@ -159,6 +173,134 @@ templ passwordChangeModal(data UserSettingsPageData) {
 					Change Password
 				</button>
 			</form>
+		</div>
+	</div>
+}
+
+templ emailChangeModal(data UserSettingsPageData) {
+	<div id="email-change-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full">
+		<div
+			x-data
+			@click.outside="history.replaceState(null, '', window.location.pathname)"
+			class="relative mx-2 w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900"
+		>
+			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
+				<div class="flex items-center justify-between">
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
+					<button
+						type="button"
+						x-data
+						@click="history.replaceState(null, '', window.location.pathname)"
+						class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+						data-modal-hide="email-change-modal"
+					>
+						@components.XIcon("w-5 h-5")
+						<span class="sr-only">Close modal</span>
+					</button>
+				</div>
+				<input type="hidden" name="form" value="change-email"/>
+				@components.Input(components.InputOptions{
+					Label:       "Password",
+					Name:        "che-password",
+					Value:       "",
+					Placeholder: "••••••••",
+					FieldType:   "password",
+					Icon:        components.KeyIcon("w-4 h-4"),
+					Err:         data.FieldErrors["che-password"],
+				})
+				@components.Input(components.InputOptions{
+					Label:       "New Email",
+					Name:        "che-new-email",
+					Value:       data.CheNewEmail,
+					Placeholder: "user@example.com",
+					FieldType:   "email",
+					Icon:        components.EmailIcon("w-4 h-4"),
+					Err:         data.FieldErrors["che-new-email"],
+				})
+				<button
+					type="submit"
+					class={ `
+							w-full
+							hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+							focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+							px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+							dark:focus:ring-primary-800
+						` }
+				>
+					Change Email
+				</button>
+			</form>
+			<div class="text-sm font-medium text-silver-600 mt-6">
+				Already received an email?
+				<button
+					class="text-link dark:text-link-dark cursor-pointer"
+					data-modal-hide="email-change-modal"
+					data-modal-show="email-change-send-code-modal"
+				>
+					Enter Code
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+templ emailChangeSendCodeModal(data UserSettingsPageData) {
+	<div id="email-change-send-code-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%)] max-h-full">
+		<div
+			x-data
+			@click.outside="history.replaceState(null, '', window.location.pathname)"
+			class="relative mx-2 w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900"
+		>
+			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
+				<div class="flex items-center justify-between">
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
+					<button
+						type="button"
+						x-data
+						@click="history.replaceState(null, '', window.location.pathname)"
+						class="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+						data-modal-hide="email-change-send-code-modal"
+					>
+						@components.XIcon("w-5 h-5")
+						<span class="sr-only">Close modal</span>
+					</button>
+				</div>
+				<p class="text-center text-sm">
+					We’ve sent a verification code to your new email. Enter the code below to continue changing your email.
+				</p>
+				<input type="hidden" name="form" value="change-email-send-code"/>
+				@components.Input(components.InputOptions{
+					Label:       "Code",
+					Name:        "chesc-code",
+					Value:       "",
+					Placeholder: "Verification Code",
+					FieldType:   "text",
+					Icon:        components.KeyIcon("w-4 h-4"),
+					Err:         data.FieldErrors["chesc-code"],
+				})
+				<button
+					type="submit"
+					class={ `
+							w-full
+							hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+							focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+							px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+							dark:focus:ring-primary-800
+						` }
+				>
+					Change Email
+				</button>
+			</form>
+			<div class="text-sm font-medium text-silver-600 mt-6">
+				To change the email or resend the code
+				<button
+					data-modal-hide="email-change-send-code-modal"
+					data-modal-show="email-change-modal"
+					class="text-link dark:text-link-dark cursor-pointer"
+				>
+					click here
+				</button>
+			</div>
 		</div>
 	</div>
 }

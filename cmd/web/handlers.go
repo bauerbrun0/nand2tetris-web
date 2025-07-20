@@ -436,6 +436,16 @@ func (app *application) userSettingsPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if pageData.Form == "change-email" {
+		app.handleUserSettingsChangeEmailPost(w, r, &pageData)
+		return
+	}
+
+	if pageData.Form == "change-email-send-code" {
+		app.handleUserSettingsChangeEmailSendCodePost(w, r, &pageData)
+		return
+	}
+
 	pageData.AddFieldError("form", "Invalid form field")
 	w.WriteHeader(http.StatusBadRequest)
 	app.render(r.Context(), w, r, usersettingspage.Page(pageData))
@@ -484,4 +494,61 @@ func (app *application) handleUserSettingsChangePasswordPost(w http.ResponseWrit
 	}
 
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) handleUserSettingsChangeEmailPost(w http.ResponseWriter, r *http.Request, pageData *usersettingspage.UserSettingsPageData) {
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChePassword, "required"), "che-password", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChePassword, "max=64"), "che-password", "cannot contain more than 64 characters")
+
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.CheNewEmail, "required"), "che-new-email", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.CheNewEmail, "email"), "che-new-email", "field must be a valid email")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.CheNewEmail, "max=128"), "che-new-email", "cannot contain more than 128 characters")
+	pageData.CheckFieldBool(pageData.CheNewEmail != pageData.UserInfo.Email, "che-new-email", "cannot be your current email")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	err := app.userService.SendEmailChangeRequestCode(pageData.UserInfo.ID, pageData.ChePassword, pageData.CheNewEmail)
+	if err != nil && errors.Is(err, services.ErrInvalidCredentials) {
+		pageData.AddFieldError("che-password", "incorrect password")
+		w.WriteHeader(http.StatusUnauthorized)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	pageData.Form = "change-email-send-code"
+	app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+}
+
+func (app *application) handleUserSettingsChangeEmailSendCodePost(w http.ResponseWriter, r *http.Request, pageData *usersettingspage.UserSettingsPageData) {
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.ChescCode, "required"), "chesc-code", "field is required")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	ok, err := app.userService.ChangeEmail(pageData.ChescCode)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	if !ok {
+		pageData.AddFieldError("chesc-code", "code incorrect or expired")
+		w.WriteHeader(http.StatusUnauthorized)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
 }

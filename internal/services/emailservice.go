@@ -28,3 +28,15 @@ func (es *EmailService) SendPasswordResetEmail(to string, code string) error {
 	body := fmt.Sprintf("Your code is: %s", code)
 	return es.sender.Send(to, subject, body)
 }
+
+func (es *EmailService) SendChangeEmailVerificationEmail(to string, code string) error {
+	subject := "Verify if this is your new email"
+	body := fmt.Sprintf("Your code is: %s", code)
+	return es.sender.Send(to, subject, body)
+}
+
+func (es *EmailService) SendChangeEmailNotificationEmail(to string) error {
+	subject := "Your email has been changed"
+	body := "Your email has been changed"
+	return es.sender.Send(to, subject, body)
+}

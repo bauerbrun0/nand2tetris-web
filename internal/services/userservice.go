@@ -471,6 +471,71 @@ func (s *UserService) ChangePassword(userId int32, currentPassword, newPassword 
 	return nil
 }
 
+func (s *UserService) SendEmailChangeRequestCode(userId int32, password, newEmail string) error {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	user, err := qtx.GetUserById(s.ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	var hasher crypto.PasswordHasher
+	ok, err := hasher.ComparePasswordAndHash(password, user.PasswordHash.String)
+	if !ok {
+		return ErrInvalidCredentials
+	}
+
+	now := time.Now()
+
+	err = qtx.InvalidateEmailVerificationRequestsOfUser(s.ctx, models.InvalidateEmailVerificationRequestsOfUserParams{
+		UserID: userId,
+		Now: pgtype.Timestamptz{
+			Time:  now,
+			Valid: true,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	code, err := s.getUniqueEmailVerificationCode(qtx)
+	if err != nil {
+		return err
+	}
+
+	_, err = qtx.CreateEmailVerificationRequest(s.ctx, models.CreateEmailVerificationRequestParams{
+		UserID: userId,
+		Email:  newEmail,
+		Code:   code,
+		Expiry: pgtype.Timestamptz{
+			Time:  now.Add(15 * time.Minute),
+			Valid: true,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = s.emailService.SendChangeEmailVerificationEmail(newEmail, code)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, code string) (*models.PasswordResetRequest, error) {
 	request, err := qtx.GetPasswordResetRequestByCode(s.ctx, code)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
@@ -518,4 +583,63 @@ func (s *UserService) getUniquePasswordResetCode(qtx *models.Queries) (string, e
 			return code, nil
 		}
 	}
+}
+
+func (s *UserService) ChangeEmail(code string) (bool, error) {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	request, err := qtx.GetEmailVerificationRequestByCode(s.ctx, code)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	user, err := qtx.GetUserById(s.ctx, request.UserID)
+	if err != nil {
+		return false, err
+	}
+
+	if time.Now().After(request.Expiry.Time) {
+		return false, nil
+	}
+
+	err = qtx.InvalidateEmailVerificationRequest(s.ctx, models.InvalidateEmailVerificationRequestParams{
+		ID: request.ID,
+		Now: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	err = qtx.ChangeUserEmail(s.ctx, models.ChangeUserEmailParams{
+		ID:    request.UserID,
+		Email: request.Email,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	err = s.emailService.SendChangeEmailNotificationEmail(user.Email)
+	if err != nil {
+		return false, err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
