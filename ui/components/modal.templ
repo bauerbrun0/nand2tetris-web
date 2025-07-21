@@ -29,7 +29,7 @@ templ Modal(options ModalOptions) {
 
 type CloseModalButtonOptions struct {
 	ModalId string
-	XRef string
+	XRef    string
 }
 
 templ CloseModalButton(options CloseModalButtonOptions) {
@@ -50,8 +50,8 @@ templ CloseModalButton(options CloseModalButtonOptions) {
 }
 
 type ToggleModalButtonOptions struct {
-	ModalId string
-	Text string // if empty the button is hidden
+	ModalId        string
+	Text           string // if empty the button is hidden
 	InitialTrigger bool
 }
 

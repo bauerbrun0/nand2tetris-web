@@ -54,13 +54,13 @@ templ emailSection(data UserSettingsPageData) {
 		</div>
 		<div class="flex items-center ml-5">
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
-				ModalId: "email-change-modal",
-				Text: "Change Email",
+				ModalId:        "email-change-modal",
+				Text:           "Change Email",
 				InitialTrigger: data.Form == "change-email",
 			})
 			@emailChangeModal(data)
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
-				ModalId: "email-change-send-code-modal",
+				ModalId:        "email-change-send-code-modal",
 				InitialTrigger: data.Form == "change-email-send-code",
 			})
 			@emailChangeSendCodeModal(data)
@@ -79,7 +79,7 @@ templ emailChangeModal(data UserSettingsPageData) {
 					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "email-change-modal",
-						XRef: "closeEmailChangeModalButton",
+						XRef:    "closeEmailChangeModalButton",
 					})
 				</div>
 				<input type="hidden" name="form" value="change-email"/>
@@ -133,7 +133,7 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "email-change-send-code-modal",
-						XRef: "closeEmailChangeSendCodeModalButton",
+						XRef:    "closeEmailChangeSendCodeModalButton",
 					})
 				</div>
 				<p class="text-center text-sm">
@@ -173,8 +173,8 @@ templ passwordSection(data UserSettingsPageData) {
 		</div>
 		<div class="flex items-center ml-5">
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
-				ModalId: "password-change-modal",
-				Text: "Change Password",
+				ModalId:        "password-change-modal",
+				Text:           "Change Password",
 				InitialTrigger: data.Form == "change-password",
 			})
 			@passwordChangeModal(data)
