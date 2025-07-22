@@ -272,8 +272,8 @@ templ deleteAccountModal(data UserSettingsPageData) {
 				@components.Input(components.InputOptions{
 					Label:       "Email",
 					Name:        "da-email",
-					Value:       "",
-					Placeholder: "",
+					Value:       data.DaEmail,
+					Placeholder: data.UserInfo.Email,
 					FieldType:   "email",
 					Icon:        components.EmailIcon("w-4 h-4"),
 					Err:         data.FieldErrors["da-email"],
