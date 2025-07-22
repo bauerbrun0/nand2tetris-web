@@ -8,6 +8,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/homepage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/landingpage"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/loginpage"
@@ -146,6 +147,13 @@ func (app *application) userVerifyEmailPost(w http.ResponseWriter, r *http.Reque
 		app.render(r.Context(), w, r, verifyemailpage.Page(pageData))
 		return
 	}
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully registered. Please log in to continue.",
+			Variant:  "success",
+			Duration: 3000,
+		},
+	})
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
@@ -187,6 +195,13 @@ func (app *application) userVerifyEmailResendCodePost(w http.ResponseWriter, r *
 	}
 
 	app.sessionManager.Put(r.Context(), "email-to-verify", pageData.Email)
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "An new email has been sent to " + pageData.Email + ". Check your inbox!",
+			Variant:  "info",
+			Duration: 3000,
+		},
+	})
 	http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
 }
 
@@ -239,6 +254,13 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Put(r.Context(), "authenticatedUserId", user.ID)
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "👋 Hi " + user.Username + "!",
+			Variant:  "simple",
+			Duration: 2000,
+		},
+	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -250,6 +272,13 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionManager.Remove(r.Context(), "authenticatedUserId")
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully signed out.",
+			Variant:  "simple",
+			Duration: 2000,
+		},
+	})
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
@@ -290,6 +319,13 @@ func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *
 	}
 
 	app.sessionManager.Put(r.Context(), "reset-password-email", pageData.Email)
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "An email has been sent to " + pageData.Email + ". Check your inbox!",
+			Variant:  "info",
+			Duration: 3000,
+		},
+	})
 	http.Redirect(w, r, "/user/reset-password/enter-code", http.StatusSeeOther)
 }
 
@@ -406,6 +442,13 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully changed your password. Please log in with your new credentials.",
+			Variant:  "success",
+			Duration: 3000,
+		},
+	})
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
@@ -498,6 +541,15 @@ func (app *application) handleUserSettingsChangePasswordPost(w http.ResponseWrit
 		return
 	}
 
+	app.sessionManager.Destroy(r.Context())
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully changed your password. Please log in with your new credentials.",
+			Variant:  "success",
+			Duration: 3000,
+		},
+	})
+
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
@@ -555,6 +607,13 @@ func (app *application) handleUserSettingsChangeEmailSendCodePost(w http.Respons
 		return
 	}
 
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully changed your email.",
+			Variant:  "success",
+			Duration: 2000,
+		},
+	})
 	http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
 }
 
@@ -577,5 +636,12 @@ func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWrite
 		return
 	}
 
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  "You’ve successfully deleted your account.",
+			Variant:  "success",
+			Duration: 2000,
+		},
+	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
