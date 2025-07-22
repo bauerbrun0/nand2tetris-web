@@ -8,7 +8,10 @@ import {
   storeThemeInLocaleStorage,
   toggleHtmlDarkClass,
 } from "./utils/theme.ts";
+import { showToast } from "./utils/toast.ts";
 
+// @ts-expect-error
+window.showToast = showToast;
 // @ts-expect-error
 window.Alpine = Alpine;
 Alpine.store("profileDropDown", false);

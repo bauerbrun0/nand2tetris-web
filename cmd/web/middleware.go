@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 )
 
 func (app *application) logRequest(next http.Handler) http.Handler {
@@ -127,5 +129,18 @@ func (app *application) requireUnverifiedEmail(next http.Handler) http.Handler {
 		}
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
+	})
+}
+
+func (app *application) getToasts(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		toasts, ok := app.sessionManager.Pop(r.Context(), "initialToasts").([]pages.Toast)
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
+		ctx := context.WithValue(r.Context(), initialToastsKey, toasts)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	})
 }

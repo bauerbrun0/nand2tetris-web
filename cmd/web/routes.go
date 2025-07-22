@@ -20,7 +20,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Handle("GET /static/", app.disableCacheInDevMode(fs))
 
-	dynamicChain := alice.New(app.sessionManager.LoadAndSave, app.authenticate)
+	dynamicChain := alice.New(app.sessionManager.LoadAndSave, app.authenticate, app.getToasts)
 
 	mux.Handle("GET /{$}", dynamicChain.ThenFunc(app.home))
 

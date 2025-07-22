@@ -52,6 +52,7 @@ func (app *application) newPageData(r *http.Request) pages.PageData {
 		CurrentYear:     time.Now().Year(),
 		IsAuthenticated: app.isAuthenticated(r),
 		UserInfo:        app.getAuthenticatedUserInfo(r),
+		InitialToasts:   app.getInitialToasts(r),
 	}
 }
 
@@ -70,4 +71,12 @@ func (app *application) getAuthenticatedUserInfo(r *http.Request) *models.GetUse
 		return nil
 	}
 	return user
+}
+
+func (app *application) getInitialToasts(r *http.Request) []pages.Toast {
+	toasts, ok := r.Context().Value(initialToastsKey).([]pages.Toast)
+	if !ok {
+		return []pages.Toast{}
+	}
+	return toasts
 }

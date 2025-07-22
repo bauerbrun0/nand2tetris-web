@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none); /* disable automatic source to register sources explicitly */
 @import "flowbite/src/themes/default";
+@import "./toast.css";
 
 @source "../../node_modules/flowbite";
 @source "../**/*.{templ,ts}";

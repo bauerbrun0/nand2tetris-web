@@ -11,6 +11,12 @@ templ Page(data pages.PageData) {
 			<p class="text-base text-center w-full">
 				{ data.UserInfo.Username } ({ data.UserInfo.Email })
 			</p>
+			<button
+				x-data
+				@click="showToast({ message: 'hello', variant: 'error', duration: 3000 })"
+			>
+				show toast
+			</button>
 		</div>
 	}
 }
