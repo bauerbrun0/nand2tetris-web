@@ -36,3 +36,6 @@ WHERE
 UPDATE users SET email = $2
 WHERE
     id = $1;
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1;

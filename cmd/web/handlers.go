@@ -446,6 +446,11 @@ func (app *application) userSettingsPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if pageData.Form == "delete-account" {
+		app.handleUserSettingsDeleteAccountPost(w, r, &pageData)
+		return
+	}
+
 	pageData.AddFieldError("form", "Invalid form field")
 	w.WriteHeader(http.StatusBadRequest)
 	app.render(r.Context(), w, r, usersettingspage.Page(pageData))
@@ -551,4 +556,26 @@ func (app *application) handleUserSettingsChangeEmailSendCodePost(w http.Respons
 	}
 
 	http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
+}
+
+func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, pageData *usersettingspage.UserSettingsPageData) {
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.DaEmail, "required"), "da-email", "field is required")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.DaEmail, "email"), "da-email", "field must be a valid email")
+	pageData.CheckFieldError(pageData.Validate.Var(pageData.DaEmail, "max=128"), "da-email", "cannot contain more than 128 characters")
+	pageData.CheckFieldBool(pageData.DaEmail == pageData.UserInfo.Email, "da-email", "type in your current email")
+
+	if !pageData.Valid() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		app.render(r.Context(), w, r, usersettingspage.Page(*pageData))
+		return
+	}
+
+	err := app.userService.DeleteAccount(pageData.UserInfo.ID)
+
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

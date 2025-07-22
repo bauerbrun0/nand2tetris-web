@@ -536,6 +536,12 @@ func (s *UserService) SendEmailChangeRequestCode(userId int32, password, newEmai
 	return nil
 }
 
+func (s *UserService) DeleteAccount(userId int32) error {
+	queries := models.New(s.pool)
+	err := queries.DeleteUser(s.ctx, userId)
+	return err
+}
+
 func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, code string) (*models.PasswordResetRequest, error) {
 	request, err := qtx.GetPasswordResetRequestByCode(s.ctx, code)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {

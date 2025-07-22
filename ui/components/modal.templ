@@ -50,9 +50,10 @@ templ CloseModalButton(options CloseModalButtonOptions) {
 }
 
 type ToggleModalButtonOptions struct {
-	ModalId        string
-	Text           string // if empty the button is hidden
-	InitialTrigger bool
+	ModalId           string
+	Text              string // if empty the button is hidden
+	InitialTrigger    bool
+	AdditionalClasses string
 }
 
 templ ToggleModalButton(options ToggleModalButtonOptions) {
@@ -66,6 +67,8 @@ templ ToggleModalButton(options ToggleModalButtonOptions) {
 		if options.Text == "" {
 			inputClasses += " hidden"
 		}
+
+		inputClasses += " " + options.AdditionalClasses
 	}}
 	<button
 		data-modal-target={ options.ModalId }
