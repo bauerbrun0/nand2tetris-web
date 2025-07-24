@@ -11,11 +11,8 @@ ui/static/css/*
 *_templ.txt
 
 # sqlc generated database access files
-internal/models/db.go
-internal/models/models.go
-internal/models/sessions.sql.go
-internal/models/users.sql.go
-internal/models/email_verification_requests.sql.go
+internal/models/*
+!internal/models/errors.go
 
 # tmp directory
 tmp/
