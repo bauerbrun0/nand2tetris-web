@@ -1,6 +1,9 @@
 package components
 
-import "github.com/bauerbrun0/nand2tetris-web/ui/pages"
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
 
 templ profileDropDown(data pages.PageData) {
 	<div
@@ -35,7 +38,9 @@ templ themeToggleButton() {
 			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
 		>
 			@SunIcon("w-5 h-5")
-			<span>Light Theme</span>
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.light_theme") }
+			</span>
 		</button>
 	</template>
 	<template x-data x-if="$store.theme.current === 'light'">
@@ -44,7 +49,9 @@ templ themeToggleButton() {
 			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
 		>
 			@MoonIcon("w-5 h-5")
-			<span>Dark Theme</span>
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.dark_theme") }
+			</span>
 		</button>
 	</template>
 }
@@ -55,7 +62,9 @@ templ profileSettingsLink() {
 		href="/user/settings"
 	>
 		@ToolIcon("w-5 h-5")
-		<span>Settings</span>
+		<span>
+			{ ctxi18n.T(ctx, "text.settings") }
+		</span>
 	</a>
 }
 
@@ -66,7 +75,9 @@ templ logoutForm() {
 			class="w-full text-left text-red-500 cursor-pointer hover:bg-red-100 hover:dark:bg-silver-800 p-2 rounded-md flex items center space-x-3"
 		>
 			@LogOutIcon("w-5 h-5")
-			<span>Log out</span>
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.log_out") }
+			</span>
 		</button>
 	</form>
 }

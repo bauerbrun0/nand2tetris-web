@@ -1,6 +1,9 @@
 package components
 
-import "github.com/bauerbrun0/nand2tetris-web/ui/pages"
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
 
 templ titleFooter() {
 	<div>
@@ -14,14 +17,18 @@ templ titleFooter() {
 templ links() {
 	<div class="flex justify-between">
 		<div class="flex flex-col space-y-3 mr-10 md:mr-30">
-			<span class="font-medium">SOCIAL</span>
+			<span class="font-medium">
+				{ ctxi18n.T(ctx, "footer.social") }
+			</span>
 			<a href="/" class="text-footer-link dark:text-footer-link-dark">GitHub</a>
 		</div>
 		<div class="flex flex-col space-y-3">
-			<span class="font-medium">LEGAL</span>
-			<a href="/" class="text-footer-link dark:text-footer-link-dark">License</a>
-			<a href="/" class="text-footer-link dark:text-footer-link-dark">Terms & Conditions</a>
-			<a href="/" class="text-footer-link dark:text-footer-link-dark">Privacy Policy</a>
+			<span class="font-medium">
+				{ ctxi18n.T(ctx, "footer.legal") }
+			</span>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">{ ctxi18n.T(ctx, "footer.license") }</a>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">{ ctxi18n.T(ctx, "text.terms_and_conditions") }</a>
+			<a href="/" class="text-footer-link dark:text-footer-link-dark">{ ctxi18n.T(ctx, "footer.privacy_policy") }</a>
 		</div>
 		<div></div>
 	</div>

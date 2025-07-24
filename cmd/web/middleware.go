@@ -6,7 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/bauerbrun0/nand2tetris-web/internal/appctx"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 func (app *application) logRequest(next http.Handler) http.Handler {
@@ -82,8 +85,8 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		}
 
 		if user != nil {
-			ctx := context.WithValue(r.Context(), isAuthenticatedContextKey, true)
-			ctx = context.WithValue(ctx, authenticatedUserInfoKey, user)
+			ctx := context.WithValue(r.Context(), appctx.IsAuthenticatedContextKey, true)
+			ctx = context.WithValue(ctx, appctx.AuthenticatedUserInfoKey, user)
 			r = r.WithContext(ctx)
 		}
 
@@ -139,7 +142,16 @@ func (app *application) getToasts(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		ctx := context.WithValue(r.Context(), initialToastsKey, toasts)
+		ctx := context.WithValue(r.Context(), appctx.InitialToastsKey, toasts)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) language(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		localizer := i18n.NewLocalizer(app.bundle, language.English.String())
+		ctx := context.WithValue(r.Context(), appctx.LocalizerKey, localizer)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

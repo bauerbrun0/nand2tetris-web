@@ -12,10 +12,14 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/bauerbrun0/nand2tetris-web/internal"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
+	"gopkg.in/yaml.v3"
 )
 
 type config struct {
@@ -32,6 +36,7 @@ type application struct {
 	formDecoder    *form.Decoder
 	emailService   *services.EmailService
 	userService    *services.UserService
+	bundle         *i18n.Bundle
 }
 
 func main() {
@@ -61,6 +66,14 @@ func main() {
 	emailService := services.NewEmailService(emailSender, logger)
 	userService := services.NewUserService(logger, emailService, pool, ctx)
 
+	bundle := i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
+	if cfg.env == "production" {
+		bundle.LoadMessageFileFS(internal.TranslationFiles, "translations/en.yaml")
+	} else {
+		bundle.LoadMessageFile("internal/translations/en.yaml")
+	}
+
 	app := &application{
 		logger:         logger,
 		config:         cfg,
@@ -68,6 +81,7 @@ func main() {
 		formDecoder:    form.NewDecoder(),
 		emailService:   emailService,
 		userService:    userService,
+		bundle:         bundle,
 	}
 
 	srv := &http.Server{

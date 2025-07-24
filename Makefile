@@ -10,7 +10,7 @@ dev/server:
 	go tool github.com/air-verse/air \
 	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
-	--build.include_ext "go" \
+	--build.include_ext "go,yaml" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 

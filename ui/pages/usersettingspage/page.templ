@@ -1,6 +1,7 @@
 package usersettingspage
 
 import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
@@ -23,15 +24,23 @@ type UserSettingsPageData struct {
 templ Page(data UserSettingsPageData) {
 	@layouts.BaseLayout(data.PageData) {
 		<div class="min-h-full inner-container-small py-6">
-			<h1 class="text-xl md:text-2xl font-bold">Settings</h1>
-			<h2 class="text-lg md:text-xl my-6">Account</h2>
+			<h1 class="text-xl md:text-2xl font-bold">
+				{ ctxi18n.T(ctx, "text.settings") }
+			</h1>
+			<h2 class="text-lg md:text-xl my-6">
+				{ ctxi18n.T(ctx, "user_settings_page.account") }
+			</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
 			@accountSection(data)
-			<h2 class="md:text-lg mt-12 mb-6">Account security</h2>
+			<h2 class="md:text-lg mt-12 mb-6">
+				{ ctxi18n.T(ctx, "user_settings_page.account_security") }
+			</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
 			@emailSection(data)
 			@passwordSection(data)
-			<h2 class="md:text-lg mt-12 mb-6">Danger Zone</h2>
+			<h2 class="md:text-lg mt-12 mb-6">
+				{ ctxi18n.T(ctx, "user_settings_page.danger_zone") }
+			</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
 			@deleteAccountSection(data)
 		</div>
@@ -53,13 +62,13 @@ templ accountSection(data UserSettingsPageData) {
 templ emailSection(data UserSettingsPageData) {
 	<div class="flex justify-between my-6">
 		<div class="flex flex-col space-y-4">
-			<span>Email</span>
+			<span>{ ctxi18n.T(ctx, "text.email") }</span>
 			<span class="font-light text-sm">{ data.UserInfo.Email }</span>
 		</div>
 		<div class="flex items-center ml-5">
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "email-change-modal",
-				Text:           "Change Email",
+				Text:           ctxi18n.T(ctx, "user_settings_page.change_email"),
 				InitialTrigger: data.Form == "change-email",
 			})
 			@emailChangeModal(data)
@@ -80,7 +89,9 @@ templ emailChangeModal(data UserSettingsPageData) {
 		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
+					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "email-change-modal",
 						XRef:    "closeEmailChangeModalButton",
@@ -88,7 +99,7 @@ templ emailChangeModal(data UserSettingsPageData) {
 				</div>
 				<input type="hidden" name="form" value="change-email"/>
 				@components.Input(components.InputOptions{
-					Label:       "Password",
+					Label:       ctxi18n.T(ctx, "text.password"),
 					Name:        "che-password",
 					Value:       "",
 					Placeholder: "••••••••",
@@ -97,24 +108,24 @@ templ emailChangeModal(data UserSettingsPageData) {
 					Err:         data.FieldErrors["che-password"],
 				})
 				@components.Input(components.InputOptions{
-					Label:       "New Email",
+					Label:       ctxi18n.T(ctx, "user_settings_page.new_email"),
 					Name:        "che-new-email",
 					Value:       data.CheNewEmail,
-					Placeholder: "user@example.com",
+					Placeholder: ctxi18n.T(ctx, "text.email_placeholder"),
 					FieldType:   "email",
 					Icon:        components.EmailIcon("w-4 h-4"),
 					Err:         data.FieldErrors["che-new-email"],
 				})
-				@components.FormSubmitButton("Change Email")
+				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
 			<div class="text-sm font-medium text-silver-600 mt-6">
-				Already received an email?
+				{ ctxi18n.T(ctx, "user_settings_page.already_received_email") }
 				<button
 					class="text-link dark:text-link-dark cursor-pointer"
 					@click="$refs.closeEmailChangeModalButton.click()"
 					data-modal-show="email-change-send-code-modal"
 				>
-					Enter Code
+					{ ctxi18n.T(ctx, "text.enter_code") }
 				</button>
 			</div>
 		</div>
@@ -134,35 +145,37 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 				novalidate
 			>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change email</h5>
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
+					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "email-change-send-code-modal",
 						XRef:    "closeEmailChangeSendCodeModalButton",
 					})
 				</div>
 				<p class="text-center text-sm">
-					We’ve sent a verification code to your new email. Enter the code below to continue changing your email.
+					{ ctxi18n.T(ctx, "user_settings_page.sent_verification_code") }
 				</p>
 				<input type="hidden" name="form" value="change-email-send-code"/>
 				@components.Input(components.InputOptions{
 					Label:       "Code",
 					Name:        "chesc-code",
 					Value:       "",
-					Placeholder: "Verification Code",
+					Placeholder: ctxi18n.T(ctx, "text.verification_code"),
 					FieldType:   "text",
 					Icon:        components.KeyIcon("w-4 h-4"),
 					Err:         data.FieldErrors["chesc-code"],
 				})
-				@components.FormSubmitButton("Change Email")
+				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
 			<div class="text-sm font-medium text-silver-600 mt-6">
-				To change the email or resend the code
+				{ ctxi18n.T(ctx, "user_settings_page.to_change_email") }
 				<button
 					data-modal-hide="email-change-send-code-modal"
 					data-modal-show="email-change-modal"
 					class="text-link dark:text-link-dark cursor-pointer"
 				>
-					click here
+					{ ctxi18n.T(ctx, "user_settings_page.click_here") }
 				</button>
 			</div>
 		</div>
@@ -172,13 +185,13 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 templ passwordSection(data UserSettingsPageData) {
 	<div class="flex justify-between my-6">
 		<div class="flex flex-col space-y-4">
-			<span>Password</span>
-			<span class="font-light text-sm">Want to change your password? Click the button to get a code by email.</span>
+			<span>{ ctxi18n.T(ctx, "text.password") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.want_to_change_password") }</span>
 		</div>
 		<div class="flex items-center ml-5">
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "password-change-modal",
-				Text:           "Change Password",
+				Text:           ctxi18n.T(ctx, "user_settings_page.change_password"),
 				InitialTrigger: data.Form == "change-password",
 			})
 			@passwordChangeModal(data)
@@ -194,14 +207,16 @@ templ passwordChangeModal(data UserSettingsPageData) {
 		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Change password</h5>
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+						{ ctxi18n.T(ctx, "text.password") }
+					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "password-change-modal",
 					})
 				</div>
 				<input type="hidden" name="form" value="change-password"/>
 				@components.Input(components.InputOptions{
-					Label:       "Current Password",
+					Label:       ctxi18n.T(ctx, "user_settings_page.current_password"),
 					Name:        "chp-current-password",
 					Value:       "",
 					Placeholder: "••••••••",
@@ -210,7 +225,7 @@ templ passwordChangeModal(data UserSettingsPageData) {
 					Err:         data.FieldErrors["chp-current-password"],
 				})
 				@components.Input(components.InputOptions{
-					Label:       "New Password",
+					Label:       ctxi18n.T(ctx, "user_settings_page.new_password"),
 					Name:        "chp-new-password",
 					Value:       "",
 					Placeholder: "••••••••",
@@ -219,7 +234,7 @@ templ passwordChangeModal(data UserSettingsPageData) {
 					Err:         data.FieldErrors["chp-new-password"],
 				})
 				@components.Input(components.InputOptions{
-					Label:       "Confirm New Password",
+					Label:       ctxi18n.T(ctx, "user_settings_page.confirm_new_password"),
 					Name:        "chp-new-password-confirmation",
 					Value:       "",
 					Placeholder: "••••••••",
@@ -227,7 +242,7 @@ templ passwordChangeModal(data UserSettingsPageData) {
 					Icon:        components.KeyIcon("w-4 h-4"),
 					Err:         data.FieldErrors["chp-new-password-confirmation"],
 				})
-				@components.FormSubmitButton("Change Password")
+				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_password"))
 			</form>
 		</div>
 	}
@@ -236,13 +251,13 @@ templ passwordChangeModal(data UserSettingsPageData) {
 templ deleteAccountSection(data UserSettingsPageData) {
 	<div class="flex justify-between my-6">
 		<div class="flex flex-col space-y-4">
-			<span class="text-red-500">Delete my account</span>
-			<span class="font-light text-sm">Permanently delete the account</span>
+			<span class="text-red-500">{ ctxi18n.T(ctx, "user_settings_page.delete_my_account") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.delete_account_permanently") }</span>
 		</div>
 		<div class="flex items-center ml-5">
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:           "delete-account-modal",
-				Text:              "Delete Account",
+				Text:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
 				InitialTrigger:    data.Form == "delete-account",
 				AdditionalClasses: "hover:text-red-500 dark:hover:text-red-500 hover:border-red-500",
 			})
@@ -259,18 +274,23 @@ templ deleteAccountModal(data UserSettingsPageData) {
 		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">Delete Account</h5>
+					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+						{ ctxi18n.T(ctx, "user_settings_page.delete_account") }
+					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
 						ModalId: "delete-account-modal",
 					})
 				</div>
 				<p class="text-center text-sm">
-					This action cannot be undone. This will permanently delete your entire account.
-					Type in <strong>{ data.UserInfo.Email }</strong> to confirm.
+					{ ctxi18n.T(ctx, "user_settings_page.delete_account_cannot_be_undone") }
+					{ ctxi18n.T(ctx, "user_settings_page.type_in") }
+					<strong>
+						{ data.UserInfo.Email }
+					</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
 				</p>
 				<input type="hidden" name="form" value="delete-account"/>
 				@components.Input(components.InputOptions{
-					Label:       "Email",
+					Label:       ctxi18n.T(ctx, "text.email"),
 					Name:        "da-email",
 					Value:       data.DaEmail,
 					Placeholder: data.UserInfo.Email,
@@ -288,7 +308,7 @@ templ deleteAccountModal(data UserSettingsPageData) {
 							dark:focus:ring-primary-800
 						` }
 				>
-					Delete Account
+					{ ctxi18n.T(ctx, "user_settings_page.delete_account") }
 				</button>
 			</form>
 		</div>

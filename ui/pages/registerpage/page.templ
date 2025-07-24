@@ -2,6 +2,7 @@ package registerpage
 
 import (
 	"fmt"
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
@@ -29,27 +30,29 @@ templ Page(data RegisterPageData) {
 templ form(data RegisterPageData) {
 	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
 		<form class="space-y-6" action="/user/register" method="POST" novalidate>
-			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Create an Account</h5>
+			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+				{ ctxi18n.T(ctx, "register_page.create_account") }
+			</h5>
 			@components.Input(components.InputOptions{
-				Label:       "Email",
+				Label:       ctxi18n.T(ctx, "text.email"),
 				Name:        "email",
 				Value:       data.Email,
-				Placeholder: "user@example.com",
+				Placeholder: ctxi18n.T(ctx, "text.email_placeholder"),
 				FieldType:   "email",
 				Icon:        components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
 				Err:         data.FieldErrors["email"],
 			})
 			@components.Input(components.InputOptions{
-				Label:       "Username",
+				Label:       ctxi18n.T(ctx, "text.username"),
 				Name:        "username",
 				Value:       data.Username,
-				Placeholder: "Username",
+				Placeholder: ctxi18n.T(ctx, "text.username"),
 				FieldType:   "text",
 				Icon:        components.UserIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
 				Err:         data.FieldErrors["username"],
 			})
 			@components.Input(components.InputOptions{
-				Label:       "Password",
+				Label:       ctxi18n.T(ctx, "text.password"),
 				Name:        "password",
 				Value:       "",
 				Placeholder: "••••••••",
@@ -58,7 +61,7 @@ templ form(data RegisterPageData) {
 				Err:         data.FieldErrors["password"],
 			})
 			@components.Input(components.InputOptions{
-				Label:       "Confirm Password",
+				Label:       ctxi18n.T(ctx, "register_page.confirm_password"),
 				Name:        "password-confirmation",
 				Value:       "",
 				Placeholder: "••••••••",
@@ -71,7 +74,7 @@ templ form(data RegisterPageData) {
 			@divider()
 			@ssoButtons()
 			<div class="text-sm font-medium text-silver-600">
-				Already have an account? <a href="/user/login" class="text-link dark:text-link-dark">Login here</a>
+				{ ctxi18n.T(ctx, "register_page.already_have_account") } <a href="/user/login" class="text-link dark:text-link-dark">{ ctxi18n.T(ctx, "register_page.login_here") }</a>
 			</div>
 		</form>
 	</div>
@@ -106,7 +109,7 @@ templ termsCheckboxInput(err string) {
 				/>
 			</div>
 			<label for="terms" class="ms-2 text-sm font-medium">
-				I agree to the <a href="/" class="text-link dark:text-link-dark">Terms & Conditions</a>
+				{ ctxi18n.T(ctx, "register_page.i_agree_to") } <a href="/" class="text-link dark:text-link-dark">{ ctxi18n.T(ctx, "text.terms_and_conditions") }</a>
 			</label>
 		</div>
 	</div>
@@ -123,14 +126,14 @@ templ registerButton() {
 			dark:focus:ring-primary-800
 		` }
 	>
-		Create Account
+		{ ctxi18n.T(ctx, "register_page.register_button") }
 	</button>
 }
 
 templ divider() {
 	<div class="flex items-center space-x-2 w-full">
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
-		<span class="text-divider dark:text-divider-dark text-sm font-medium">or</span>
+		<span class="text-divider dark:text-divider-dark text-sm font-medium">{ ctxi18n.T(ctx, "text.or") }</span>
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
 	</div>
 }

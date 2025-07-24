@@ -1,6 +1,9 @@
 package components
 
-import "github.com/bauerbrun0/nand2tetris-web/ui/pages"
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
 
 templ Header(data pages.PageData) {
 	<div>
@@ -58,7 +61,7 @@ templ navigation() {
 				 	dark:focus:ring-primary-800
 				` }
 			>
-				Register
+				{ ctxi18n.T(ctx, "button.register") }
 			</button>
 		</a>
 		<a href="/user/login">
@@ -71,7 +74,7 @@ templ navigation() {
 					dark:focus:ring-primary-800
 				` }
 			>
-				Login
+				{ ctxi18n.T(ctx, "button.login") }
 			</button>
 		</a>
 	</div>

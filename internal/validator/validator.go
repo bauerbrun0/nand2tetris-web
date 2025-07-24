@@ -54,3 +54,10 @@ func (v *Validator) CheckFieldError(err error, key, message string) {
 		v.AddFieldError(key, message)
 	}
 }
+
+func (v *Validator) CheckFieldTag(field any, tag, key, message string) {
+	err := v.Validate.Var(field, tag)
+	if err != nil {
+		v.AddFieldError(key, message)
+	}
+}

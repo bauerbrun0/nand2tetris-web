@@ -1,6 +1,7 @@
 package loginpage
 
 import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
@@ -25,18 +26,20 @@ templ Page(data LoginPageData) {
 templ form(data LoginPageData) {
 	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
 		<form class="space-y-6" action="/user/login" method="POST" novalidate>
-			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">Welcome Back!</h5>
+			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+				{ ctxi18n.T(ctx, "login_page.welcome_back") }
+			</h5>
 			@components.Input(components.InputOptions{
-				Label:       "Username",
+				Label:       ctxi18n.T(ctx, "text.username"),
 				Name:        "username",
 				Value:       data.Username,
-				Placeholder: "Username or Email",
+				Placeholder: ctxi18n.T(ctx, "login_page.username_or_email"),
 				FieldType:   "text",
 				Icon:        components.UserIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
 				Err:         data.FieldErrors["username"],
 			})
 			@components.Input(components.InputOptions{
-				Label:       "Password",
+				Label:       ctxi18n.T(ctx, "text.password"),
 				Name:        "password",
 				Value:       "",
 				Placeholder: "••••••••",
@@ -44,12 +47,12 @@ templ form(data LoginPageData) {
 				Icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
 				Err:         data.FieldErrors["password"],
 			})
-			<a href="/user/reset-password/send-code" class="text-sm text-link dark:text-link-dark inline-block">Forgot password?</a>
+			<a href="/user/reset-password/send-code" class="text-sm text-link dark:text-link-dark inline-block">{ ctxi18n.T(ctx, "login_page.forgot_password") }</a>
 			@loginButton()
 			@divider()
 			@ssoButtons()
 			<div class="text-sm font-medium text-silver-600">
-				Not registered? <a href="/user/register" class="text-link dark:text-link-dark">Create account</a>
+				{ ctxi18n.T(ctx, "login_page.not_registered") } <a href="/user/register" class="text-link dark:text-link-dark">{ ctxi18n.T(ctx, "login_page.create_account") }</a>
 			</div>
 		</form>
 	</div>
@@ -66,14 +69,14 @@ templ loginButton() {
 			dark:focus:ring-primary-800
 		` }
 	>
-		Login
+		{ ctxi18n.T(ctx, "button.login") }
 	</button>
 }
 
 templ divider() {
 	<div class="flex items-center space-x-2 w-full">
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
-		<span class="text-divider dark:text-divider-dark text-sm font-medium">or</span>
+		<span class="text-divider dark:text-divider-dark text-sm font-medium">{ ctxi18n.T(ctx, "text.or") }</span>
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
 	</div>
 }

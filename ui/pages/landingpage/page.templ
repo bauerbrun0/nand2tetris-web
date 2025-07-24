@@ -1,23 +1,25 @@
 package landingpage
 
-import "github.com/bauerbrun0/nand2tetris-web/ui/layouts"
-import "github.com/bauerbrun0/nand2tetris-web/ui/pages"
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
 
 templ Page(data pages.PageData) {
 	@layouts.BaseLayout(data) {
 		<div class="flex flex-col justify-center space-y-[50px] md:space-y-[60px] min-h-full inner-container py-8 md:py-10">
-			<h1 class="text-xl md:text-5xl font-bold text-center w-full">Build a Computer From the Ground Up <br/> In Your Browser</h1>
+			<h1 class="text-xl md:text-5xl font-bold text-center w-full">{ ctxi18n.T(ctx, "landing_page.title_first_row") }<br/>{ ctxi18n.T(ctx, "landing_page.title_second_row") }</h1>
 			<p class="max-w-[1000px] mx-auto text-center text:lg md:text-xl">
-				Welcome to the Nand2Tetris Web App – a free, browser-based platform for working through the
+				{ ctxi18n.T(ctx, "landing_page.introduction_first_part") }
 				<a
 					href="https://www.nand2tetris.org/"
 					target="_blank"
 					class="underline text-link dark:text-link-dark"
 				>
 					Nand2Tetris
-				</a> course. This is an independently developed
-				implementation of the tools and learning environment used throughout the course, designed
-				to run entirely in the browser with no installation required.
+				</a>
+				{ ctxi18n.T(ctx, "landing_page.introduction_second_part") }
 			</p>
 			<div class="flex justify-between max-w-[300px] mx-auto">
 				<a href="/user/register" class="mr-10 md:mr-15">
@@ -30,7 +32,7 @@ templ Page(data pages.PageData) {
 						 	dark:focus:ring-primary-800 w-[100px]
 						` }
 					>
-						Register
+						{ ctxi18n.T(ctx, "button.register") }
 					</button>
 				</a>
 				<a href="/user/login">
@@ -43,19 +45,13 @@ templ Page(data pages.PageData) {
 							dark:focus:ring-primary-800 w-[100px]
 						` }
 					>
-						Login
+						{ ctxi18n.T(ctx, "button.login") }
 					</button>
 				</a>
 			</div>
 			<p class="max-w-[1000px] mx-auto text-center text-sm md:text-base">
-				<strong>Note:</strong> This is not the official course website, and I am not the author of the course.
-				The original Nand2Tetris curriculum was created by Noam Nisan and Shimon Schocken and is licensed under
-				the
-				<a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en">
-					Creative Commons
-					Attribution-NonCommercial-ShareAlike 3.0 Unported License
-				</a>. This webapp follows the same license and
-				is intended for educational, non-commercial use.
+				<strong>{ ctxi18n.T(ctx, "text.note") }</strong>
+				{ ctxi18n.T(ctx, "landing_page.note") }
 			</p>
 		</div>
 	}
