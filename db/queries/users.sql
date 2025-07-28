@@ -27,6 +27,11 @@ SELECT id, username, email, email_verified, created FROM users
 WHERE
     id = $1;
 
+-- name: GetUserInfoByEmailOrUsername :one
+SELECT id, username, email, email_verified, created FROM users
+WHERE
+    username = $1 OR email = $2;
+
 -- name: ChangeUserPasswordHash :exec
 UPDATE users SET password_hash = $2
 WHERE

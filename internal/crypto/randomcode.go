@@ -28,3 +28,13 @@ func GenerateRandomUint32(max uint32) uint32 {
 	randUint32 := binary.BigEndian.Uint32(bytes) // Convert bytes to uint32
 	return randUint32 % max
 }
+
+const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+func GenerateRandomString(length uint32) string {
+	var result string
+	for i := 0; i < int(length); i++ {
+		result += string(alphabet[GenerateRandomUint32(uint32(len(alphabet)))])
+	}
+	return result
+}

@@ -16,6 +16,11 @@ $ mv migrate $GOPATH/bin/migrate
 $ migrate -version
 ```
 
+Create the `.env` file and fill in the values:
+```bash
+$ cp .env.example .env
+```
+
 Generate `sqlc` files:
 ```bash
 $ make build/sqlc

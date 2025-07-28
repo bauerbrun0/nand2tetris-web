@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
+	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
@@ -657,6 +659,82 @@ func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWrite
 		{
 			Message:  data.T("toast.successfully_deleted_account"),
 			Variant:  "success",
+			Duration: 2000,
+		},
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) userLoginGithub(w http.ResponseWriter, r *http.Request) {
+	state := crypto.GenerateRandomString(16)
+	c := &http.Cookie{
+		Name:     "state",
+		Value:    state,
+		Path:     "/",
+		MaxAge:   int(time.Hour.Seconds()),
+		Secure:   r.TLS != nil,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, c)
+
+	redirectUrl := app.githubOauthService.GetGithubRedirectUrl(state)
+	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+}
+
+func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.Request) {
+	data := app.newPageData(r)
+
+	state, err := r.Cookie("state")
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  "State cookie not found",
+				Variant:  "error",
+				Duration: 3000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	queryState := r.URL.Query().Get("state")
+	if state.Value != queryState {
+		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  "Tokens did not match",
+				Variant:  "error",
+				Duration: 3000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	// ask github for an access token
+	code := r.URL.Query().Get("code")
+	token, err := app.githubOauthService.ExchangeCodeForToken(code)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	oauthUser, err := app.githubOauthService.GetUserInfo(token)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	user, err := app.userService.AuthenticateOAuthUser(oauthUser, models.ProviderGitHub)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserId", user.ID)
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  data.TTemplate("toast.user_welcome", map[string]string{"Username": user.Username}),
+			Variant:  "simple",
 			Duration: 2000,
 		},
 	})

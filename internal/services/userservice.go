@@ -19,6 +19,7 @@ var (
 	ErrInvalidCredentials       = errors.New("userservice: invalid credentials")
 	ErrEmailNotVerified         = errors.New("userservice: email not verified")
 	ErrPasswordResetCodeInvalid = errors.New("userservice: password reset code is invalid")
+	ErrUserAlreadyExists        = errors.New("userservice: user with email or username already exists")
 )
 
 type UserService struct {
@@ -264,6 +265,10 @@ func (s *UserService) AuthenticateUser(username, password string) (*models.User,
 			return nil, ErrInvalidCredentials
 		}
 		return nil, err
+	}
+
+	if user.PasswordHash.String == "" {
+		return nil, ErrInvalidCredentials
 	}
 
 	var hasher crypto.PasswordHasher
@@ -648,4 +653,89 @@ func (s *UserService) ChangeEmail(code string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+type OAuthUserInfo struct {
+	Id        string
+	Username  string
+	Email     string
+	AvatarUrl string
+}
+
+func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *models.GetUserInfoRow, err error) {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	authorization, err := qtx.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
+		Provider:       models.ProviderGitHub,
+		UserProviderID: oauthUser.Id,
+	})
+
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+
+	if err == nil {
+		user, err := qtx.GetUserInfo(s.ctx, authorization.UserID)
+		if err != nil {
+			return nil, err
+		}
+		return &user, nil
+	}
+
+	_, err = qtx.GetUserInfoByEmailOrUsername(s.ctx, models.GetUserInfoByEmailOrUsernameParams{
+		Email:    oauthUser.Email,
+		Username: oauthUser.Username,
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
+
+	if err == nil {
+		return nil, ErrUserAlreadyExists
+	}
+
+	createdUser, err := qtx.CreateNewUser(s.ctx, models.CreateNewUserParams{
+		Username: oauthUser.Username,
+		Email:    oauthUser.Email,
+		EmailVerified: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+		Created: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	})
+
+	_, err = qtx.CreateOAuthAuthorization(s.ctx, models.CreateOAuthAuthorizationParams{
+		UserID:         createdUser.ID,
+		UserProviderID: oauthUser.Id,
+		Provider:       provider,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user = &models.GetUserInfoRow{
+		ID:            createdUser.ID,
+		Username:      createdUser.Username,
+		Email:         createdUser.Email,
+		EmailVerified: createdUser.EmailVerified,
+		Created:       createdUser.Created,
+	}
+
+	return user, nil
 }

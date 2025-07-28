@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -17,36 +18,52 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
 type config struct {
-	port int
-	env  string
-	dsn  string
+	port               int
+	env                string
+	dsn                string
+	githubClientId     string
+	githubClientSecret string
 }
 
 type application struct {
-	logger         *slog.Logger
-	dev            bool
-	config         config
-	sessionManager *scs.SessionManager
-	formDecoder    *form.Decoder
-	emailService   *services.EmailService
-	userService    *services.UserService
-	bundle         *i18n.Bundle
+	logger             *slog.Logger
+	dev                bool
+	config             config
+	sessionManager     *scs.SessionManager
+	formDecoder        *form.Decoder
+	emailService       *services.EmailService
+	userService        *services.UserService
+	githubOauthService *services.GitHubOAuthService
+	bundle             *i18n.Bundle
 }
 
 func main() {
-	var cfg config
-	flag.IntVar(&cfg.port, "port", 3000, "HTTP server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|production )")
-	flag.StringVar(&cfg.dsn, "dsn", "postgres://nand2tetris_web:password@localhost/nand2tetris_web?sslmode=disable", "Database Connection String")
-	flag.Parse()
-
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	err := godotenv.Load()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	var cfg config
+	flag.IntVar(&cfg.port, "port", port, "HTTP server port")
+	flag.StringVar(&cfg.env, "env", os.Getenv("ENV"), "Environment (development|production )")
+	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
+	flag.StringVar(&cfg.githubClientId, "github-client-id", os.Getenv("GITHUB_CLIENT_ID"), "GitHub Client ID for OAuth")
+	flag.StringVar(&cfg.githubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
+	flag.Parse()
 
 	ctx := context.Background()
 	pool, err := pgxpool.New(ctx, cfg.dsn)
@@ -66,6 +83,8 @@ func main() {
 	emailService := services.NewEmailService(emailSender, logger)
 	userService := services.NewUserService(logger, emailService, pool, ctx)
 
+	githubOauthService := services.NewGitHubOAuthService(cfg.githubClientId, cfg.githubClientSecret, logger)
+
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
 	if cfg.env == "production" {
@@ -75,13 +94,14 @@ func main() {
 	}
 
 	app := &application{
-		logger:         logger,
-		config:         cfg,
-		sessionManager: sessionManager,
-		formDecoder:    form.NewDecoder(),
-		emailService:   emailService,
-		userService:    userService,
-		bundle:         bundle,
+		logger:             logger,
+		config:             cfg,
+		sessionManager:     sessionManager,
+		formDecoder:        form.NewDecoder(),
+		emailService:       emailService,
+		userService:        userService,
+		githubOauthService: githubOauthService,
+		bundle:             bundle,
 	}
 
 	srv := &http.Server{
