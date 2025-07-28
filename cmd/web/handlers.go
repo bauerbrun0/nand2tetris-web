@@ -786,23 +786,18 @@ func (app *application) userLoginGoogleCallback(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// ask github for an access token
 	code := r.URL.Query().Get("code")
-	app.logger.Info("got the code from google", "code", code)
 	token, err := app.googleOauthService.ExchangeCodeForToken(code)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	app.logger.Info("token in handler", "token", token)
 	oauthUser, err := app.googleOauthService.GetUserInfo(token)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
-
-	app.logger.Info("go the user info from google", "oauthUser", oauthUser)
 
 	user, err := app.userService.AuthenticateOAuthUser(oauthUser, models.ProviderGoogle)
 	if err != nil {
