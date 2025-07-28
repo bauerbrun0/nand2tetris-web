@@ -38,7 +38,9 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /user/login", requireUnauthenticatedChain.ThenFunc(app.userLogin))
 	mux.Handle("POST /user/login", requireUnauthenticatedChain.ThenFunc(app.userLoginPost))
 	mux.Handle("GET /user/login/github", requireUnauthenticatedChain.ThenFunc(app.userLoginGithub))
+	mux.Handle("GET /user/login/google", requireUnauthenticatedChain.ThenFunc(app.userLoginGoogle))
 	mux.Handle("GET /user/login/github/callback", requireUnauthenticatedChain.ThenFunc(app.userLoginGithubCallback))
+	mux.Handle("GET /user/login/google/callback", requireUnauthenticatedChain.ThenFunc(app.userLoginGoogleCallback))
 
 	requireUnverifiedEmailChain := dynamicChain.Append(app.requireUnverifiedEmail)
 

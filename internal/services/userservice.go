@@ -673,7 +673,7 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 	qtx := queries.WithTx(tx)
 
 	authorization, err := qtx.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
-		Provider:       models.ProviderGitHub,
+		Provider:       provider,
 		UserProviderID: oauthUser.Id,
 	})
 

@@ -740,3 +740,83 @@ func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.R
 	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func (app *application) userLoginGoogle(w http.ResponseWriter, r *http.Request) {
+	state := crypto.GenerateRandomString(30)
+	c := &http.Cookie{
+		Name:     "state",
+		Value:    state,
+		Path:     "/",
+		MaxAge:   int(time.Hour.Seconds()),
+		Secure:   r.TLS != nil,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, c)
+
+	redirectUrl := app.googleOauthService.GetGoogleRedirectUrl(state)
+	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+}
+
+func (app *application) userLoginGoogleCallback(w http.ResponseWriter, r *http.Request) {
+	data := app.newPageData(r)
+
+	state, err := r.Cookie("state")
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  "State cookie not found",
+				Variant:  "error",
+				Duration: 3000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	queryState := r.URL.Query().Get("state")
+	if state.Value != queryState {
+		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  "Tokens did not match",
+				Variant:  "error",
+				Duration: 3000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	// ask github for an access token
+	code := r.URL.Query().Get("code")
+	app.logger.Info("got the code from google", "code", code)
+	token, err := app.googleOauthService.ExchangeCodeForToken(code)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.logger.Info("token in handler", "token", token)
+	oauthUser, err := app.googleOauthService.GetUserInfo(token)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.logger.Info("go the user info from google", "oauthUser", oauthUser)
+
+	user, err := app.userService.AuthenticateOAuthUser(oauthUser, models.ProviderGoogle)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserId", user.ID)
+	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+		{
+			Message:  data.TTemplate("toast.user_welcome", map[string]string{"Username": user.Username}),
+			Variant:  "simple",
+			Duration: 2000,
+		},
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}

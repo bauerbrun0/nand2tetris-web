@@ -30,6 +30,8 @@ type config struct {
 	dsn                string
 	githubClientId     string
 	githubClientSecret string
+	googleClientId     string
+	googleClientSecret string
 }
 
 type application struct {
@@ -41,6 +43,7 @@ type application struct {
 	emailService       *services.EmailService
 	userService        *services.UserService
 	githubOauthService *services.GitHubOAuthService
+	googleOauthService *services.GoogleOAuthService
 	bundle             *i18n.Bundle
 }
 
@@ -63,6 +66,8 @@ func main() {
 	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
 	flag.StringVar(&cfg.githubClientId, "github-client-id", os.Getenv("GITHUB_CLIENT_ID"), "GitHub Client ID for OAuth")
 	flag.StringVar(&cfg.githubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
+	flag.StringVar(&cfg.googleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
+	flag.StringVar(&cfg.googleClientSecret, "google-client-secret", os.Getenv("GOOGLE_CLIENT_SECRET"), "Google Client Secret for OAuth")
 	flag.Parse()
 
 	ctx := context.Background()
@@ -84,6 +89,7 @@ func main() {
 	userService := services.NewUserService(logger, emailService, pool, ctx)
 
 	githubOauthService := services.NewGitHubOAuthService(cfg.githubClientId, cfg.githubClientSecret, logger)
+	googleOauthService := services.NewGoogleOAuthService(cfg.googleClientId, cfg.googleClientSecret, logger)
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
@@ -101,6 +107,7 @@ func main() {
 		emailService:       emailService,
 		userService:        userService,
 		githubOauthService: githubOauthService,
+		googleOauthService: googleOauthService,
 		bundle:             bundle,
 	}
 

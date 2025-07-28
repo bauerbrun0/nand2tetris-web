@@ -25,12 +25,10 @@ func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) *
 	}
 }
 
-const githubBaseUrl = "https://github.com/login/oauth/authorize"
-
 func (s *GitHubOAuthService) GetGithubRedirectUrl(state string) string {
 	redirectUrl := fmt.Sprintf(
 		"%s?client_id=%s&state=%s&scope=%s",
-		githubBaseUrl,
+		"https://github.com/login/oauth/authorize",
 		s.clientId,
 		state,
 		"user%3Aemail",
@@ -78,7 +76,6 @@ type githubUserEmailsResponse []struct {
 }
 
 func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
-	// get the user info
 	ghUserResp := &githubUserInfoResponse{}
 	_, err := s.client.R().
 		SetAuthToken(token).
@@ -90,7 +87,6 @@ func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 		return nil, err
 	}
 
-	// get the email
 	ghUserEmailsResp := &githubUserEmailsResponse{}
 	_, err = s.client.R().
 		SetAuthToken(token).
@@ -102,7 +98,6 @@ func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 		return nil, err
 	}
 
-	// get the primary email
 	var email string
 	for _, e := range *ghUserEmailsResp {
 		if e.Primary {
