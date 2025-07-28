@@ -668,7 +668,7 @@ func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWrite
 func (app *application) userLoginGithub(w http.ResponseWriter, r *http.Request) {
 	state := crypto.GenerateRandomString(16)
 	c := &http.Cookie{
-		Name:     "state",
+		Name:     "github_state",
 		Value:    state,
 		Path:     "/",
 		MaxAge:   int(time.Hour.Seconds()),
@@ -684,7 +684,7 @@ func (app *application) userLoginGithub(w http.ResponseWriter, r *http.Request) 
 func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.Request) {
 	data := app.newPageData(r)
 
-	state, err := r.Cookie("state")
+	state, err := r.Cookie("github_state")
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
@@ -744,7 +744,7 @@ func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.R
 func (app *application) userLoginGoogle(w http.ResponseWriter, r *http.Request) {
 	state := crypto.GenerateRandomString(30)
 	c := &http.Cookie{
-		Name:     "state",
+		Name:     "google_state",
 		Value:    state,
 		Path:     "/",
 		MaxAge:   int(time.Hour.Seconds()),
@@ -760,7 +760,7 @@ func (app *application) userLoginGoogle(w http.ResponseWriter, r *http.Request) 
 func (app *application) userLoginGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	data := app.newPageData(r)
 
-	state, err := r.Cookie("state")
+	state, err := r.Cookie("google_state")
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
