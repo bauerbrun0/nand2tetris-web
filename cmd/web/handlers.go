@@ -688,12 +688,12 @@ func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.R
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
-				Message:  "State cookie not found",
+				Message:  data.T("toast.state_cookie_not_found"),
 				Variant:  "error",
 				Duration: 3000,
 			},
 		})
-		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/user/login", http.StatusBadRequest)
 		return
 	}
 
@@ -701,16 +701,15 @@ func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.R
 	if state.Value != queryState {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
-				Message:  "Tokens did not match",
+				Message:  data.T("toast.state_tokens_do_not_match"),
 				Variant:  "error",
 				Duration: 3000,
 			},
 		})
-		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/user/login", http.StatusUnauthorized)
 		return
 	}
 
-	// ask github for an access token
 	code := r.URL.Query().Get("code")
 	token, err := app.githubOauthService.ExchangeCodeForToken(code)
 	if err != nil {
@@ -725,8 +724,20 @@ func (app *application) userLoginGithubCallback(w http.ResponseWriter, r *http.R
 	}
 
 	user, err := app.userService.AuthenticateOAuthUser(oauthUser, models.ProviderGitHub)
-	if err != nil {
+	if err != nil && !errors.Is(err, services.ErrUserAlreadyExists) {
 		app.serverError(w, r, err)
+		return
+	}
+
+	if err != nil && errors.Is(err, services.ErrUserAlreadyExists) {
+		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  data.T("toast.oauth_user_exists"),
+				Variant:  "error",
+				Duration: 5000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusUnauthorized)
 		return
 	}
 
@@ -764,7 +775,7 @@ func (app *application) userLoginGoogleCallback(w http.ResponseWriter, r *http.R
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
-				Message:  "State cookie not found",
+				Message:  data.T("toast.state_cookie_not_found"),
 				Variant:  "error",
 				Duration: 3000,
 			},
@@ -777,7 +788,7 @@ func (app *application) userLoginGoogleCallback(w http.ResponseWriter, r *http.R
 	if state.Value != queryState {
 		app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 			{
-				Message:  "Tokens did not match",
+				Message:  data.T("toast.state_tokens_do_not_match"),
 				Variant:  "error",
 				Duration: 3000,
 			},

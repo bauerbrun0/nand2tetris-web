@@ -48,6 +48,9 @@
 "toast.successfully_changed_password": "You’ve successfully changed your password. Please log in with your new credentials."
 "toast.successfully_changed_email": "You’ve successfully changed your email."
 "toast.successfully_deleted_account": "You’ve successfully deleted your account."
+"toast.state_cookie_not_found": "State cookie not found"
+"toast.state_tokens_do_not_match": "State tokens did not match"
+"toast.oauth_user_exists": "User with the same email or username already exists."
 
 # profile_drop_down
 "profile_drop_down.light_theme": "Light Theme"
