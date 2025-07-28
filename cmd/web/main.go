@@ -28,6 +28,7 @@ type config struct {
 	port               int
 	env                string
 	dsn                string
+	baseUrl            string
 	githubClientId     string
 	githubClientSecret string
 	googleClientId     string
@@ -64,6 +65,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", port, "HTTP server port")
 	flag.StringVar(&cfg.env, "env", os.Getenv("ENV"), "Environment (development|production )")
 	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
+	flag.StringVar(&cfg.baseUrl, "base-url", os.Getenv("BASE_URL"), "The base URL of the application")
 	flag.StringVar(&cfg.githubClientId, "github-client-id", os.Getenv("GITHUB_CLIENT_ID"), "GitHub Client ID for OAuth")
 	flag.StringVar(&cfg.githubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
 	flag.StringVar(&cfg.googleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
@@ -88,8 +90,8 @@ func main() {
 	emailService := services.NewEmailService(emailSender, logger)
 	userService := services.NewUserService(logger, emailService, pool, ctx)
 
-	githubOauthService := services.NewGitHubOAuthService(cfg.githubClientId, cfg.githubClientSecret, logger)
-	googleOauthService := services.NewGoogleOAuthService(cfg.googleClientId, cfg.googleClientSecret, logger)
+	githubOauthService := services.NewGitHubOAuthService(cfg.githubClientId, cfg.githubClientSecret, cfg.baseUrl, logger)
+	googleOauthService := services.NewGoogleOAuthService(cfg.googleClientId, cfg.googleClientSecret, cfg.baseUrl, logger)
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)

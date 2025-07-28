@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strconv"
 
 	"github.com/go-resty/resty/v2"
@@ -11,15 +12,17 @@ import (
 type GitHubOAuthService struct {
 	clientId     string
 	clientSecret string
+	appBaseUrl   string
 	logger       *slog.Logger
 	client       *resty.Client
 }
 
-func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) OAuthService {
+func NewGitHubOAuthService(clientId, clientSecret, appBaseUrl string, logger *slog.Logger) OAuthService {
 	client := resty.New()
 	return &GitHubOAuthService{
 		clientId,
 		clientSecret,
+		appBaseUrl,
 		logger,
 		client,
 	}
@@ -27,11 +30,12 @@ func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) O
 
 func (s *GitHubOAuthService) GetRedirectUrl(state string) string {
 	redirectUrl := fmt.Sprintf(
-		"%s?client_id=%s&state=%s&scope=%s",
+		"%s?client_id=%s&state=%s&scope=%s&redirect_uri=%s",
 		"https://github.com/login/oauth/authorize",
 		s.clientId,
 		state,
 		"user%3Aemail",
+		url.QueryEscape(fmt.Sprintf("%s/user/login/github/callback", s.appBaseUrl)),
 	)
 	return redirectUrl
 }

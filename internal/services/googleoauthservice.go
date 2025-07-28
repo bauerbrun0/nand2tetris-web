@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -11,15 +12,17 @@ import (
 type GoogleOAuthService struct {
 	clientId     string
 	clientSecret string
+	appBaseUrl   string
 	logger       *slog.Logger
 	client       *resty.Client
 }
 
-func NewGoogleOAuthService(clientId, clientSecret string, logger *slog.Logger) OAuthService {
+func NewGoogleOAuthService(clientId, clientSecret, appBaseUrl string, logger *slog.Logger) OAuthService {
 	client := resty.New()
 	return &GoogleOAuthService{
 		clientId,
 		clientSecret,
+		appBaseUrl,
 		logger,
 		client,
 	}
@@ -31,8 +34,8 @@ func (s *GoogleOAuthService) GetRedirectUrl(state string) string {
 		"https://accounts.google.com/o/oauth2/v2/auth",
 		s.clientId,
 		state,
-		"openid%20profile%20email",
-		"http%3A//localhost%3A8080/user/login/google/callback",
+		url.QueryEscape("openid profile email"),
+		url.QueryEscape(fmt.Sprintf("%s/user/login/google/callback", s.appBaseUrl)),
 	)
 	return redirectUrl
 }
@@ -49,7 +52,7 @@ func (s *GoogleOAuthService) ExchangeCodeForToken(code string) (string, error) {
 		"client_secret": s.clientSecret,
 		"code":          code,
 		"grant_type":    "authorization_code",
-		"redirect_uri":  "http://localhost:8080/user/login/google/callback",
+		"redirect_uri":  fmt.Sprintf("%s/user/login/google/callback", s.appBaseUrl),
 	}
 
 	googleResp := &googleTokenResponse{}
