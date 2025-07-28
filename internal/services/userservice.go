@@ -655,13 +655,6 @@ func (s *UserService) ChangeEmail(code string) (bool, error) {
 	return true, nil
 }
 
-type OAuthUserInfo struct {
-	Id        string
-	Username  string
-	Email     string
-	AvatarUrl string
-}
-
 func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *models.GetUserInfoRow, err error) {
 	tx, err := s.pool.Begin(s.ctx)
 	if err != nil {

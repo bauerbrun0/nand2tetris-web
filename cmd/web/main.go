@@ -42,8 +42,8 @@ type application struct {
 	formDecoder        *form.Decoder
 	emailService       *services.EmailService
 	userService        *services.UserService
-	githubOauthService *services.GitHubOAuthService
-	googleOauthService *services.GoogleOAuthService
+	githubOauthService services.OAuthService
+	googleOauthService services.OAuthService
 	bundle             *i18n.Bundle
 }
 

@@ -677,7 +677,7 @@ func (app *application) userLoginGithub(w http.ResponseWriter, r *http.Request) 
 	}
 	http.SetCookie(w, c)
 
-	redirectUrl := app.githubOauthService.GetGithubRedirectUrl(state)
+	redirectUrl := app.githubOauthService.GetRedirectUrl(state)
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 
@@ -753,7 +753,7 @@ func (app *application) userLoginGoogle(w http.ResponseWriter, r *http.Request) 
 	}
 	http.SetCookie(w, c)
 
-	redirectUrl := app.googleOauthService.GetGoogleRedirectUrl(state)
+	redirectUrl := app.googleOauthService.GetRedirectUrl(state)
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 

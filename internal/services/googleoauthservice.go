@@ -15,7 +15,7 @@ type GoogleOAuthService struct {
 	client       *resty.Client
 }
 
-func NewGoogleOAuthService(clientId, clientSecret string, logger *slog.Logger) *GoogleOAuthService {
+func NewGoogleOAuthService(clientId, clientSecret string, logger *slog.Logger) OAuthService {
 	client := resty.New()
 	return &GoogleOAuthService{
 		clientId,
@@ -25,7 +25,7 @@ func NewGoogleOAuthService(clientId, clientSecret string, logger *slog.Logger) *
 	}
 }
 
-func (s *GoogleOAuthService) GetGoogleRedirectUrl(state string) string {
+func (s *GoogleOAuthService) GetRedirectUrl(state string) string {
 	redirectUrl := fmt.Sprintf(
 		"%s?response_type=code&client_id=%s&state=%s&scope=%s&redirect_uri=%s",
 		"https://accounts.google.com/o/oauth2/v2/auth",

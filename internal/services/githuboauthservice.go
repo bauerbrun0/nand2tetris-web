@@ -15,7 +15,7 @@ type GitHubOAuthService struct {
 	client       *resty.Client
 }
 
-func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) *GitHubOAuthService {
+func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) OAuthService {
 	client := resty.New()
 	return &GitHubOAuthService{
 		clientId,
@@ -25,7 +25,7 @@ func NewGitHubOAuthService(clientId, clientSecret string, logger *slog.Logger) *
 	}
 }
 
-func (s *GitHubOAuthService) GetGithubRedirectUrl(state string) string {
+func (s *GitHubOAuthService) GetRedirectUrl(state string) string {
 	redirectUrl := fmt.Sprintf(
 		"%s?client_id=%s&state=%s&scope=%s",
 		"https://github.com/login/oauth/authorize",
