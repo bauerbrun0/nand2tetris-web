@@ -34,7 +34,7 @@ func (s *GitHubOAuthService) GetRedirectUrl(state string) string {
 		"https://github.com/login/oauth/authorize",
 		s.clientId,
 		state,
-		"user%3Aemail",
+		url.QueryEscape("user:email"),
 		url.QueryEscape(fmt.Sprintf("%s/user/login/github/callback", s.appBaseUrl)),
 	)
 	return redirectUrl
