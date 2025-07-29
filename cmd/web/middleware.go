@@ -90,6 +90,8 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			r = r.WithContext(ctx)
 		}
 
+		app.logger.Info("Authenticated", "user", user)
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -126,7 +128,7 @@ func (app *application) requireUnverifiedEmail(next http.Handler) http.Handler {
 
 		user := app.getAuthenticatedUserInfo(r)
 
-		if !user.EmailVerified.Bool {
+		if !user.EmailVerified {
 			next.ServeHTTP(w, r)
 			return
 		}

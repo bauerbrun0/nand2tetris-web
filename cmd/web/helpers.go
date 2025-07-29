@@ -10,7 +10,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/bauerbrun0/nand2tetris-web/internal/appctx"
 	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
-	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -69,8 +68,8 @@ func (app *application) isAuthenticated(r *http.Request) bool {
 	return isAuthenticated
 }
 
-func (app *application) getAuthenticatedUserInfo(r *http.Request) *models.GetUserInfoRow {
-	user, ok := r.Context().Value(appctx.AuthenticatedUserInfoKey).(*models.GetUserInfoRow)
+func (app *application) getAuthenticatedUserInfo(r *http.Request) *pages.UserInfo {
+	user, ok := r.Context().Value(appctx.AuthenticatedUserInfoKey).(*pages.UserInfo)
 	if !ok {
 		return nil
 	}

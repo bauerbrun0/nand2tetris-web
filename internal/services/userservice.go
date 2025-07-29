@@ -8,6 +8,7 @@ import (
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,6 +21,7 @@ var (
 	ErrEmailNotVerified         = errors.New("userservice: email not verified")
 	ErrPasswordResetCodeInvalid = errors.New("userservice: password reset code is invalid")
 	ErrUserAlreadyExists        = errors.New("userservice: user with email or username already exists")
+	ErrCantConvertUserInfo      = errors.New("userservice: unable to convert model userinfo")
 )
 
 type UserService struct {
@@ -288,7 +290,35 @@ func (s *UserService) AuthenticateUser(username, password string) (*models.User,
 	return &user, nil
 }
 
-func (s *UserService) UserExists(id int32) (*models.GetUserInfoRow, error) {
+func (s *UserService) convertModelUserInfo(user *models.UserInfo) (*pages.UserInfo, error) {
+	isPasswordSet, ok := user.IsPasswordSet.(bool)
+	if !ok {
+		return nil, ErrCantConvertUserInfo
+	}
+
+	accounts := make([]pages.Account, len(user.LinkedAccounts))
+	for i, p := range user.LinkedAccounts {
+		accounts[i] = pages.Account(p)
+	}
+
+	if !ok {
+		return nil, ErrCantConvertUserInfo
+	}
+
+	userInfo := &pages.UserInfo{
+		ID:             user.ID,
+		Username:       user.Username,
+		Email:          user.Email,
+		EmailVerified:  user.EmailVerified.Bool,
+		Created:        user.Created.Time,
+		IsPasswordSet:  isPasswordSet,
+		LinkedAccounts: accounts,
+	}
+
+	return userInfo, nil
+}
+
+func (s *UserService) UserExists(id int32) (*pages.UserInfo, error) {
 	queries := models.New(s.pool)
 
 	user, err := queries.GetUserInfo(s.ctx, id)
@@ -299,7 +329,12 @@ func (s *UserService) UserExists(id int32) (*models.GetUserInfoRow, error) {
 		return nil, err
 	}
 
-	return &user, nil
+	userInfo, err := s.convertModelUserInfo(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	return userInfo, nil
 }
 
 func (s *UserService) SendPasswordResetCode(email string) (*models.PasswordResetRequest, error) {
@@ -655,7 +690,7 @@ func (s *UserService) ChangeEmail(code string) (bool, error) {
 	return true, nil
 }
 
-func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *models.GetUserInfoRow, err error) {
+func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *pages.UserInfo, err error) {
 	tx, err := s.pool.Begin(s.ctx)
 	if err != nil {
 		return nil, err
@@ -679,7 +714,11 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 		if err != nil {
 			return nil, err
 		}
-		return &user, nil
+		userInfo, err := s.convertModelUserInfo(&user)
+		if err != nil {
+			return nil, err
+		}
+		return userInfo, nil
 	}
 
 	_, err = qtx.GetUserInfoByEmailOrUsername(s.ctx, models.GetUserInfoByEmailOrUsernameParams{
@@ -717,18 +756,20 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 		return nil, err
 	}
 
+	createdUserInfo, err := qtx.GetUserInfo(s.ctx, createdUser.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := s.convertModelUserInfo(&createdUserInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	err = tx.Commit(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	user = &models.GetUserInfoRow{
-		ID:            createdUser.ID,
-		Username:      createdUser.Username,
-		Email:         createdUser.Email,
-		EmailVerified: createdUser.EmailVerified,
-		Created:       createdUser.Created,
-	}
-
-	return user, nil
+	return userInfo, nil
 }

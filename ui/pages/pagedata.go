@@ -1,7 +1,8 @@
 package pages
 
 import (
-	"github.com/bauerbrun0/nand2tetris-web/internal/models"
+	"time"
+
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -11,12 +12,29 @@ type Toast struct {
 	Duration int32  `json:"duration"`
 }
 
+type Account string
+
+const (
+	AccountGitHub Account = "GitHub"
+	AccountGoogle Account = "Google"
+)
+
+type UserInfo struct {
+	ID             int32
+	Username       string
+	Email          string
+	EmailVerified  bool
+	Created        time.Time
+	IsPasswordSet  bool
+	LinkedAccounts []Account
+}
+
 type PageData struct {
-	IsAuthenticated bool                   `json:"-"`
-	UserInfo        *models.GetUserInfoRow `json:"-"`
-	CurrentYear     int                    `json:"-"`
-	InitialToasts   []Toast                `json:"initialToasts"`
-	Localizer       *i18n.Localizer        `json:"-"`
+	IsAuthenticated bool            `json:"-"`
+	UserInfo        *UserInfo       `json:"-"`
+	CurrentYear     int             `json:"-"`
+	InitialToasts   []Toast         `json:"initialToasts"`
+	Localizer       *i18n.Localizer `json:"-"`
 }
 
 func (pd *PageData) T(key string) string {
