@@ -22,6 +22,7 @@ var (
 	ErrPasswordResetCodeInvalid = errors.New("userservice: password reset code is invalid")
 	ErrUserAlreadyExists        = errors.New("userservice: user with email or username already exists")
 	ErrCantConvertUserInfo      = errors.New("userservice: unable to convert model userinfo")
+	ErrPasswordAlreadySet       = errors.New("userservice: password is already set")
 )
 
 type UserService struct {
@@ -772,4 +773,47 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 	}
 
 	return userInfo, nil
+}
+
+func (s *UserService) CreatePassword(userId int32, password string) error {
+	tx, err := s.pool.Begin(s.ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(s.ctx)
+
+	queries := models.New(s.pool)
+	qtx := queries.WithTx(tx)
+
+	user, err := qtx.GetUserById(s.ctx, userId)
+	if err != nil {
+		return err
+	}
+	if user.PasswordHash.String != "" {
+		return ErrPasswordAlreadySet
+	}
+
+	var hasher crypto.PasswordHasher
+	hash, err := hasher.GenerateFromPassword(password, crypto.DefaultPasswordHashParams)
+	if err != nil {
+		return err
+	}
+
+	err = qtx.ChangeUserPasswordHash(s.ctx, models.ChangeUserPasswordHashParams{
+		ID: userId,
+		PasswordHash: pgtype.Text{
+			String: hash,
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

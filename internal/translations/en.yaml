@@ -51,6 +51,7 @@
 "toast.state_cookie_not_found": "State cookie not found"
 "toast.state_tokens_do_not_match": "State tokens did not match"
 "toast.oauth_user_exists": "User with the same email or username already exists."
+"toast.successfully_created_password": "You’ve successfully added a password to your account. Please log in with your new credentials."
 
 # profile_drop_down
 "profile_drop_down.light_theme": "Light Theme"
@@ -129,3 +130,6 @@
 "user_settings_page.delete_account_cannot_be_undone": "This action cannot be undone. This will permanently delete your entire account."
 "user_settings_page.type_in": "Type in"
 "user_settings_page.to_confirm": "to confirm."
+"user_settings_page.create_password": "Create password"
+"user_settings_page.create_password_note": "Enable email and password login by setting a password for your account"
+"user_settings_page.confirm_password": "Confirm Password"
