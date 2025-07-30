@@ -6,10 +6,11 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/components"
 	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+	"slices"
 )
 
 type UserSettingsPageData struct {
-	Form                       string `form:"form"` // change-password || change-email || change-email-send-code || delete-account
+	Form                       string `form:"form"`
 	ChpCurrentPassword         string `form:"chp-current-password"`
 	ChpNewPassword             string `form:"chp-new-password"`
 	ChpNewPasswordConfirmation string `form:"chp-new-password-confirmation"`
@@ -19,6 +20,11 @@ type UserSettingsPageData struct {
 	DaEmail                    string `form:"da-email"`
 	CpaPassword                string `form:"cpa-password"`
 	CpaPasswordConfirmation    string `form:"cpa-password-confirmation"`
+	LinkGooglePassword         string `form:"link-google/password"`
+	LinkGithubPassword         string `form:"link-github/password"`
+	UnlinkGooglePassword       string `form:"unlink-google/password"`
+	UnlinkGithubPassword       string `form:"unlink-github/password"`
+	Verification               string `form:"verification"`
 	validator.Validator        `form:-`
 	pages.PageData             `form:-`
 }
@@ -45,6 +51,20 @@ templ Page(data UserSettingsPageData) {
 				@createPasswordSection(data)
 			}
 			<h2 class="md:text-lg mt-12 mb-6">
+				{ ctxi18n.T(ctx, "user_settings_page.linked_accounts") }
+			</h2>
+			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
+			if !slices.Contains(data.UserInfo.LinkedAccounts, "Google") {
+				@linkGoogleAccountSection(data)
+			} else if data.UserInfo.IsPasswordSet || len(data.UserInfo.LinkedAccounts) >= 2 {
+				@unlinkGoogleAccountSection(data)
+			}
+			if !slices.Contains(data.UserInfo.LinkedAccounts, "GitHub") {
+				@linkGithubAccountSection(data)
+			} else if data.UserInfo.IsPasswordSet || len(data.UserInfo.LinkedAccounts) >= 2 {
+				@unlinkGithubAccountSection(data)
+			}
+			<h2 class="md:text-lg mt-12 mb-6">
 				{ ctxi18n.T(ctx, "user_settings_page.danger_zone") }
 			</h2>
 			<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
@@ -61,6 +81,106 @@ templ accountSection(data UserSettingsPageData) {
 		<div class="flex-col space-y-2 flex">
 			<span class="font-medium text-left">{ data.UserInfo.Username }</span>
 			<span class="text-left">{ data.UserInfo.Email }</span>
+		</div>
+	</div>
+}
+
+templ linkGoogleAccountSection(data UserSettingsPageData) {
+	<div class="flex justify-between my-6">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.link_google_account") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.link_google_account_note") }</span>
+		</div>
+		<div class="flex items-center ml-5">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "link-google-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				InitialTrigger: data.Form == "link-google-account",
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "link-google-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				PasswordFieldName:  "link-google/password",
+				FormValue:          "link-google-account",
+			})
+		</div>
+	</div>
+}
+
+templ unlinkGoogleAccountSection(data UserSettingsPageData) {
+	<div class="flex justify-between my-6">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.unlink_google_account") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.unlink_google_account_note") }</span>
+		</div>
+		<div class="flex items-center ml-5">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "unlink-google-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				InitialTrigger: data.Form == "unlink-google-account",
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "unlink-google-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				PasswordFieldName:  "unlink-google/password",
+				FormValue:          "unlink-google-account",
+			})
+		</div>
+	</div>
+}
+
+templ linkGithubAccountSection(data UserSettingsPageData) {
+	<div class="flex justify-between my-6">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.link_github_account") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.link_github_account_note") }</span>
+		</div>
+		<div class="flex items-center ml-5">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "link-github-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				InitialTrigger: data.Form == "link-github-account",
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "link-github-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				PasswordFieldName:  "link-github/password",
+				FormValue:          "link-github-account",
+			})
+		</div>
+	</div>
+}
+
+templ unlinkGithubAccountSection(data UserSettingsPageData) {
+	<div class="flex justify-between my-6">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.unlink_github_account") }</span>
+			<span class="font-light text-sm">{ ctxi18n.T(ctx, "user_settings_page.unlink_github_account_note") }</span>
+		</div>
+		<div class="flex items-center ml-5">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "unlink-github-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				InitialTrigger: data.Form == "unlink-github-account",
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "unlink-github-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				PasswordFieldName:  "unlink-github/password",
+				FormValue:          "unlink-github-account",
+			})
 		</div>
 	</div>
 }
@@ -104,107 +224,6 @@ templ emailSection(data UserSettingsPageData) {
 	</div>
 }
 
-templ emailChangeModal(data UserSettingsPageData) {
-	@components.Modal(components.ModalOptions{
-		Id:      "email-change-modal",
-		Classes: "max-w-[500px]",
-	}) {
-		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
-			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
-				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
-						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
-					</h5>
-					@components.CloseModalButton(components.CloseModalButtonOptions{
-						ModalId: "email-change-modal",
-						XRef:    "closeEmailChangeModalButton",
-					})
-				</div>
-				<input type="hidden" name="form" value="change-email"/>
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "text.password"),
-					Name:        "che-password",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["che-password"],
-				})
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "user_settings_page.new_email"),
-					Name:        "che-new-email",
-					Value:       data.CheNewEmail,
-					Placeholder: ctxi18n.T(ctx, "text.email_placeholder"),
-					FieldType:   "email",
-					Icon:        components.EmailIcon("w-4 h-4"),
-					Err:         data.FieldErrors["che-new-email"],
-				})
-				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
-			</form>
-			<div class="text-sm font-medium text-silver-600 mt-6">
-				{ ctxi18n.T(ctx, "user_settings_page.already_received_email") }
-				<button
-					class="text-link dark:text-link-dark cursor-pointer"
-					@click="$refs.closeEmailChangeModalButton.click()"
-					data-modal-show="email-change-send-code-modal"
-				>
-					{ ctxi18n.T(ctx, "text.enter_code") }
-				</button>
-			</div>
-		</div>
-	}
-}
-
-templ emailChangeSendCodeModal(data UserSettingsPageData) {
-	@components.Modal(components.ModalOptions{
-		Id:      "email-change-send-code-modal",
-		Classes: "max-w-[500px]",
-	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
-			<form
-				class="space-y-6"
-				action="/user/settings"
-				method="POST"
-				novalidate
-			>
-				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
-						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
-					</h5>
-					@components.CloseModalButton(components.CloseModalButtonOptions{
-						ModalId: "email-change-send-code-modal",
-						XRef:    "closeEmailChangeSendCodeModalButton",
-					})
-				</div>
-				<p class="text-center text-sm">
-					{ ctxi18n.T(ctx, "user_settings_page.sent_verification_code") }
-				</p>
-				<input type="hidden" name="form" value="change-email-send-code"/>
-				@components.Input(components.InputOptions{
-					Label:       "Code",
-					Name:        "chesc-code",
-					Value:       "",
-					Placeholder: ctxi18n.T(ctx, "text.verification_code"),
-					FieldType:   "text",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chesc-code"],
-				})
-				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
-			</form>
-			<div class="text-sm font-medium text-silver-600 mt-6">
-				{ ctxi18n.T(ctx, "user_settings_page.to_change_email") }
-				<button
-					data-modal-hide="email-change-send-code-modal"
-					data-modal-show="email-change-modal"
-					class="text-link dark:text-link-dark cursor-pointer"
-				>
-					{ ctxi18n.T(ctx, "user_settings_page.click_here") }
-				</button>
-			</div>
-		</div>
-	}
-}
-
 templ passwordSection(data UserSettingsPageData) {
 	<div class="flex justify-between my-6">
 		<div class="flex flex-col space-y-4">
@@ -220,55 +239,6 @@ templ passwordSection(data UserSettingsPageData) {
 			@passwordChangeModal(data)
 		</div>
 	</div>
-}
-
-templ passwordChangeModal(data UserSettingsPageData) {
-	@components.Modal(components.ModalOptions{
-		Id:      "password-change-modal",
-		Classes: "max-w-[500px]",
-	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
-			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
-				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
-						{ ctxi18n.T(ctx, "text.password") }
-					</h5>
-					@components.CloseModalButton(components.CloseModalButtonOptions{
-						ModalId: "password-change-modal",
-					})
-				</div>
-				<input type="hidden" name="form" value="change-password"/>
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "user_settings_page.current_password"),
-					Name:        "chp-current-password",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-current-password"],
-				})
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "user_settings_page.new_password"),
-					Name:        "chp-new-password",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-new-password"],
-				})
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "user_settings_page.confirm_new_password"),
-					Name:        "chp-new-password-confirmation",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-new-password-confirmation"],
-				})
-				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_password"))
-			</form>
-		</div>
-	}
 }
 
 templ deleteAccountSection(data UserSettingsPageData) {
@@ -287,94 +257,4 @@ templ deleteAccountSection(data UserSettingsPageData) {
 			@deleteAccountModal(data)
 		</div>
 	</div>
-}
-
-templ deleteAccountModal(data UserSettingsPageData) {
-	@components.Modal(components.ModalOptions{
-		Id:      "delete-account-modal",
-		Classes: "max-w-[500px]",
-	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
-			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
-				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
-						{ ctxi18n.T(ctx, "user_settings_page.delete_account") }
-					</h5>
-					@components.CloseModalButton(components.CloseModalButtonOptions{
-						ModalId: "delete-account-modal",
-					})
-				</div>
-				<p class="text-center text-sm">
-					{ ctxi18n.T(ctx, "user_settings_page.delete_account_cannot_be_undone") }
-					{ ctxi18n.T(ctx, "user_settings_page.type_in") }
-					<strong>
-						{ data.UserInfo.Email }
-					</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
-				</p>
-				<input type="hidden" name="form" value="delete-account"/>
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "text.email"),
-					Name:        "da-email",
-					Value:       data.DaEmail,
-					Placeholder: data.UserInfo.Email,
-					FieldType:   "email",
-					Icon:        components.EmailIcon("w-4 h-4"),
-					Err:         data.FieldErrors["da-email"],
-				})
-				<button
-					type="submit"
-					class={ `
-							w-full
-							hover:cursor-pointer text-white bg-red-500 hover:bg-red-400
-							focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
-							px-5 py-2.5 dark:hover:bg-red-800 focus:outline-none
-							dark:focus:ring-primary-800
-						` }
-				>
-					{ ctxi18n.T(ctx, "user_settings_page.delete_account") }
-				</button>
-			</form>
-		</div>
-	}
-}
-
-templ createPasswordModal(data UserSettingsPageData) {
-	@components.Modal(components.ModalOptions{
-		Id:      "create-password-modal",
-		Classes: "max-w-[500px]",
-	}) {
-		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
-			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
-				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
-						{ ctxi18n.T(ctx, "user_settings_page.create_password") }
-					</h5>
-					@components.CloseModalButton(components.CloseModalButtonOptions{
-						ModalId: "create-password-modal",
-						XRef:    "closeCreatePasswordModalButton",
-					})
-				</div>
-				<input type="hidden" name="form" value="create-password"/>
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "text.password"),
-					Name:        "cpa-password",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["cpa-password"],
-				})
-				@components.Input(components.InputOptions{
-					Label:       ctxi18n.T(ctx, "user_settings_page.confirm_password"),
-					Name:        "cpa-password-confirmation",
-					Value:       "",
-					Placeholder: "••••••••",
-					FieldType:   "password",
-					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["cpa-password-confirmation"],
-				})
-				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.create_password"))
-			</form>
-		</div>
-	}
 }

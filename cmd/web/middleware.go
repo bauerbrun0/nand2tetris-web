@@ -90,8 +90,6 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			r = r.WithContext(ctx)
 		}
 
-		app.logger.Info("Authenticated", "user", user)
-
 		next.ServeHTTP(w, r)
 	})
 }

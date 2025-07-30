@@ -504,6 +504,22 @@ func (app *application) userSettingsPost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if data.Form == "link-google-account" {
+		app.logger.Info("Linking google account", "data", data)
+	}
+
+	if data.Form == "link-github-account" {
+		app.logger.Info("Linking github account", "data", data)
+	}
+
+	if data.Form == "unlink-google-account" {
+		app.logger.Info("Unlinking google account", "data", data)
+	}
+
+	if data.Form == "unlink-github-account" {
+		app.logger.Info("Unlinking github account", "data", data)
+	}
+
 	data.AddFieldError("form", data.T("error.invalid_form_field"))
 	w.WriteHeader(http.StatusBadRequest)
 	app.render(r.Context(), w, r, usersettingspage.Page(data))
