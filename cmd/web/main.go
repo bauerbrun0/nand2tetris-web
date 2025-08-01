@@ -13,6 +13,10 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/application"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
@@ -23,30 +27,6 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
-
-type config struct {
-	port               int
-	env                string
-	dsn                string
-	baseUrl            string
-	githubClientId     string
-	githubClientSecret string
-	googleClientId     string
-	googleClientSecret string
-}
-
-type application struct {
-	logger             *slog.Logger
-	dev                bool
-	config             config
-	sessionManager     *scs.SessionManager
-	formDecoder        *form.Decoder
-	emailService       *services.EmailService
-	userService        *services.UserService
-	githubOauthService services.OAuthService
-	googleOauthService services.OAuthService
-	bundle             *i18n.Bundle
-}
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -61,19 +41,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	var cfg config
-	flag.IntVar(&cfg.port, "port", port, "HTTP server port")
-	flag.StringVar(&cfg.env, "env", os.Getenv("ENV"), "Environment (development|production )")
-	flag.StringVar(&cfg.dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
-	flag.StringVar(&cfg.baseUrl, "base-url", os.Getenv("BASE_URL"), "The base URL of the application")
-	flag.StringVar(&cfg.githubClientId, "github-client-id", os.Getenv("GITHUB_CLIENT_ID"), "GitHub Client ID for OAuth")
-	flag.StringVar(&cfg.githubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
-	flag.StringVar(&cfg.googleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
-	flag.StringVar(&cfg.googleClientSecret, "google-client-secret", os.Getenv("GOOGLE_CLIENT_SECRET"), "Google Client Secret for OAuth")
+	var cfg application.Config
+	flag.IntVar(&cfg.Port, "port", port, "HTTP server port")
+	flag.StringVar(&cfg.Env, "env", os.Getenv("ENV"), "Environment (development|production )")
+	flag.StringVar(&cfg.Dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
+	flag.StringVar(&cfg.BaseUrl, "base-url", os.Getenv("BASE_URL"), "The base URL of the application")
+	flag.StringVar(&cfg.GithubClientId, "github-client-id", os.Getenv("GITHUB_CLIENT_ID"), "GitHub Client ID for OAuth")
+	flag.StringVar(&cfg.GithubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
+	flag.StringVar(&cfg.GoogleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
+	flag.StringVar(&cfg.GoogleClientSecret, "google-client-secret", os.Getenv("GOOGLE_CLIENT_SECRET"), "Google Client Secret for OAuth")
 	flag.Parse()
 
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, cfg.dsn)
+	pool, err := pgxpool.New(ctx, cfg.Dsn)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
@@ -84,45 +64,49 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(pool)
 	sessionManager.Lifetime = 12 * time.Hour
-	sessionManager.Cookie.Secure = cfg.env == "production"
+	sessionManager.Cookie.Secure = cfg.Env == "production"
 
 	emailSender := services.NewConsoleEmailSender(logger)
 	emailService := services.NewEmailService(emailSender, logger)
 	userService := services.NewUserService(logger, emailService, pool, ctx)
 
-	githubOauthService := services.NewGitHubOAuthService(cfg.githubClientId, cfg.githubClientSecret, cfg.baseUrl, logger)
-	googleOauthService := services.NewGoogleOAuthService(cfg.googleClientId, cfg.googleClientSecret, cfg.baseUrl, logger)
+	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)
+	googleOauthService := services.NewGoogleOAuthService(cfg.GoogleClientId, cfg.GoogleClientSecret, cfg.BaseUrl, logger)
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
-	if cfg.env == "production" {
+	if cfg.Env == "production" {
 		bundle.LoadMessageFileFS(internal.TranslationFiles, "translations/en.yaml")
 	} else {
 		bundle.LoadMessageFile("internal/translations/en.yaml")
 	}
 
-	app := &application{
-		logger:             logger,
-		config:             cfg,
-		sessionManager:     sessionManager,
-		formDecoder:        form.NewDecoder(),
-		emailService:       emailService,
-		userService:        userService,
-		githubOauthService: githubOauthService,
-		googleOauthService: googleOauthService,
-		bundle:             bundle,
+	app := &application.Application{
+		Logger:             logger,
+		Config:             cfg,
+		SessionManager:     sessionManager,
+		FormDecoder:        form.NewDecoder(),
+		EmailService:       emailService,
+		UserService:        userService,
+		GithubOauthService: githubOauthService,
+		GoogleOauthService: googleOauthService,
+		Bundle:             bundle,
 	}
 
+	handlers := handlers.NewHandlers(app)
+	middleware := middleware.NewMiddleware(app)
+	routes := routes.GetRoutes(app, middleware, handlers)
+
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      app.routes(),
+		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Handler:      routes,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
-	logger.Info("Starting application", slog.String("env", cfg.env), slog.Int("port", cfg.port))
+	logger.Info("Starting application", slog.String("env", cfg.Env), slog.Int("port", cfg.Port))
 
 	err = srv.ListenAndServe()
 	logger.Error(err.Error())

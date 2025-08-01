@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/usersettingspage"
 )
 
-func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
+func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
 	data.CheckFieldTag(data.DeleteAccountEmail, "required", "delete-account/email", data.T("error.field_required"))
 	data.CheckFieldTag(data.DeleteAccountEmail, "email", "delete-account/email", data.T("error.field_invalid_email"))
 	data.CheckFieldTag(data.DeleteAccountEmail, "max=128", "delete-account/email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
@@ -15,36 +15,36 @@ func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWrite
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return
 	}
 
 	switch data.Verification {
 	case "":
-		ok := app.validateAndCheckPasswordField(w, r, data, data.DeleteAccountPassword, "delete-account/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.DeleteAccountPassword, "delete-account/password")
 		if ok {
-			app.deleteAccount(w, r)
+			h.deleteAccount(w, r)
 		}
 	case "github":
-		app.sendGithubActionRedirect(w, r, "delete-account", "/user/oauth/github/callback/action")
+		h.sendGithubActionRedirect(w, r, "delete-account", "/user/oauth/github/callback/action")
 	case "google":
-		app.sendGoogleActionRedirect(w, r, "delete-account", "/user/oauth/google/callback/action")
+		h.sendGoogleActionRedirect(w, r, "delete-account", "/user/oauth/google/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 	}
 }
 
-func (app *application) deleteAccount(w http.ResponseWriter, r *http.Request) {
-	data := app.newPageData(r)
-	err := app.userService.DeleteAccount(data.UserInfo.ID)
+func (h *Handlers) deleteAccount(w http.ResponseWriter, r *http.Request) {
+	data := h.NewPageData(r)
+	err := h.UserService.DeleteAccount(data.UserInfo.ID)
 
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.T("toast.successfully_deleted_account"),
 			Variant:  "success",

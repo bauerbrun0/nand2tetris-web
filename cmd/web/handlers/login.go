@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -10,22 +10,22 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/loginpage"
 )
 
-func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserLogin(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := loginpage.LoginPageData{
 		PageData: basePageData,
 	}
-	app.render(r.Context(), w, r, loginpage.Page(data))
+	h.Render(r.Context(), w, r, loginpage.Page(data))
 }
 
-func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserLoginPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := loginpage.LoginPageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
@@ -37,37 +37,37 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, loginpage.Page(data))
+		h.Render(r.Context(), w, r, loginpage.Page(data))
 		return
 	}
 
-	user, err := app.userService.AuthenticateUser(data.Username, data.Password)
+	user, err := h.UserService.AuthenticateUser(data.Username, data.Password)
 	if err != nil && errors.Is(err, services.ErrInvalidCredentials) {
 		data.AddFieldError("password", data.T("error.invalid_credentials"))
 		w.WriteHeader(http.StatusUnauthorized)
-		app.render(r.Context(), w, r, loginpage.Page(data))
+		h.Render(r.Context(), w, r, loginpage.Page(data))
 		return
 	}
 
 	if err != nil && errors.Is(err, services.ErrEmailNotVerified) {
-		app.sessionManager.Put(r.Context(), "email-to-verify", user.Email)
+		h.SessionManager.Put(r.Context(), "email-to-verify", user.Email)
 		http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
 		return
 	}
 
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	err = app.sessionManager.RenewToken(r.Context())
+	err = h.SessionManager.RenewToken(r.Context())
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "authenticatedUserId", user.ID)
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "authenticatedUserId", user.ID)
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.TTemplate("toast.user_welcome", map[string]string{"Username": user.Username}),
 			Variant:  "simple",

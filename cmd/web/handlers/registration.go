@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -9,22 +9,22 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/registerpage"
 )
 
-func (app *application) userRegister(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserRegister(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := registerpage.RegisterPageData{
 		PageData: basePageData,
 	}
-	app.render(r.Context(), w, r, registerpage.Page(data))
+	h.Render(r.Context(), w, r, registerpage.Page(data))
 }
 
-func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserRegisterPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := registerpage.RegisterPageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
@@ -51,27 +51,27 @@ func (app *application) userRegisterPost(w http.ResponseWriter, r *http.Request)
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, registerpage.Page(data))
+		h.Render(r.Context(), w, r, registerpage.Page(data))
 		return
 	}
 
-	_, err = app.userService.CreateUser(data.Email, data.Username, data.Password)
+	_, err = h.UserService.CreateUser(data.Email, data.Username, data.Password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			data.AddFieldError("email", data.T("error.email_already_used"))
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			app.render(r.Context(), w, r, registerpage.Page(data))
+			h.Render(r.Context(), w, r, registerpage.Page(data))
 			return
 		}
 		if errors.Is(err, models.ErrDuplicateUsername) {
 			data.AddFieldError("username", data.T("error.username_already_used"))
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			app.render(r.Context(), w, r, registerpage.Page(data))
+			h.Render(r.Context(), w, r, registerpage.Page(data))
 			return
 		}
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 	}
 
-	app.sessionManager.Put(r.Context(), "email-to-verify", data.Email)
+	h.SessionManager.Put(r.Context(), "email-to-verify", data.Email)
 	http.Redirect(w, r, "/user/verify-email", http.StatusSeeOther)
 }

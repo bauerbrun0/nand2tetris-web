@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/usersettingspage"
 )
 
-func (app *application) validateAndCheckPasswordField(
+func (h *Handlers) validateAndCheckPasswordField(
 	w http.ResponseWriter,
 	r *http.Request,
 	data *usersettingspage.UserSettingsPageData,
@@ -18,20 +18,20 @@ func (app *application) validateAndCheckPasswordField(
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return false
 	}
 
-	ok, err := app.userService.CheckUserPassword(data.UserInfo.ID, password)
+	ok, err := h.UserService.CheckUserPassword(data.UserInfo.ID, password)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return false
 	}
 
 	if !ok {
 		data.AddFieldError(passwordFieldName, data.T("error.incorrect_password"))
 		w.WriteHeader(http.StatusUnauthorized)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return false
 	}
 

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -14,24 +14,24 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/resetpasswordsendcodepage"
 )
 
-func (app *application) userResetPasswordSendCode(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPasswordSendCode(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := resetpasswordsendcodepage.ResetPasswordSendCodePageData{
 		PageData: basePageData,
 	}
-	app.render(r.Context(), w, r, resetpasswordsendcodepage.Page(data))
+	h.Render(r.Context(), w, r, resetpasswordsendcodepage.Page(data))
 }
 
-func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPasswordSendCodePost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := resetpasswordsendcodepage.ResetPasswordSendCodePageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
@@ -40,18 +40,18 @@ func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, resetpasswordsendcodepage.Page(data))
+		h.Render(r.Context(), w, r, resetpasswordsendcodepage.Page(data))
 		return
 	}
 
-	_, err = app.userService.SendPasswordResetCode(data.Email)
+	_, err = h.UserService.SendPasswordResetCode(data.Email)
 	if err != nil && !errors.Is(err, models.ErrUserDoesNotExist) {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "reset-password-email", data.Email)
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "reset-password-email", data.Email)
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.TTemplate("toast.email_sent_to", map[string]string{"Email": data.Email}),
 			Variant:  "info",
@@ -61,26 +61,26 @@ func (app *application) userResetPasswordSendCodePost(w http.ResponseWriter, r *
 	http.Redirect(w, r, "/user/reset-password/enter-code", http.StatusSeeOther)
 }
 
-func (app *application) userResetPasswordEnterCode(w http.ResponseWriter, r *http.Request) {
-	email := app.sessionManager.PopString(r.Context(), "reset-password-email")
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPasswordEnterCode(w http.ResponseWriter, r *http.Request) {
+	email := h.SessionManager.PopString(r.Context(), "reset-password-email")
+	basePageData := h.NewPageData(r)
 	data := resetpasswordentercodepage.ResetPasswordEnterCodePageData{
 		PageData: basePageData,
 		Email:    email,
 	}
-	app.render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
+	h.Render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
 }
 
-func (app *application) userResetPasswordEnterCodePost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPasswordEnterCodePost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := resetpasswordentercodepage.ResetPasswordEnterCodePageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
@@ -89,48 +89,48 @@ func (app *application) userResetPasswordEnterCodePost(w http.ResponseWriter, r 
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
+		h.Render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
 		return
 	}
 
-	valid, err := app.userService.VerifyPasswordResetCode(data.Code)
+	valid, err := h.UserService.VerifyPasswordResetCode(data.Code)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
 	if !valid {
 		data.AddFieldError("code", data.T("error.provided_code_invalid"))
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
+		h.Render(r.Context(), w, r, resetpasswordentercodepage.Page(data))
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "password-reset-code", data.Code)
+	h.SessionManager.Put(r.Context(), "password-reset-code", data.Code)
 	http.Redirect(w, r, "/user/reset-password", http.StatusSeeOther)
 }
 
-func (app *application) userResetPassword(w http.ResponseWriter, r *http.Request) {
-	code := app.sessionManager.PopString(r.Context(), "password-reset-code")
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPassword(w http.ResponseWriter, r *http.Request) {
+	code := h.SessionManager.PopString(r.Context(), "password-reset-code")
+	basePageData := h.NewPageData(r)
 	data := resetpasswordpage.ResetPasswordPageData{
 		PageData: basePageData,
 		Code:     code,
 	}
 
-	app.render(r.Context(), w, r, resetpasswordpage.Page(data))
+	h.Render(r.Context(), w, r, resetpasswordpage.Page(data))
 }
 
-func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserResetPasswordPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := resetpasswordpage.ResetPasswordPageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
@@ -146,37 +146,37 @@ func (app *application) userResetPasswordPost(w http.ResponseWriter, r *http.Req
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, resetpasswordpage.Page(data))
+		h.Render(r.Context(), w, r, resetpasswordpage.Page(data))
 		return
 	}
 
-	request, err := app.userService.ResetPassword(data.NewPassword, data.Code)
+	request, err := h.UserService.ResetPassword(data.NewPassword, data.Code)
 
 	if err != nil && errors.Is(err, services.ErrPasswordResetCodeInvalid) {
 		data.AddFieldError("code", data.T("error.provided_password_reset_code_invalid"))
 		w.WriteHeader(http.StatusUnauthorized)
-		app.render(r.Context(), w, r, resetpasswordpage.Page(data))
+		h.Render(r.Context(), w, r, resetpasswordpage.Page(data))
 		return
 	}
 
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	err = app.sessionManager.Iterate(r.Context(), func(ctx context.Context) error {
-		userID := app.sessionManager.GetInt32(ctx, "authenticatedUserId")
+	err = h.SessionManager.Iterate(r.Context(), func(ctx context.Context) error {
+		userID := h.SessionManager.GetInt32(ctx, "authenticatedUserId")
 		if userID == request.UserID {
-			return app.sessionManager.Destroy(ctx)
+			return h.SessionManager.Destroy(ctx)
 		}
 		return nil
 	})
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.T("toast.successfully_changed_password"),
 			Variant:  "success",

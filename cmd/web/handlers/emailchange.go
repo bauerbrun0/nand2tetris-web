@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/usersettingspage"
 )
 
-func (app *application) handleUserSettingsChangeEmailPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
+func (h *Handlers) handleUserSettingsChangeEmailPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
 	data.CheckFieldTag(data.ChePassword, "required", "che-password", data.T("error.field_required"))
 	data.CheckFieldTag(
 		data.ChePassword, "max=64", "che-password", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
@@ -26,50 +26,50 @@ func (app *application) handleUserSettingsChangeEmailPost(w http.ResponseWriter,
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return
 	}
 
-	err := app.userService.SendEmailChangeRequestCode(data.UserInfo.ID, data.ChePassword, data.CheNewEmail)
+	err := h.UserService.SendEmailChangeRequestCode(data.UserInfo.ID, data.ChePassword, data.CheNewEmail)
 	if err != nil && errors.Is(err, services.ErrInvalidCredentials) {
 		data.AddFieldError("che-password", data.T("error.incorrect_password"))
 		w.WriteHeader(http.StatusUnauthorized)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return
 	}
 
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
 	data.Form = "change-email-send-code"
-	app.render(r.Context(), w, r, usersettingspage.Page(*data))
+	h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 }
 
-func (app *application) handleUserSettingsChangeEmailSendCodePost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
+func (h *Handlers) handleUserSettingsChangeEmailSendCodePost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
 	data.CheckFieldTag(data.ChescCode, "required", "chesc-code", data.T("error.field_required"))
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return
 	}
 
-	ok, err := app.userService.ChangeEmail(data.ChescCode)
+	ok, err := h.UserService.ChangeEmail(data.ChescCode)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
 	if !ok {
 		data.AddFieldError("chesc-code", data.T("error.code_incorrect"))
 		w.WriteHeader(http.StatusUnauthorized)
-		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.T("toast.successfully_changed_email"),
 			Variant:  "success",

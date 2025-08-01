@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"errors"
@@ -12,24 +12,24 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages/verifyemailsendcodepage"
 )
 
-func (app *application) userVerifyEmail(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
-	email := app.sessionManager.PopString(r.Context(), "email-to-verify")
+func (h *Handlers) UserVerifyEmail(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
+	email := h.SessionManager.PopString(r.Context(), "email-to-verify")
 	data := verifyemailpage.VerifyEmailPageData{
 		PageData: basePageData,
 		Email:    email,
 	}
-	app.render(r.Context(), w, r, verifyemailpage.Page(data))
+	h.Render(r.Context(), w, r, verifyemailpage.Page(data))
 }
 
-func (app *application) userVerifyEmailPost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserVerifyEmailPost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := verifyemailpage.VerifyEmailPageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
@@ -39,22 +39,22 @@ func (app *application) userVerifyEmailPost(w http.ResponseWriter, r *http.Reque
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, verifyemailpage.Page(data))
+		h.Render(r.Context(), w, r, verifyemailpage.Page(data))
 		return
 	}
 
-	ok, err := app.userService.VerifyEmail(data.Code)
+	ok, err := h.UserService.VerifyEmail(data.Code)
 	if err != nil {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
 	if !ok {
 		data.AddFieldError("code", data.T("error.verification_code_invalid"))
-		app.render(r.Context(), w, r, verifyemailpage.Page(data))
+		h.Render(r.Context(), w, r, verifyemailpage.Page(data))
 		return
 	}
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.T("toast.successfully_registered"),
 			Variant:  "success",
@@ -64,22 +64,22 @@ func (app *application) userVerifyEmailPost(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
-func (app *application) userVerifyEmailResendCode(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserVerifyEmailResendCode(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := verifyemailsendcodepage.VerifyEmailSendCodePageData{
 		PageData: basePageData,
 	}
-	app.render(r.Context(), w, r, verifyemailsendcodepage.Page(data))
+	h.Render(r.Context(), w, r, verifyemailsendcodepage.Page(data))
 }
 
-func (app *application) userVerifyEmailResendCodePost(w http.ResponseWriter, r *http.Request) {
-	basePageData := app.newPageData(r)
+func (h *Handlers) UserVerifyEmailResendCodePost(w http.ResponseWriter, r *http.Request) {
+	basePageData := h.NewPageData(r)
 	data := verifyemailsendcodepage.VerifyEmailSendCodePageData{
 		PageData: basePageData,
 	}
 	data.Validate = validator.NewValidator()
 
-	err := app.decodePostForm(r, &data)
+	err := h.DecodePostForm(r, &data)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
@@ -90,19 +90,19 @@ func (app *application) userVerifyEmailResendCodePost(w http.ResponseWriter, r *
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		app.render(r.Context(), w, r, verifyemailsendcodepage.Page(data))
+		h.Render(r.Context(), w, r, verifyemailsendcodepage.Page(data))
 		return
 	}
 
-	_, err = app.userService.ResendEmailVerificationCode(data.Email)
+	_, err = h.UserService.ResendEmailVerificationCode(data.Email)
 
 	if err != nil && !errors.Is(err, models.ErrUserDoesNotExist) && !errors.Is(err, services.ErrEmailAlreadyVerified) {
-		app.serverError(w, r, err)
+		h.ServerError(w, r, err)
 		return
 	}
 
-	app.sessionManager.Put(r.Context(), "email-to-verify", data.Email)
-	app.sessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+	h.SessionManager.Put(r.Context(), "email-to-verify", data.Email)
+	h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
 		{
 			Message:  data.TTemplate("toast.new_email_sent_to", map[string]string{"Email": data.Email}),
 			Variant:  "info",
