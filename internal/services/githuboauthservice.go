@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -35,7 +36,19 @@ func (s *GitHubOAuthService) GetRedirectUrl(state string) string {
 		s.clientId,
 		state,
 		url.QueryEscape("user:email"),
-		url.QueryEscape(fmt.Sprintf("%s/user/login/github/callback", s.appBaseUrl)),
+		url.QueryEscape(fmt.Sprintf("%s/user/oauth/github/callback/login", s.appBaseUrl)),
+	)
+	return redirectUrl
+}
+
+func (s *GitHubOAuthService) GetRedirectUrlWithCustomCallbackPath(state string, callbackPath string) string {
+	redirectUrl := fmt.Sprintf(
+		"%s?client_id=%s&state=%s&scope=%s&redirect_uri=%s",
+		"https://github.com/login/oauth/authorize",
+		s.clientId,
+		state,
+		url.QueryEscape("user:email"),
+		url.QueryEscape(fmt.Sprintf("%s%s", s.appBaseUrl, callbackPath)),
 	)
 	return redirectUrl
 }
@@ -46,11 +59,11 @@ type githubTokenResponse struct {
 	Scope       string `json:"scope"`
 }
 
-func (s *GitHubOAuthService) ExchangeCodeForToken(code string) (string, error) {
+func (s *GitHubOAuthService) ExchangeCodeForToken(options TokenExchangeOptions) (string, error) {
 	requestBody := map[string]string{
 		"client_id":     s.clientId,
 		"client_secret": s.clientSecret,
-		"code":          code,
+		"code":          options.Code,
 	}
 
 	ghresp := &githubTokenResponse{}
@@ -81,7 +94,7 @@ type githubUserEmailsResponse []struct {
 
 func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 	ghUserResp := &githubUserInfoResponse{}
-	_, err := s.client.R().
+	resp, err := s.client.R().
 		SetAuthToken(token).
 		SetHeader("Accept", "application/json").
 		SetResult(ghUserResp).
@@ -91,8 +104,12 @@ func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 		return nil, err
 	}
 
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ErrCouldNotGetOAuthUserInfo
+	}
+
 	ghUserEmailsResp := &githubUserEmailsResponse{}
-	_, err = s.client.R().
+	resp, err = s.client.R().
 		SetAuthToken(token).
 		SetHeader("Accept", "application/json").
 		SetResult(ghUserEmailsResp).
@@ -100,6 +117,10 @@ func (s *GitHubOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ErrCouldNotGetOAuthUserInfo
 	}
 
 	var email string

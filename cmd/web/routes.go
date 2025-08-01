@@ -39,8 +39,8 @@ func (app *application) routes() http.Handler {
 	mux.Handle("POST /user/login", requireUnauthenticatedChain.ThenFunc(app.userLoginPost))
 	mux.Handle("GET /user/login/github", requireUnauthenticatedChain.ThenFunc(app.userLoginGithub))
 	mux.Handle("GET /user/login/google", requireUnauthenticatedChain.ThenFunc(app.userLoginGoogle))
-	mux.Handle("GET /user/login/github/callback", requireUnauthenticatedChain.ThenFunc(app.userLoginGithubCallback))
-	mux.Handle("GET /user/login/google/callback", requireUnauthenticatedChain.ThenFunc(app.userLoginGoogleCallback))
+	mux.Handle("GET /user/oauth/github/callback/login", requireUnauthenticatedChain.ThenFunc(app.userLoginGithubCallback))
+	mux.Handle("GET /user/oauth/google/callback/login", requireUnauthenticatedChain.ThenFunc(app.userLoginGoogleCallback))
 
 	requireUnverifiedEmailChain := dynamicChain.Append(app.requireUnverifiedEmail)
 
@@ -54,6 +54,10 @@ func (app *application) routes() http.Handler {
 	mux.Handle("POST /user/logout", protectedChain.ThenFunc(app.userLogoutPost))
 	mux.Handle("GET /user/settings", protectedChain.ThenFunc(app.userSettings))
 	mux.Handle("POST /user/settings", protectedChain.ThenFunc(app.userSettingsPost))
+	mux.Handle("GET /user/oauth/github/callback/action", protectedChain.ThenFunc(app.userGithubActionCallback))
+	mux.Handle("GET /user/oauth/google/callback/action", protectedChain.ThenFunc(app.userGoogleActionCallback))
+	mux.Handle("GET /user/oauth/google/callback/link", protectedChain.ThenFunc(app.userLinkGoogleCallback))
+	mux.Handle("GET /user/oauth/github/callback/link", protectedChain.ThenFunc(app.userLinkGithubCallback))
 
 	commonChain := alice.New(app.recoverPanic, app.logRequest, app.commonHeaders)
 

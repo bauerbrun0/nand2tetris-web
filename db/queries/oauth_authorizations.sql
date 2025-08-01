@@ -9,3 +9,8 @@ RETURNING *;
 -- name: FindOAuthAuthorization :one
 SELECT * FROM oauth_authorizations WHERE
     user_provider_id = $1 AND provider = $2;
+
+
+-- name: DeleteOAuthAuthorization :exec
+DELETE FROM oauth_authorizations WHERE
+    user_id = $1 AND provider = $2;

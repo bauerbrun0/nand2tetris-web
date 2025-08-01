@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -35,7 +36,19 @@ func (s *GoogleOAuthService) GetRedirectUrl(state string) string {
 		s.clientId,
 		state,
 		url.QueryEscape("openid profile email"),
-		url.QueryEscape(fmt.Sprintf("%s/user/login/google/callback", s.appBaseUrl)),
+		url.QueryEscape(fmt.Sprintf("%s/user/oauth/google/callback/login", s.appBaseUrl)),
+	)
+	return redirectUrl
+}
+
+func (s *GoogleOAuthService) GetRedirectUrlWithCustomCallbackPath(state string, callbackPath string) string {
+	redirectUrl := fmt.Sprintf(
+		"%s?response_type=code&client_id=%s&state=%s&scope=%s&redirect_uri=%s",
+		"https://accounts.google.com/o/oauth2/v2/auth",
+		s.clientId,
+		state,
+		url.QueryEscape("openid profile email"),
+		url.QueryEscape(fmt.Sprintf("%s%s", s.appBaseUrl, callbackPath)),
 	)
 	return redirectUrl
 }
@@ -46,13 +59,13 @@ type googleTokenResponse struct {
 	Scope       string `json:"scope"`
 }
 
-func (s *GoogleOAuthService) ExchangeCodeForToken(code string) (string, error) {
+func (s *GoogleOAuthService) ExchangeCodeForToken(options TokenExchangeOptions) (string, error) {
 	data := map[string]string{
 		"client_id":     s.clientId,
 		"client_secret": s.clientSecret,
-		"code":          code,
+		"code":          options.Code,
 		"grant_type":    "authorization_code",
-		"redirect_uri":  fmt.Sprintf("%s/user/login/google/callback", s.appBaseUrl),
+		"redirect_uri":  fmt.Sprintf("%s%s", s.appBaseUrl, options.RedirectPath),
 	}
 
 	googleResp := &googleTokenResponse{}
@@ -78,7 +91,7 @@ type googleUserInfoResponse struct {
 
 func (s *GoogleOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 	googleUserResp := &googleUserInfoResponse{}
-	_, err := s.client.R().
+	resp, err := s.client.R().
 		SetAuthToken(token).
 		SetHeader("Accept", "application/json").
 		SetResult(googleUserResp).
@@ -86,6 +99,10 @@ func (s *GoogleOAuthService) GetUserInfo(token string) (*OAuthUserInfo, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ErrCouldNotGetOAuthUserInfo
 	}
 
 	username := strings.Split(googleUserResp.Email, "@")[0]

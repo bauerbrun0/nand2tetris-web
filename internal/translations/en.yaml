@@ -52,6 +52,12 @@
 "toast.state_tokens_do_not_match": "State tokens did not match"
 "toast.oauth_user_exists": "User with the same email or username already exists."
 "toast.successfully_created_password": "You’ve successfully added a password to your account. Please log in with your new credentials."
+"toast.oauth_user_not_exists": "This account isn’t linked to any user in our system."
+"toast.oauth_user_not_current_user": "You signed in with an account that isn’t linked to your current user."
+"toast.oauth_user_already_linked": "You signed in with an account that is already linked to an account."
+"toast.oauth_user_successfully_linked": "You successfully linked your {{ .Provider }} account to this account."
+"toast.oauth_user_successfully_unlinked": "You successfully unlinked your {{ .Provider }} account."
+"toast.only_login_method": "You can't unlink this account because it's your only login method."
 
 # profile_drop_down
 "profile_drop_down.light_theme": "Light Theme"

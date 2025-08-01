@@ -775,6 +775,42 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 	return userInfo, nil
 }
 
+func (s *UserService) GetUserIdByUserProviderId(provider models.Provider, userProviderId string) (id int32, ok bool, err error) {
+	queries := models.New(s.pool)
+	authorization, err := queries.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
+		UserProviderID: userProviderId,
+		Provider:       provider,
+	})
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, err
+	}
+
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
+	}
+
+	return authorization.UserID, true, nil
+}
+
+func (s *UserService) AddOAuthAuthorization(userProviderId string, userId int32, provider models.Provider) error {
+	queries := models.New(s.pool)
+	_, err := queries.CreateOAuthAuthorization(s.ctx, models.CreateOAuthAuthorizationParams{
+		UserID:         userId,
+		UserProviderID: userProviderId,
+		Provider:       provider,
+	})
+	return err
+}
+
+func (s *UserService) RemoveOAuthAuthorization(userId int32, provider models.Provider) error {
+	queries := models.New(s.pool)
+	err := queries.DeleteOAuthAuthorization(s.ctx, models.DeleteOAuthAuthorizationParams{
+		UserID:   userId,
+		Provider: provider,
+	})
+	return err
+}
+
 func (s *UserService) CreatePassword(userId int32, password string) error {
 	tx, err := s.pool.Begin(s.ctx)
 	if err != nil {
@@ -816,4 +852,26 @@ func (s *UserService) CreatePassword(userId int32, password string) error {
 	}
 
 	return nil
+}
+
+func (s *UserService) CheckUserPassword(userId int32, password string) (bool, error) {
+	queries := models.New(s.pool)
+
+	user, err := queries.GetUserById(s.ctx, userId)
+	if err != nil {
+		return false, err
+	}
+
+	var hasher crypto.PasswordHasher
+	ok, err := hasher.ComparePasswordAndHash(password, user.PasswordHash.String)
+
+	if err != nil {
+		return false, err
+	}
+
+	if !ok {
+		return false, nil
+	}
+
+	return true, nil
 }
