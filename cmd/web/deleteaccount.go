@@ -8,10 +8,10 @@ import (
 )
 
 func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	data.CheckFieldTag(data.DaEmail, "required", "da-email", data.T("error.field_required"))
-	data.CheckFieldTag(data.DaEmail, "email", "da-email", data.T("error.field_invalid_email"))
-	data.CheckFieldTag(data.DaEmail, "max=128", "da-email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
-	data.CheckFieldBool(data.DaEmail == data.UserInfo.Email, "da-email", data.T("error.type_current_email"))
+	data.CheckFieldTag(data.DeleteAccountEmail, "required", "delete-account/email", data.T("error.field_required"))
+	data.CheckFieldTag(data.DeleteAccountEmail, "email", "delete-account/email", data.T("error.field_invalid_email"))
+	data.CheckFieldTag(data.DeleteAccountEmail, "max=128", "delete-account/email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
+	data.CheckFieldBool(data.DeleteAccountEmail == data.UserInfo.Email, "delete-account/email", data.T("error.type_current_email"))
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -19,6 +19,24 @@ func (app *application) handleUserSettingsDeleteAccountPost(w http.ResponseWrite
 		return
 	}
 
+	switch data.Verification {
+	case "":
+		ok := app.validateAndCheckPasswordField(w, r, data, data.DeleteAccountPassword, "delete-account/password")
+		if ok {
+			app.deleteAccount(w, r)
+		}
+	case "github":
+		app.sendGithubActionRedirect(w, r, "delete-account", "/user/oauth/github/callback/action")
+	case "google":
+		app.sendGoogleActionRedirect(w, r, "delete-account", "/user/oauth/google/callback/action")
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		app.render(r.Context(), w, r, usersettingspage.Page(*data))
+	}
+}
+
+func (app *application) deleteAccount(w http.ResponseWriter, r *http.Request) {
+	data := app.newPageData(r)
 	err := app.userService.DeleteAccount(data.UserInfo.ID)
 
 	if err != nil {

@@ -130,6 +130,8 @@ func (app *application) userGoogleActionCallback(w http.ResponseWriter, r *http.
 		app.unlinkOAuthAccount(w, r, &data, models.ProviderGoogle)
 	case "unlink-github-account":
 		app.unlinkOAuthAccount(w, r, &data, models.ProviderGitHub)
+	case "delete-account":
+		app.deleteAccount(w, r)
 	default:
 		http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
 	}
@@ -218,6 +220,8 @@ func (app *application) userGithubActionCallback(w http.ResponseWriter, r *http.
 		app.unlinkOAuthAccount(w, r, &data, models.ProviderGoogle)
 	case "unlink-github-account":
 		app.unlinkOAuthAccount(w, r, &data, models.ProviderGitHub)
+	case "delete-account":
+		app.deleteAccount(w, r)
 	default:
 		http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
 	}

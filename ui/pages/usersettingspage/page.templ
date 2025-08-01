@@ -17,7 +17,8 @@ type UserSettingsPageData struct {
 	ChePassword                string `form:"che-password"`
 	CheNewEmail                string `form:"che-new-email"`
 	ChescCode                  string `form:"chesc-code"`
-	DaEmail                    string `form:"da-email"`
+	DeleteAccountEmail         string `form:"delete-account/email"`
+	DeleteAccountPassword      string `form:"delete-account/password"`
 	CpaPassword                string `form:"cpa-password"`
 	CpaPasswordConfirmation    string `form:"cpa-password-confirmation"`
 	LinkGooglePassword         string `form:"link-google/password"`
@@ -241,6 +242,25 @@ templ passwordSection(data UserSettingsPageData) {
 	</div>
 }
 
+templ deleteAccountEmailInput(data UserSettingsPageData) {
+	<p class="text-center text-sm">
+		{ ctxi18n.T(ctx, "user_settings_page.delete_account_cannot_be_undone") }
+		{ ctxi18n.T(ctx, "user_settings_page.type_in") }
+		<strong>
+			{ data.UserInfo.Email }
+		</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
+	</p>
+	@components.Input(components.InputOptions{
+		Label:       ctxi18n.T(ctx, "text.email"),
+		Name:        "delete-account/email",
+		Value:       data.DeleteAccountEmail,
+		Placeholder: data.UserInfo.Email,
+		FieldType:   "email",
+		Icon:        components.EmailIcon("w-4 h-4"),
+		Err:         data.FieldErrors["delete-account/email"],
+	})
+}
+
 templ deleteAccountSection(data UserSettingsPageData) {
 	<div class="flex justify-between my-6">
 		<div class="flex flex-col space-y-4">
@@ -254,7 +274,16 @@ templ deleteAccountSection(data UserSettingsPageData) {
 				InitialTrigger:    data.Form == "delete-account",
 				AdditionalClasses: "hover:text-red-500 dark:hover:text-red-500 hover:border-red-500",
 			})
-			@deleteAccountModal(data)
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "delete-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.delete_account"),
+				PasswordFieldName:  "delete-account/password",
+				FormValue:          "delete-account",
+				AdditionalInputs:   deleteAccountEmailInput(data),
+			})
 		</div>
 	</div>
 }

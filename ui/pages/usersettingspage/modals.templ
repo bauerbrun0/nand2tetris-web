@@ -182,7 +182,7 @@ templ deleteAccountModal(data UserSettingsPageData) {
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.email"),
 					Name:        "da-email",
-					Value:       data.DaEmail,
+					Value:       data.DeleteAccountEmail,
 					Placeholder: data.UserInfo.Email,
 					FieldType:   "email",
 					Icon:        components.EmailIcon("w-4 h-4"),
@@ -246,6 +246,21 @@ templ createPasswordModal(data UserSettingsPageData) {
 	}
 }
 
+templ authenticatedActionModalPasswordSubmitButton(text string) {
+	<button
+		type="submit"
+		class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+	>
+		{ text }
+	</button>
+}
+
 type AuthenticatedActionModalOptions struct {
 	Data               UserSettingsPageData
 	ModalId            string
@@ -254,6 +269,7 @@ type AuthenticatedActionModalOptions struct {
 	PasswordButtonText string
 	PasswordFieldName  string
 	FormValue          string
+	AdditionalInputs   templ.Component
 }
 
 templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
@@ -271,6 +287,9 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 						ModalId: options.ModalId,
 					})
 				</div>
+				if options.AdditionalInputs != nil {
+					@options.AdditionalInputs
+				}
 				<p class="text-center text-sm">
 					{ options.Note }
 				</p>
@@ -285,7 +304,7 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 						Icon:        components.KeyIcon("w-4 h-4"),
 						Err:         options.Data.FieldErrors[options.PasswordFieldName],
 					})
-					@components.FormSubmitButton(options.PasswordButtonText)
+					@authenticatedActionModalPasswordSubmitButton(options.PasswordButtonText)
 				}
 				if options.Data.UserInfo.IsPasswordSet && len(options.Data.UserInfo.LinkedAccounts) >= 1 {
 					<div class="flex items-center space-x-2 w-full">
