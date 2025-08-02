@@ -8,10 +8,10 @@ import (
 )
 
 func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	data.CheckFieldTag(data.DeleteAccountEmail, "required", "delete-account/email", data.T("error.field_required"))
-	data.CheckFieldTag(data.DeleteAccountEmail, "email", "delete-account/email", data.T("error.field_invalid_email"))
-	data.CheckFieldTag(data.DeleteAccountEmail, "max=128", "delete-account/email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
-	data.CheckFieldBool(data.DeleteAccountEmail == data.UserInfo.Email, "delete-account/email", data.T("error.type_current_email"))
+	data.CheckFieldTag(data.DeleteAccount.Email, "required", "DeleteAccount.Email", data.T("error.field_required"))
+	data.CheckFieldTag(data.DeleteAccount.Email, "email", "DeleteAccount.Email", data.T("error.field_invalid_email"))
+	data.CheckFieldTag(data.DeleteAccount.Email, "max=128", "DeleteAccount.Email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
+	data.CheckFieldBool(data.DeleteAccount.Email == data.UserInfo.Email, "DeleteAccount.Email", data.T("error.type_current_email"))
 
 	if !data.Valid() {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -28,7 +28,7 @@ func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r 
 
 	switch verificationMethod {
 	case VerificationPassword:
-		ok := h.validateAndCheckPasswordField(w, r, data, data.DeleteAccountPassword, "delete-account/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.DeleteAccount.Password, "DeleteAccount.Password")
 		if ok {
 			h.deleteAccount(w, r)
 		}

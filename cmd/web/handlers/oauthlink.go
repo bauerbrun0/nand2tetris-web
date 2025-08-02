@@ -178,7 +178,7 @@ func (h *Handlers) handleUserSettingsLinkGoogleAccountPost(w http.ResponseWriter
 
 	switch verificationMethod {
 	case VerificationPassword:
-		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGooglePassword, "link-google/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGoogle.Password, "LinkGoogle.Password")
 		if ok {
 			h.sendLinkGoogleAccountRedirect(w, r)
 		}
@@ -200,7 +200,7 @@ func (h *Handlers) handleUserSettingsLinkGithubAccountPost(w http.ResponseWriter
 
 	switch verificationMethod {
 	case VerificationPassword:
-		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGithubPassword, "link-github/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGithub.Password, "LinkGithub.Password")
 		if ok {
 			h.sendLinkGithubAccountRedirect(w, r)
 		}

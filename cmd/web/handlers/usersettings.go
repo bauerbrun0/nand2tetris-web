@@ -29,24 +29,31 @@ func (h *Handlers) UserSettingsPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch data.Form {
-	case "change-password":
+	action, ok := ParseAction(data.Action)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(data))
+		return
+	}
+
+	switch action {
+	case ActionChangePassword:
 		h.handleUserSettingsChangePasswordPost(w, r, &data)
-	case "change-email":
+	case ActionChangeEmail:
 		h.handleUserSettingsChangeEmailPost(w, r, &data)
-	case "change-email-send-code":
+	case ActionChangeEmailSendCode:
 		h.handleUserSettingsChangeEmailSendCodePost(w, r, &data)
-	case "delete-account":
+	case ActionDeleteAccount:
 		h.handleUserSettingsDeleteAccountPost(w, r, &data)
-	case "create-password":
+	case ActionCreatePassword:
 		h.handleUserSettingsCreatePasswordPost(w, r, &data)
-	case "link-google-account":
+	case ActionLinkGoogleAccount:
 		h.handleUserSettingsLinkGoogleAccountPost(w, r, &data)
-	case "link-github-account":
+	case ActionLinkGitHubAccount:
 		h.handleUserSettingsLinkGithubAccountPost(w, r, &data)
-	case "unlink-google-account":
+	case ActionUnlinkGoogleAccount:
 		h.handleUserSettingsUnlinkGoogleAccountPost(w, r, &data)
-	case "unlink-github-account":
+	case ActionUnlinkGitHubAccount:
 		h.handleUserSettingsUnlinkGithubAccountPost(w, r, &data)
 	default:
 		w.WriteHeader(http.StatusBadRequest)

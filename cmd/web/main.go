@@ -61,7 +61,7 @@ func main() {
 	defer pool.Close()
 
 	gob.Register([]pages.Toast{})
-	gob.Register(handlers.AuthenticatedAction(""))
+	gob.Register(handlers.Action(""))
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(pool)
 	sessionManager.Lifetime = 12 * time.Hour

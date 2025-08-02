@@ -11,22 +11,22 @@ import (
 )
 
 func (h *Handlers) handleUserSettingsChangePasswordPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	data.CheckFieldTag(data.ChpCurrentPassword, "required", "chp-current-password", data.T("error.field_required"))
+	data.CheckFieldTag(data.ChangePassword.CurrentPassword, "required", "ChangePassword.CurrentPassword", data.T("error.field_required"))
 	data.CheckFieldTag(
-		data.ChpCurrentPassword, "max=64", "chp-current-password", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
+		data.ChangePassword.CurrentPassword, "max=64", "ChangePassword.CurrentPassword", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
 	)
 
-	data.CheckFieldTag(data.ChpNewPassword, "required", "chp-new-password", data.T("error.field_required"))
-	data.CheckFieldTag(data.ChpNewPassword, "no_whitespace", "chp-new-password", data.T("error.field_contains_whitespace"))
+	data.CheckFieldTag(data.ChangePassword.NewPassword, "required", "ChangePassword.NewPassword", data.T("error.field_required"))
+	data.CheckFieldTag(data.ChangePassword.NewPassword, "no_whitespace", "ChangePassword.NewPassword", data.T("error.field_contains_whitespace"))
 	data.CheckFieldTag(
-		data.ChpNewPassword, "min=8", "chp-new-password", data.TTemplate("error.field_not_enough_characters", map[string]string{"Min": "8"}),
+		data.ChangePassword.NewPassword, "min=8", "ChangePassword.NewPassword", data.TTemplate("error.field_not_enough_characters", map[string]string{"Min": "8"}),
 	)
 	data.CheckFieldTag(
-		data.ChpNewPassword, "max=64", "chp-new-password", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
+		data.ChangePassword.NewPassword, "max=64", "ChangePassword.NewPassword", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
 	)
-	data.CheckFieldTag(data.ChpNewPasswordConfirmation, "required", "chp-new-password-confirmation", data.T("error.field_required"))
+	data.CheckFieldTag(data.ChangePassword.NewPasswordConfirmation, "required", "ChangePassword.NewPasswordConfirmation", data.T("error.field_required"))
 	data.CheckFieldBool(
-		data.ChpNewPassword == data.ChpNewPasswordConfirmation, "chp-new-password", data.T("error.passwords_do_not_match"),
+		data.ChangePassword.NewPassword == data.ChangePassword.NewPasswordConfirmation, "ChangePassword.NewPassword", data.T("error.passwords_do_not_match"),
 	)
 
 	if !data.Valid() {
@@ -35,9 +35,9 @@ func (h *Handlers) handleUserSettingsChangePasswordPost(w http.ResponseWriter, r
 		return
 	}
 
-	err := h.UserService.ChangePassword(data.UserInfo.ID, data.ChpCurrentPassword, data.ChpNewPassword)
+	err := h.UserService.ChangePassword(data.UserInfo.ID, data.ChangePassword.CurrentPassword, data.ChangePassword.NewPassword)
 	if err != nil && errors.Is(err, services.ErrInvalidCredentials) {
-		data.AddFieldError("chp-current-password", data.T("error.incorrect_password"))
+		data.AddFieldError("ChangePassword.CurrentPassword", data.T("error.incorrect_password"))
 		w.WriteHeader(http.StatusUnauthorized)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
 		return

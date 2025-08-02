@@ -9,17 +9,17 @@ import (
 )
 
 func (h *Handlers) handleUserSettingsCreatePasswordPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	data.CheckFieldTag(data.CpaPassword, "required", "cpa-password", data.T("error.field_required"))
-	data.CheckFieldTag(data.CpaPassword, "no_whitespace", "cpa-password", data.T("error.field_contains_whitespace"))
+	data.CheckFieldTag(data.CreatePassword.Password, "required", "CreatePassword.Password", data.T("error.field_required"))
+	data.CheckFieldTag(data.CreatePassword.Password, "no_whitespace", "CreatePassword.Password", data.T("error.field_contains_whitespace"))
 	data.CheckFieldTag(
-		data.CpaPassword, "min=8", "cpa-password", data.TTemplate("error.field_not_enough_characters", map[string]string{"Min": "8"}),
+		data.CreatePassword.Password, "min=8", "CreatePassword.Password", data.TTemplate("error.field_not_enough_characters", map[string]string{"Min": "8"}),
 	)
 	data.CheckFieldTag(
-		data.CpaPassword, "max=64", "cpa-password", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
+		data.CreatePassword.Password, "max=64", "CreatePassword.Password", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "64"}),
 	)
-	data.CheckFieldTag(data.CpaPasswordConfirmation, "required", "cpa-password-confirmation", data.T("error.field_required"))
+	data.CheckFieldTag(data.CreatePassword.PasswordConfirmation, "required", "CreatePassword.PasswordConfirmation", data.T("error.field_required"))
 	data.CheckFieldBool(
-		data.CpaPassword == data.CpaPasswordConfirmation, "cpa-password", data.T("error.passwords_do_not_match"),
+		data.CreatePassword.Password == data.CreatePassword.PasswordConfirmation, "CreatePassword.Password", data.T("error.passwords_do_not_match"),
 	)
 
 	if !data.Valid() {
@@ -28,7 +28,7 @@ func (h *Handlers) handleUserSettingsCreatePasswordPost(w http.ResponseWriter, r
 		return
 	}
 
-	err := h.UserService.CreatePassword(data.UserInfo.ID, data.CpaPassword)
+	err := h.UserService.CreatePassword(data.UserInfo.ID, data.CreatePassword.Password)
 	if err != nil {
 		h.ServerError(w, r, err)
 		return

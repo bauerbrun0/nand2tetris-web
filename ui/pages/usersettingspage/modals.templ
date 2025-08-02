@@ -22,24 +22,24 @@ templ emailChangeModal(data UserSettingsPageData) {
 						XRef:    "closeEmailChangeModalButton",
 					})
 				</div>
-				<input type="hidden" name="form" value="change-email"/>
+				<input type="hidden" name="Action" value={ ActionChangeEmail }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.password"),
-					Name:        "che-password",
+					Name:        "ChangeEmail.Password",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["che-password"],
+					Err:         data.FieldErrors["ChangeEmail.Password"],
 				})
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.new_email"),
-					Name:        "che-new-email",
-					Value:       data.CheNewEmail,
+					Name:        "ChangeEmail.NewEmail",
+					Value:       data.ChangeEmail.NewEmail,
 					Placeholder: ctxi18n.T(ctx, "text.email_placeholder"),
 					FieldType:   "email",
 					Icon:        components.EmailIcon("w-4 h-4"),
-					Err:         data.FieldErrors["che-new-email"],
+					Err:         data.FieldErrors["ChangeEmail.NewEmail"],
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
@@ -81,15 +81,15 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 				<p class="text-center text-sm">
 					{ ctxi18n.T(ctx, "user_settings_page.sent_verification_code") }
 				</p>
-				<input type="hidden" name="form" value="change-email-send-code"/>
+				<input type="hidden" name="Action" value={ ActionChangeEmailSendCode }/>
 				@components.Input(components.InputOptions{
 					Label:       "Code",
-					Name:        "chesc-code",
+					Name:        "ChangeEmailSendCode.Code",
 					Value:       "",
 					Placeholder: ctxi18n.T(ctx, "text.verification_code"),
 					FieldType:   "text",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chesc-code"],
+					Err:         data.FieldErrors["ChangeEmailSendCode.Code"],
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
@@ -122,33 +122,33 @@ templ passwordChangeModal(data UserSettingsPageData) {
 						ModalId: "password-change-modal",
 					})
 				</div>
-				<input type="hidden" name="form" value="change-password"/>
+				<input type="hidden" name="Action" value={ ActionChangePassword }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.current_password"),
-					Name:        "chp-current-password",
+					Name:        "ChangePassword.CurrentPassword",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-current-password"],
+					Err:         data.FieldErrors["ChangePassword.CurrentPassword"],
 				})
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.new_password"),
-					Name:        "chp-new-password",
+					Name:        "ChangePassword.NewPassword",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-new-password"],
+					Err:         data.FieldErrors["ChangePassword.NewPassword"],
 				})
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.confirm_new_password"),
-					Name:        "chp-new-password-confirmation",
+					Name:        "ChangePassword.NewPasswordConfirmation",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["chp-new-password-confirmation"],
+					Err:         data.FieldErrors["ChangePassword.NewPasswordConfirmation"],
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_password"))
 			</form>
@@ -178,11 +178,11 @@ templ deleteAccountModal(data UserSettingsPageData) {
 						{ data.UserInfo.Email }
 					</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
 				</p>
-				<input type="hidden" name="form" value="delete-account"/>
+				<input type="hidden" name="Action" value={ ActionDeleteAccount }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.email"),
 					Name:        "da-email",
-					Value:       data.DeleteAccountEmail,
+					Value:       data.DeleteAccount.Email,
 					Placeholder: data.UserInfo.Email,
 					FieldType:   "email",
 					Icon:        components.EmailIcon("w-4 h-4"),
@@ -221,24 +221,24 @@ templ createPasswordModal(data UserSettingsPageData) {
 						XRef:    "closeCreatePasswordModalButton",
 					})
 				</div>
-				<input type="hidden" name="form" value="create-password"/>
+				<input type="hidden" name="Action" value={ ActionCreatePassword }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.password"),
-					Name:        "cpa-password",
+					Name:        "CreatePassword.Password",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["cpa-password"],
+					Err:         data.FieldErrors["CreatePassword.Password"],
 				})
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.confirm_password"),
-					Name:        "cpa-password-confirmation",
+					Name:        "CreatePassword.PasswordConfirmation",
 					Value:       "",
 					Placeholder: "••••••••",
 					FieldType:   "password",
 					Icon:        components.KeyIcon("w-4 h-4"),
-					Err:         data.FieldErrors["cpa-password-confirmation"],
+					Err:         data.FieldErrors["CreatePassword.PasswordConfirmation"],
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.create_password"))
 			</form>
@@ -249,8 +249,8 @@ templ createPasswordModal(data UserSettingsPageData) {
 templ authenticatedActionModalPasswordSubmitButton(text string) {
 	<button
 		type="submit"
-		name="verification"
-		value="password"
+		name="Verification"
+		value={ VerificationPassword }
 		class={ `
 				w-full
 				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
@@ -270,7 +270,7 @@ type AuthenticatedActionModalOptions struct {
 	Note               string
 	PasswordButtonText string
 	PasswordFieldName  string
-	FormValue          string
+	Action             Action
 	AdditionalInputs   templ.Component
 }
 
@@ -295,7 +295,7 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 				<p class="text-center text-sm">
 					{ options.Note }
 				</p>
-				<input type="hidden" name="form" value={ options.FormValue }/>
+				<input type="hidden" name="Action" value={ options.Action }/>
 				if options.Data.UserInfo.IsPasswordSet {
 					@components.Input(components.InputOptions{
 						Label:       ctxi18n.T(ctx, "text.password"),
@@ -318,8 +318,8 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 				if slices.Contains(options.Data.UserInfo.LinkedAccounts, "GitHub") {
 					<button
 						type="submit"
-						name="verification"
-						value="github"
+						name="Verification"
+						value={ VerificationGitHub }
 						class={ `
 							hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
 							focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg
@@ -334,8 +334,8 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 				if slices.Contains(options.Data.UserInfo.LinkedAccounts, "Google") {
 					<button
 						type="submit"
-						name="verification"
-						value="google"
+						name="Verification"
+						value={ VerificationGoogle }
 						class={ `
 							hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
 							focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg

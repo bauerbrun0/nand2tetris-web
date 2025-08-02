@@ -47,7 +47,7 @@ func (h *Handlers) handleUserSettingsUnlinkGoogleAccountPost(w http.ResponseWrit
 
 	switch verificationMethod {
 	case VerificationPassword:
-		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGooglePassword, "unlink-google/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGoogle.Password, "UnlinkGoogle.Password")
 		if ok {
 			newPageData := h.NewPageData(r)
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGoogle)
@@ -72,7 +72,7 @@ func (h *Handlers) handleUserSettingsUnlinkGithubAccountPost(w http.ResponseWrit
 
 	switch verificationMethod {
 	case VerificationPassword:
-		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGithubPassword, "unlink-github/password")
+		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGithub.Password, "UnlinkGithub.Password")
 		if ok {
 			newPageData := h.NewPageData(r)
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGitHub)

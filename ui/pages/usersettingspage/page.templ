@@ -10,25 +10,65 @@ import (
 )
 
 type UserSettingsPageData struct {
-	Form                       string `form:"form"`
-	ChpCurrentPassword         string `form:"chp-current-password"`
-	ChpNewPassword             string `form:"chp-new-password"`
-	ChpNewPasswordConfirmation string `form:"chp-new-password-confirmation"`
-	ChePassword                string `form:"che-password"`
-	CheNewEmail                string `form:"che-new-email"`
-	ChescCode                  string `form:"chesc-code"`
-	DeleteAccountEmail         string `form:"delete-account/email"`
-	DeleteAccountPassword      string `form:"delete-account/password"`
-	CpaPassword                string `form:"cpa-password"`
-	CpaPasswordConfirmation    string `form:"cpa-password-confirmation"`
-	LinkGooglePassword         string `form:"link-google/password"`
-	LinkGithubPassword         string `form:"link-github/password"`
-	UnlinkGooglePassword       string `form:"unlink-google/password"`
-	UnlinkGithubPassword       string `form:"unlink-github/password"`
-	Verification               string `form:"verification"`
-	validator.Validator        `form:-`
-	pages.PageData             `form:-`
+	Action         Action
+	ChangePassword struct {
+		CurrentPassword         string
+		NewPassword             string
+		NewPasswordConfirmation string
+	}
+	ChangeEmail struct {
+		Password string
+		NewEmail string
+	}
+	ChangeEmailSendCode struct {
+		Code string
+	}
+	DeleteAccount struct {
+		Email    string
+		Password string
+	}
+	CreatePassword struct {
+		Password             string
+		PasswordConfirmation string
+	}
+	LinkGoogle struct {
+		Password string
+	}
+	UnlinkGoogle struct {
+		Password string
+	}
+	LinkGithub struct {
+		Password string
+	}
+	UnlinkGithub struct {
+		Password string
+	}
+	Verification        VerificationMethod
+	validator.Validator `form:-`
+	pages.PageData      `form:-`
 }
+
+type VerificationMethod string
+
+const (
+	VerificationPassword VerificationMethod = "password"
+	VerificationGitHub   VerificationMethod = "github"
+	VerificationGoogle   VerificationMethod = "google"
+)
+
+type Action string
+
+const (
+	ActionChangePassword      Action = "change-password"
+	ActionChangeEmail         Action = "change-email"
+	ActionChangeEmailSendCode Action = "change-email-send-code"
+	ActionDeleteAccount       Action = "delete-account"
+	ActionCreatePassword      Action = "create-password"
+	ActionLinkGoogleAccount   Action = "link-google-account"
+	ActionUnlinkGoogleAccount Action = "unlink-google-account"
+	ActionLinkGithubAccount   Action = "link-github-account"
+	ActionUnlinkGithubAccount Action = "unlink-github-account"
+)
 
 templ Page(data UserSettingsPageData) {
 	@layouts.BaseLayout(data.PageData) {
@@ -96,7 +136,7 @@ templ linkGoogleAccountSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "link-google-account-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.link_google_account"),
-				InitialTrigger: data.Form == "link-google-account",
+				InitialTrigger: data.Action == ActionLinkGoogleAccount,
 			})
 			@authenticatedActionModal(AuthenticatedActionModalOptions{
 				ModalId:            "link-google-account-modal",
@@ -104,8 +144,8 @@ templ linkGoogleAccountSection(data UserSettingsPageData) {
 				Title:              ctxi18n.T(ctx, "user_settings_page.link_google_account"),
 				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
 				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_google_account"),
-				PasswordFieldName:  "link-google/password",
-				FormValue:          "link-google-account",
+				PasswordFieldName:  "LinkGoogle.Password",
+				Action:             ActionLinkGoogleAccount,
 			})
 		</div>
 	</div>
@@ -121,7 +161,7 @@ templ unlinkGoogleAccountSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "unlink-google-account-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
-				InitialTrigger: data.Form == "unlink-google-account",
+				InitialTrigger: data.Action == ActionUnlinkGoogleAccount,
 			})
 			@authenticatedActionModal(AuthenticatedActionModalOptions{
 				ModalId:            "unlink-google-account-modal",
@@ -129,8 +169,8 @@ templ unlinkGoogleAccountSection(data UserSettingsPageData) {
 				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
 				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
 				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
-				PasswordFieldName:  "unlink-google/password",
-				FormValue:          "unlink-google-account",
+				PasswordFieldName:  "UnlinkGoogle.Password",
+				Action:             ActionUnlinkGoogleAccount,
 			})
 		</div>
 	</div>
@@ -146,7 +186,7 @@ templ linkGithubAccountSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "link-github-account-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.link_github_account"),
-				InitialTrigger: data.Form == "link-github-account",
+				InitialTrigger: data.Action == ActionLinkGithubAccount,
 			})
 			@authenticatedActionModal(AuthenticatedActionModalOptions{
 				ModalId:            "link-github-account-modal",
@@ -154,8 +194,8 @@ templ linkGithubAccountSection(data UserSettingsPageData) {
 				Title:              ctxi18n.T(ctx, "user_settings_page.link_github_account"),
 				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
 				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_github_account"),
-				PasswordFieldName:  "link-github/password",
-				FormValue:          "link-github-account",
+				PasswordFieldName:  "LinkGithub.Password",
+				Action:             ActionLinkGithubAccount,
 			})
 		</div>
 	</div>
@@ -171,7 +211,7 @@ templ unlinkGithubAccountSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "unlink-github-account-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
-				InitialTrigger: data.Form == "unlink-github-account",
+				InitialTrigger: data.Action == ActionUnlinkGithubAccount,
 			})
 			@authenticatedActionModal(AuthenticatedActionModalOptions{
 				ModalId:            "unlink-github-account-modal",
@@ -179,8 +219,8 @@ templ unlinkGithubAccountSection(data UserSettingsPageData) {
 				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
 				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
 				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
-				PasswordFieldName:  "unlink-github/password",
-				FormValue:          "unlink-github-account",
+				PasswordFieldName:  "UnlinkGithub.Password",
+				Action:             ActionUnlinkGithubAccount,
 			})
 		</div>
 	</div>
@@ -196,7 +236,7 @@ templ createPasswordSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "create-password-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.create_password"),
-				InitialTrigger: data.Form == "create-password",
+				InitialTrigger: data.Action == ActionCreatePassword,
 			})
 			@createPasswordModal(data)
 		</div>
@@ -213,12 +253,12 @@ templ emailSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "email-change-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.change_email"),
-				InitialTrigger: data.Form == "change-email",
+				InitialTrigger: data.Action == ActionChangeEmail,
 			})
 			@emailChangeModal(data)
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "email-change-send-code-modal",
-				InitialTrigger: data.Form == "change-email-send-code",
+				InitialTrigger: data.Action == ActionChangeEmailSendCode,
 			})
 			@emailChangeSendCodeModal(data)
 		</div>
@@ -235,14 +275,14 @@ templ passwordSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:        "password-change-modal",
 				Text:           ctxi18n.T(ctx, "user_settings_page.change_password"),
-				InitialTrigger: data.Form == "change-password",
+				InitialTrigger: data.Action == ActionChangePassword,
 			})
 			@passwordChangeModal(data)
 		</div>
 	</div>
 }
 
-templ deleteAccountEmailInput(data UserSettingsPageData) {
+templ DeleteAccountEmailInput(data UserSettingsPageData) {
 	<p class="text-center text-sm">
 		{ ctxi18n.T(ctx, "user_settings_page.delete_account_cannot_be_undone") }
 		{ ctxi18n.T(ctx, "user_settings_page.type_in") }
@@ -252,12 +292,12 @@ templ deleteAccountEmailInput(data UserSettingsPageData) {
 	</p>
 	@components.Input(components.InputOptions{
 		Label:       ctxi18n.T(ctx, "text.email"),
-		Name:        "delete-account/email",
-		Value:       data.DeleteAccountEmail,
+		Name:        "DeleteAccount.Email",
+		Value:       data.DeleteAccount.Email,
 		Placeholder: data.UserInfo.Email,
 		FieldType:   "email",
 		Icon:        components.EmailIcon("w-4 h-4"),
-		Err:         data.FieldErrors["delete-account/email"],
+		Err:         data.FieldErrors["DeleteAccount.Email"],
 	})
 }
 
@@ -271,7 +311,7 @@ templ deleteAccountSection(data UserSettingsPageData) {
 			@components.ToggleModalButton(components.ToggleModalButtonOptions{
 				ModalId:           "delete-account-modal",
 				Text:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
-				InitialTrigger:    data.Form == "delete-account",
+				InitialTrigger:    data.Action == ActionDeleteAccount,
 				AdditionalClasses: "hover:text-red-500 dark:hover:text-red-500 hover:border-red-500",
 			})
 			@authenticatedActionModal(AuthenticatedActionModalOptions{
@@ -280,9 +320,9 @@ templ deleteAccountSection(data UserSettingsPageData) {
 				Title:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
 				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
 				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.delete_account"),
-				PasswordFieldName:  "delete-account/password",
-				FormValue:          "delete-account",
-				AdditionalInputs:   deleteAccountEmailInput(data),
+				PasswordFieldName:  "DeleteAccount.Password",
+				Action:             ActionDeleteAccount,
+				AdditionalInputs:   DeleteAccountEmailInput(data),
 			})
 		</div>
 	</div>

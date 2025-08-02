@@ -10,7 +10,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 )
 
-func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Request, action AuthenticatedAction, callbackPath string) {
+func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Request, action Action, callbackPath string) {
 	h.SessionManager.Put(r.Context(), "authenticated-action", action)
 
 	state := crypto.GenerateRandomString(30)
@@ -28,7 +28,7 @@ func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 
-func (h *Handlers) sendGithubActionRedirect(w http.ResponseWriter, r *http.Request, action AuthenticatedAction, callbackPath string) {
+func (h *Handlers) sendGithubActionRedirect(w http.ResponseWriter, r *http.Request, action Action, callbackPath string) {
 	h.SessionManager.Put(r.Context(), "authenticated-action", action)
 
 	state := crypto.GenerateRandomString(16)
@@ -121,7 +121,7 @@ func (h *Handlers) UserGoogleActionCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(AuthenticatedAction)
+	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(Action)
 	if !ok {
 		h.ServerError(w, r, ErrInvalidActionInSession)
 		return
@@ -215,7 +215,7 @@ func (h *Handlers) UserGithubActionCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(AuthenticatedAction)
+	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(Action)
 	if !ok {
 		h.ServerError(w, r, ErrInvalidActionInSession)
 		return
