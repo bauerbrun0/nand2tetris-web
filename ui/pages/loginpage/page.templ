@@ -29,6 +29,7 @@ templ form(data LoginPageData) {
 			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
 				{ ctxi18n.T(ctx, "login_page.welcome_back") }
 			</h5>
+			@components.CSRFTokenInput(data.CSRFToken)
 			@components.Input(components.InputOptions{
 				Label:       ctxi18n.T(ctx, "text.username"),
 				Name:        "username",

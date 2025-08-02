@@ -26,7 +26,7 @@ templ profileDropDown(data pages.PageData) {
 		<div class="flex flex-col space-y-2">
 			@themeToggleButton()
 			@profileSettingsLink()
-			@logoutForm()
+			@logoutForm(data)
 		</div>
 	</div>
 }
@@ -68,8 +68,9 @@ templ profileSettingsLink() {
 	</a>
 }
 
-templ logoutForm() {
+templ logoutForm(data pages.PageData) {
 	<form action="/user/logout" method="POST">
+		@CSRFTokenInput(data.CSRFToken)
 		<button
 			type="submit"
 			class="w-full text-left text-red-500 cursor-pointer hover:bg-red-100 hover:dark:bg-silver-800 p-2 rounded-md flex items center space-x-3"

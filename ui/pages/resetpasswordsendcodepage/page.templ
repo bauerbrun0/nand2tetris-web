@@ -32,6 +32,7 @@ templ form(data ResetPasswordSendCodePageData) {
 		<p class="text-center text-sm">
 			{ ctxi18n.T(ctx, "reset_password_page.enter_email_address") }
 		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
 		@components.Input(components.InputOptions{
 			Label:       "",
 			Name:        "email",

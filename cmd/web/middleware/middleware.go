@@ -9,6 +9,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/application"
 	"github.com/bauerbrun0/nand2tetris-web/internal/appctx"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+	"github.com/justinas/nosurf"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -166,4 +167,15 @@ func (m *Middleware) Language(next http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *Middleware) NoSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: m.Config.Env == "production",
+		Path:     "/",
+		Secure:   m.Config.Env == "production",
+	})
+
+	return csrfHandler
 }

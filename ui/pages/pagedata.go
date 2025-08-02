@@ -35,6 +35,7 @@ type PageData struct {
 	CurrentYear     int             `json:"-"`
 	InitialToasts   []Toast         `json:"initialToasts"`
 	Localizer       *i18n.Localizer `json:"-"`
+	CSRFToken       string          `json:"-"`
 }
 
 func (pd *PageData) T(key string) string {

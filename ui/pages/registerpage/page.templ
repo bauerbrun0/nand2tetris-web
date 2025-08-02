@@ -33,6 +33,7 @@ templ form(data RegisterPageData) {
 			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
 				{ ctxi18n.T(ctx, "register_page.create_account") }
 			</h5>
+			@components.CSRFTokenInput(data.CSRFToken)
 			@components.Input(components.InputOptions{
 				Label:       ctxi18n.T(ctx, "text.email"),
 				Name:        "email",

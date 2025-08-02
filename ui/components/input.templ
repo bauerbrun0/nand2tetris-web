@@ -55,3 +55,7 @@ templ Input(options InputOptions) {
 		/>
 	</div>
 }
+
+templ CSRFTokenInput(token string) {
+	<input type="hidden" name="csrf_token" value={ token }/>
+}

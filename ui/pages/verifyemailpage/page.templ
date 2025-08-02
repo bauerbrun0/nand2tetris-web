@@ -38,6 +38,7 @@ templ formWithEmail(data VerifyEmailPageData) {
 			{ ctxi18n.T(ctx, "verify_email_page.sent_verification_code_to") } <strong>{ data.Email }</strong>.
 			{ ctxi18n.T(ctx, "verify_email_page.enter_code_below") }
 		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
 		<input type="hidden" id="email" name="email" value={ data.Email }/>
 		@components.Input(components.InputOptions{
 			Label:       "",
@@ -62,6 +63,7 @@ templ formWithEmail(data VerifyEmailPageData) {
 		</button>
 	</form>
 	<form action="/user/verify-email/send-code" method="POST">
+		@components.CSRFTokenInput(data.CSRFToken)
 		<input type="hidden" id="email" name="email" value={ data.Email }/>
 		<div class="text-sm font-medium text-silver-600 mt-6">
 			{ ctxi18n.T(ctx, "text.did_not_receive_email") }
@@ -81,6 +83,7 @@ templ formWithNoEmail(data VerifyEmailPageData) {
 		<p class="text-center text-sm">
 			{ ctxi18n.T(ctx, "verify_email_page.sent_verification_code_to_your_email") }
 		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
 		@components.Input(components.InputOptions{
 			Label:       "",
 			Name:        "code",

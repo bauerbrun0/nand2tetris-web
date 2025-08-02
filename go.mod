@@ -18,6 +18,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
+	github.com/justinas/nosurf v1.2.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.0
 	golang.org/x/crypto v0.40.0
 	golang.org/x/text v0.27.0

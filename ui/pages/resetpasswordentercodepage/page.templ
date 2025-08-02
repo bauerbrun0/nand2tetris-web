@@ -40,6 +40,7 @@ templ form(data ResetPasswordEnterCodePageData) {
 				{ ctxi18n.T(ctx, "reset_password_page.sent_verification_code_to_your_email") }
 			</p>
 		}
+		@components.CSRFTokenInput(data.CSRFToken)
 		@components.Input(components.InputOptions{
 			Label:       "",
 			Name:        "code",
@@ -64,6 +65,7 @@ templ form(data ResetPasswordEnterCodePageData) {
 	</form>
 	if data.Email != "" {
 		<form action="/user/reset-password/send-code" method="POST">
+			@components.CSRFTokenInput(data.CSRFToken)
 			<input type="hidden" id="email" name="email" value={ data.Email }/>
 			<div class="text-sm font-medium text-silver-600 mt-6">
 				{ ctxi18n.T(ctx, "text.did_not_receive_email") }

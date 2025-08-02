@@ -22,6 +22,7 @@ templ emailChangeModal(data UserSettingsPageData) {
 						XRef:    "closeEmailChangeModalButton",
 					})
 				</div>
+				@components.CSRFTokenInput(data.CSRFToken)
 				<input type="hidden" name="Action" value={ ActionChangeEmail }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.password"),
@@ -81,6 +82,7 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 				<p class="text-center text-sm">
 					{ ctxi18n.T(ctx, "user_settings_page.sent_verification_code") }
 				</p>
+				@components.CSRFTokenInput(data.CSRFToken)
 				<input type="hidden" name="Action" value={ ActionChangeEmailSendCode }/>
 				@components.Input(components.InputOptions{
 					Label:       "Code",
@@ -122,6 +124,7 @@ templ passwordChangeModal(data UserSettingsPageData) {
 						ModalId: "password-change-modal",
 					})
 				</div>
+				@components.CSRFTokenInput(data.CSRFToken)
 				<input type="hidden" name="Action" value={ ActionChangePassword }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "user_settings_page.current_password"),
@@ -178,6 +181,7 @@ templ deleteAccountModal(data UserSettingsPageData) {
 						{ data.UserInfo.Email }
 					</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
 				</p>
+				@components.CSRFTokenInput(data.CSRFToken)
 				<input type="hidden" name="Action" value={ ActionDeleteAccount }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.email"),
@@ -221,6 +225,7 @@ templ createPasswordModal(data UserSettingsPageData) {
 						XRef:    "closeCreatePasswordModalButton",
 					})
 				</div>
+				@components.CSRFTokenInput(data.CSRFToken)
 				<input type="hidden" name="Action" value={ ActionCreatePassword }/>
 				@components.Input(components.InputOptions{
 					Label:       ctxi18n.T(ctx, "text.password"),
@@ -295,6 +300,7 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 				<p class="text-center text-sm">
 					{ options.Note }
 				</p>
+				@components.CSRFTokenInput(options.Data.CSRFToken)
 				<input type="hidden" name="Action" value={ options.Action }/>
 				if options.Data.UserInfo.IsPasswordSet {
 					@components.Input(components.InputOptions{

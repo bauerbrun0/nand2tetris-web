@@ -12,6 +12,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
+	"github.com/justinas/nosurf"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
@@ -56,6 +57,7 @@ func (app *Application) NewPageData(r *http.Request) pages.PageData {
 		UserInfo:        app.GetAuthenticatedUserInfo(r),
 		InitialToasts:   app.GetInitialToasts(r),
 		Localizer:       app.GetLocalizer(r),
+		CSRFToken:       nosurf.Token(r),
 	}
 }
 

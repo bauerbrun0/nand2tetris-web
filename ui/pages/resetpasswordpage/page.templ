@@ -34,6 +34,7 @@ templ form(data ResetPasswordPageData) {
 		<p class="text-center text-sm">
 			{ ctxi18n.T(ctx, "reset_password_page.enter_new_password_below") }
 		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
 		<input type="hidden" name="code" value={ data.Code }/>
 		@components.Input(components.InputOptions{
 			Label:       "",

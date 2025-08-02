@@ -25,6 +25,7 @@ templ Page(data VerifyEmailSendCodePageData) {
 					<p class="text-center text-sm">
 						{ ctxi18n.T(ctx, "verify_email_page.enter_email") }
 					</p>
+					@components.CSRFTokenInput(data.CSRFToken)
 					@components.Input(components.InputOptions{
 						Label:       "",
 						Name:        "email",
