@@ -19,15 +19,22 @@ func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r 
 		return
 	}
 
-	switch data.Verification {
-	case "":
+	verificationMethod, ok := ParseVerificationMethod(data.Verification)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
+		return
+	}
+
+	switch verificationMethod {
+	case VerificationPassword:
 		ok := h.validateAndCheckPasswordField(w, r, data, data.DeleteAccountPassword, "delete-account/password")
 		if ok {
 			h.deleteAccount(w, r)
 		}
-	case "github":
+	case VerificationGitHub:
 		h.sendGithubActionRedirect(w, r, "delete-account", "/user/oauth/github/callback/action")
-	case "google":
+	case VerificationGoogle:
 		h.sendGoogleActionRedirect(w, r, "delete-account", "/user/oauth/google/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)

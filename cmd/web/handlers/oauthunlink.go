@@ -38,16 +38,23 @@ func (h *Handlers) unlinkOAuthAccount(w http.ResponseWriter, r *http.Request, da
 }
 
 func (h *Handlers) handleUserSettingsUnlinkGoogleAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	switch data.Verification {
-	case "":
+	verificationMethod, ok := ParseVerificationMethod(data.Verification)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
+		return
+	}
+
+	switch verificationMethod {
+	case VerificationPassword:
 		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGooglePassword, "unlink-google/password")
 		if ok {
 			newPageData := h.NewPageData(r)
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGoogle)
 		}
-	case "google":
+	case VerificationGoogle:
 		h.sendGoogleActionRedirect(w, r, "unlink-google-account", "/user/oauth/google/callback/action")
-	case "github":
+	case VerificationGitHub:
 		h.sendGithubActionRedirect(w, r, "unlink-google-account", "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
@@ -56,16 +63,23 @@ func (h *Handlers) handleUserSettingsUnlinkGoogleAccountPost(w http.ResponseWrit
 }
 
 func (h *Handlers) handleUserSettingsUnlinkGithubAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	switch data.Verification {
-	case "":
+	verificationMethod, ok := ParseVerificationMethod(data.Verification)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
+		return
+	}
+
+	switch verificationMethod {
+	case VerificationPassword:
 		ok := h.validateAndCheckPasswordField(w, r, data, data.UnlinkGithubPassword, "unlink-github/password")
 		if ok {
 			newPageData := h.NewPageData(r)
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGitHub)
 		}
-	case "google":
+	case VerificationGoogle:
 		h.sendGoogleActionRedirect(w, r, "unlink-github-account", "/user/oauth/google/callback/action")
-	case "github":
+	case VerificationGitHub:
 		h.sendGithubActionRedirect(w, r, "unlink-github-account", "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)

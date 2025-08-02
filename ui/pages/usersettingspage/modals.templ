@@ -249,6 +249,8 @@ templ createPasswordModal(data UserSettingsPageData) {
 templ authenticatedActionModalPasswordSubmitButton(text string) {
 	<button
 		type="submit"
+		name="verification"
+		value="password"
 		class={ `
 				w-full
 				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600

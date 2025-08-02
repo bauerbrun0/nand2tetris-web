@@ -169,13 +169,20 @@ func (h *Handlers) UserLinkGoogleCallback(w http.ResponseWriter, r *http.Request
 }
 
 func (h *Handlers) handleUserSettingsLinkGoogleAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	switch data.Verification {
-	case "":
+	verificationMethod, ok := ParseVerificationMethod(data.Verification)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
+		return
+	}
+
+	switch verificationMethod {
+	case VerificationPassword:
 		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGooglePassword, "link-google/password")
 		if ok {
 			h.sendLinkGoogleAccountRedirect(w, r)
 		}
-	case "github":
+	case VerificationGitHub:
 		h.sendGithubActionRedirect(w, r, "link-google-account", "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
@@ -184,13 +191,20 @@ func (h *Handlers) handleUserSettingsLinkGoogleAccountPost(w http.ResponseWriter
 }
 
 func (h *Handlers) handleUserSettingsLinkGithubAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
-	switch data.Verification {
-	case "":
+	verificationMethod, ok := ParseVerificationMethod(data.Verification)
+	if !ok {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
+		return
+	}
+
+	switch verificationMethod {
+	case VerificationPassword:
 		ok := h.validateAndCheckPasswordField(w, r, data, data.LinkGithubPassword, "link-github/password")
 		if ok {
 			h.sendLinkGithubAccountRedirect(w, r)
 		}
-	case "google":
+	case VerificationGoogle:
 		h.sendGoogleActionRedirect(w, r, "link-github-account", "/user/oauth/google/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
