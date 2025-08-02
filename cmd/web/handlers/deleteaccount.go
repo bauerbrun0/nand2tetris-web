@@ -33,9 +33,9 @@ func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r 
 			h.deleteAccount(w, r)
 		}
 	case VerificationGitHub:
-		h.sendGithubActionRedirect(w, r, "delete-account", "/user/oauth/github/callback/action")
+		h.sendGithubActionRedirect(w, r, ActionDeleteAccount, "/user/oauth/github/callback/action")
 	case VerificationGoogle:
-		h.sendGoogleActionRedirect(w, r, "delete-account", "/user/oauth/google/callback/action")
+		h.sendGoogleActionRedirect(w, r, ActionDeleteAccount, "/user/oauth/google/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))

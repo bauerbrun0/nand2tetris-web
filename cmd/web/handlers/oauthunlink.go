@@ -53,9 +53,9 @@ func (h *Handlers) handleUserSettingsUnlinkGoogleAccountPost(w http.ResponseWrit
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGoogle)
 		}
 	case VerificationGoogle:
-		h.sendGoogleActionRedirect(w, r, "unlink-google-account", "/user/oauth/google/callback/action")
+		h.sendGoogleActionRedirect(w, r, ActionUnlinkGoogleAccount, "/user/oauth/google/callback/action")
 	case VerificationGitHub:
-		h.sendGithubActionRedirect(w, r, "unlink-google-account", "/user/oauth/github/callback/action")
+		h.sendGithubActionRedirect(w, r, ActionUnlinkGoogleAccount, "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
@@ -78,9 +78,9 @@ func (h *Handlers) handleUserSettingsUnlinkGithubAccountPost(w http.ResponseWrit
 			h.unlinkOAuthAccount(w, r, &newPageData, models.ProviderGitHub)
 		}
 	case VerificationGoogle:
-		h.sendGoogleActionRedirect(w, r, "unlink-github-account", "/user/oauth/google/callback/action")
+		h.sendGoogleActionRedirect(w, r, ActionUnlinkGitHubAccount, "/user/oauth/google/callback/action")
 	case VerificationGitHub:
-		h.sendGithubActionRedirect(w, r, "unlink-github-account", "/user/oauth/github/callback/action")
+		h.sendGithubActionRedirect(w, r, ActionUnlinkGitHubAccount, "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))

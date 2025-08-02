@@ -10,7 +10,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 )
 
-func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Request, action, callbackPath string) {
+func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Request, action AuthenticatedAction, callbackPath string) {
 	h.SessionManager.Put(r.Context(), "authenticated-action", action)
 
 	state := crypto.GenerateRandomString(30)
@@ -28,7 +28,7 @@ func (h *Handlers) sendGoogleActionRedirect(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 
-func (h *Handlers) sendGithubActionRedirect(w http.ResponseWriter, r *http.Request, action, callbackPath string) {
+func (h *Handlers) sendGithubActionRedirect(w http.ResponseWriter, r *http.Request, action AuthenticatedAction, callbackPath string) {
 	h.SessionManager.Put(r.Context(), "authenticated-action", action)
 
 	state := crypto.GenerateRandomString(16)
@@ -121,16 +121,20 @@ func (h *Handlers) UserGoogleActionCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	action := h.SessionManager.PopString(r.Context(), "authenticated-action")
+	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(AuthenticatedAction)
+	if !ok {
+		h.ServerError(w, r, ErrInvalidActionInSession)
+		return
+	}
 
 	switch action {
-	case "link-github-account":
+	case ActionLinkGitHubAccount:
 		h.sendLinkGithubAccountRedirect(w, r)
-	case "unlink-google-account":
+	case ActionUnlinkGoogleAccount:
 		h.unlinkOAuthAccount(w, r, &data, models.ProviderGoogle)
-	case "unlink-github-account":
+	case ActionUnlinkGitHubAccount:
 		h.unlinkOAuthAccount(w, r, &data, models.ProviderGitHub)
-	case "delete-account":
+	case ActionDeleteAccount:
 		h.deleteAccount(w, r)
 	default:
 		http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
@@ -211,16 +215,20 @@ func (h *Handlers) UserGithubActionCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	action := h.SessionManager.PopString(r.Context(), "authenticated-action")
+	action, ok := h.SessionManager.Pop(r.Context(), "authenticated-action").(AuthenticatedAction)
+	if !ok {
+		h.ServerError(w, r, ErrInvalidActionInSession)
+		return
+	}
 
 	switch action {
-	case "link-google-account":
+	case ActionLinkGoogleAccount:
 		h.sendLinkGoogleAccountRedirect(w, r)
-	case "unlink-google-account":
+	case ActionUnlinkGoogleAccount:
 		h.unlinkOAuthAccount(w, r, &data, models.ProviderGoogle)
-	case "unlink-github-account":
+	case ActionUnlinkGitHubAccount:
 		h.unlinkOAuthAccount(w, r, &data, models.ProviderGitHub)
-	case "delete-account":
+	case ActionDeleteAccount:
 		h.deleteAccount(w, r)
 	default:
 		http.Redirect(w, r, "/user/settings", http.StatusSeeOther)

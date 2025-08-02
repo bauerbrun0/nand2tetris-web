@@ -183,7 +183,7 @@ func (h *Handlers) handleUserSettingsLinkGoogleAccountPost(w http.ResponseWriter
 			h.sendLinkGoogleAccountRedirect(w, r)
 		}
 	case VerificationGitHub:
-		h.sendGithubActionRedirect(w, r, "link-google-account", "/user/oauth/github/callback/action")
+		h.sendGithubActionRedirect(w, r, ActionLinkGoogleAccount, "/user/oauth/github/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
@@ -205,7 +205,7 @@ func (h *Handlers) handleUserSettingsLinkGithubAccountPost(w http.ResponseWriter
 			h.sendLinkGithubAccountRedirect(w, r)
 		}
 	case VerificationGoogle:
-		h.sendGoogleActionRedirect(w, r, "link-github-account", "/user/oauth/google/callback/action")
+		h.sendGoogleActionRedirect(w, r, ActionLinkGitHubAccount, "/user/oauth/google/callback/action")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		h.Render(r.Context(), w, r, usersettingspage.Page(*data))
