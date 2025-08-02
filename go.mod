@@ -15,7 +15,6 @@ require (
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/gohugoio/go-i18n/v2 v2.1.3-0.20230805085216-e63c13218d0e
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
