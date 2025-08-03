@@ -92,12 +92,14 @@ func TestPasswordHashing(t *testing.T) {
 		})
 	}
 
-	password := "Password123"
-	hash1 := mustHashPassword(t, hasher, password)
-	hash2 := mustHashPassword(t, hasher, password)
-	if hash1 == hash2 {
-		t.Logf("warning: hashes for same password are identical.")
-	}
+	t.Run("Same password different hash", func(t *testing.T) {
+		password := "Password123"
+		hash1 := mustHashPassword(t, hasher, password)
+		hash2 := mustHashPassword(t, hasher, password)
+		if hash1 == hash2 {
+			t.Logf("warning: hashes for same password are identical.")
+		}
+	})
 }
 
 func mustHashPassword(t *testing.T, hasher PasswordHasher, password string) string {
