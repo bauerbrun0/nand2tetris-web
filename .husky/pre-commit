@@ -8,3 +8,5 @@ if [ -n "$unformatted" ]; then
 fi
 
 go tool templ fmt -fail .
+
+go test ./...
