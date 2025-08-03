@@ -23,6 +23,8 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	mux.Handle("GET /static/", m.DisableCacheInDevMode(fs))
 
+	mux.Handle("GET /ping", http.HandlerFunc(h.Ping))
+
 	dynamicChain := alice.New(app.SessionManager.LoadAndSave, m.Language, m.Authenticate, m.GetToasts, m.NoSurf)
 
 	mux.Handle("GET /{$}", dynamicChain.ThenFunc(h.Home))
