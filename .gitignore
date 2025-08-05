@@ -13,6 +13,9 @@ ui/static/css/*
 # sqlc generated database access files
 internal/models/*
 !internal/models/errors.go
+!internal/models/queries.go
+!internal/models/transactions.go
+!internal/models/mocks/
 
 # tmp directory
 tmp/
@@ -21,3 +24,6 @@ tmp/
 build/
 
 .env
+
+# mockery generated mock files
+**/mocks/generated.go

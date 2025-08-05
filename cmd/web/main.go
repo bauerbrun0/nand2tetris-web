@@ -18,6 +18,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
+	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
@@ -67,9 +68,12 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = cfg.Env == "production"
 
+	queries := models.New(pool)
+	txStarter := models.NewTxStarter(pool)
+
 	emailSender := services.NewConsoleEmailSender(logger)
 	emailService := services.NewEmailService(emailSender, logger)
-	userService := services.NewUserService(logger, emailService, pool, ctx)
+	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
 
 	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)
 	googleOauthService := services.NewGoogleOAuthService(cfg.GoogleClientId, cfg.GoogleClientSecret, cfg.BaseUrl, logger)

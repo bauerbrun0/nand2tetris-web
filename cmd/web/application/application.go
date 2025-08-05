@@ -26,8 +26,8 @@ type Application struct {
 	Config             Config
 	SessionManager     *scs.SessionManager
 	FormDecoder        *form.Decoder
-	EmailService       *services.EmailService
-	UserService        *services.UserService
+	EmailService       services.EmailService
+	UserService        services.UserService
 	GithubOauthService services.OAuthService
 	GoogleOauthService services.OAuthService
 	Bundle             *i18n.Bundle

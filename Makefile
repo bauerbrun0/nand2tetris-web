@@ -83,6 +83,14 @@ db/migrate:
 db/migrate/down:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" down
 
+# generate mock files
+test/generate:
+	go tool mockery
+
+# run all tests
+test/all:
+	go test ./... -count=1
+
 # remove generated files (excluding sqlc generated files)
 clear:
 	rm -rf build ui/static/css ui/static/js && make rm/templ

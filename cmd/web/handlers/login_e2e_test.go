@@ -10,15 +10,11 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 )
 
-func TestPing(t *testing.T) {
+func TestLogin(t *testing.T) {
 	githubOauthService := servicemocks.NewMockOAuthService(t)
 	googleOauthService := servicemocks.NewMockOAuthService(t)
 	queries := modelsmocks.NewMockDBQueries(t)
 	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService)
-	defer ts.Close()
-
-	code, _, body := ts.Get(t, "/ping")
-
+	code, _, _ := ts.Get(t, "/user/login")
 	assert.Equal(t, code, http.StatusOK)
-	assert.Equal(t, string(body), "OK")
 }

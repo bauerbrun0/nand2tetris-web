@@ -36,6 +36,11 @@ Run migrations:
 $ make db/migrate
 ```
 
+Generate mock files for testing:
+```bash
+make test/generate
+```
+
 Run the `dev` target with `make`:
 ```bash
 $ make dev

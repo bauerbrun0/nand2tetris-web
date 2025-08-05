@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -25,31 +24,51 @@ var (
 	ErrPasswordAlreadySet       = errors.New("userservice: password is already set")
 )
 
-type UserService struct {
-	logger       *slog.Logger
-	pool         *pgxpool.Pool
-	emailService *EmailService
-	ctx          context.Context
+type UserService interface {
+	CreateUser(email, username, password string) (*models.User, error)
+	VerifyEmail(code string) (bool, error)
+	ResendEmailVerificationCode(email string) (*models.EmailVerificationRequest, error)
+	AuthenticateUser(username, password string) (*models.User, error)
+	UserExists(id int32) (*pages.UserInfo, error)
+	SendPasswordResetCode(email string) (*models.PasswordResetRequest, error)
+	VerifyPasswordResetCode(code string) (bool, error)
+	ResetPassword(newPassword, code string) (*models.PasswordResetRequest, error)
+	ChangePassword(userId int32, currentPassword, newPassword string) error
+	SendEmailChangeRequestCode(userId int32, password, newEmail string) error
+	DeleteAccount(userId int32) error
+	ChangeEmail(code string) (bool, error)
+	AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *pages.UserInfo, err error)
+	GetUserIdByUserProviderId(provider models.Provider, userProviderId string) (id int32, ok bool, err error)
+	AddOAuthAuthorization(userProviderId string, userId int32, provider models.Provider) error
+	RemoveOAuthAuthorization(userId int32, provider models.Provider) error
+	CreatePassword(userId int32, password string) error
+	CheckUserPassword(userId int32, password string) (bool, error)
 }
 
-func NewUserService(logger *slog.Logger, emailService *EmailService, pool *pgxpool.Pool, ctx context.Context) *UserService {
-	return &UserService{
+type userService struct {
+	logger       *slog.Logger
+	ctx          context.Context
+	queries      models.DBQueries
+	txStarter    models.TxStarter
+	emailService EmailService
+}
+
+func NewUserService(logger *slog.Logger, emailService EmailService, queries models.DBQueries, txStarter models.TxStarter, ctx context.Context) UserService {
+	return &userService{
 		logger:       logger,
 		emailService: emailService,
-		pool:         pool,
+		queries:      queries,
+		txStarter:    txStarter,
 		ctx:          ctx,
 	}
 }
 
-func (s *UserService) CreateUser(email, username, password string) (*models.User, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) CreateUser(email, username, password string) (*models.User, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	var hasher crypto.PasswordHasher
 	hash, err := hasher.GenerateFromPassword(password, crypto.DefaultPasswordHashParams)
@@ -120,15 +139,12 @@ func (s *UserService) CreateUser(email, username, password string) (*models.User
 	return &user, nil
 }
 
-func (s *UserService) VerifyEmail(code string) (bool, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) VerifyEmail(code string) (bool, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return false, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	request, err := qtx.GetEmailVerificationRequestByCode(s.ctx, code)
 
@@ -170,15 +186,12 @@ func (s *UserService) VerifyEmail(code string) (bool, error) {
 	return true, nil
 }
 
-func (s *UserService) ResendEmailVerificationCode(email string) (*models.EmailVerificationRequest, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) ResendEmailVerificationCode(email string) (*models.EmailVerificationRequest, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	// get user
 	user, err := qtx.GetUserByEmail(s.ctx, email)
@@ -239,7 +252,7 @@ func (s *UserService) ResendEmailVerificationCode(email string) (*models.EmailVe
 	return &request, nil
 }
 
-func (s *UserService) getUniqueEmailVerificationCode(qtx *models.Queries) (string, error) {
+func (s *userService) getUniqueEmailVerificationCode(qtx models.DBQueries) (string, error) {
 	var code string
 	var err error
 
@@ -259,10 +272,8 @@ func (s *UserService) getUniqueEmailVerificationCode(qtx *models.Queries) (strin
 	}
 }
 
-func (s *UserService) AuthenticateUser(username, password string) (*models.User, error) {
-	queries := models.New(s.pool)
-
-	user, err := queries.GetUserByUsernameOrEmail(s.ctx, username)
+func (s *userService) AuthenticateUser(username, password string) (*models.User, error) {
+	user, err := s.queries.GetUserByUsernameOrEmail(s.ctx, username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrInvalidCredentials
@@ -291,7 +302,7 @@ func (s *UserService) AuthenticateUser(username, password string) (*models.User,
 	return &user, nil
 }
 
-func (s *UserService) convertModelUserInfo(user *models.UserInfo) (*pages.UserInfo, error) {
+func (s *userService) convertModelUserInfo(user *models.UserInfo) (*pages.UserInfo, error) {
 	isPasswordSet, ok := user.IsPasswordSet.(bool)
 	if !ok {
 		return nil, ErrCantConvertUserInfo
@@ -319,10 +330,8 @@ func (s *UserService) convertModelUserInfo(user *models.UserInfo) (*pages.UserIn
 	return userInfo, nil
 }
 
-func (s *UserService) UserExists(id int32) (*pages.UserInfo, error) {
-	queries := models.New(s.pool)
-
-	user, err := queries.GetUserInfo(s.ctx, id)
+func (s *userService) UserExists(id int32) (*pages.UserInfo, error) {
+	user, err := s.queries.GetUserInfo(s.ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -338,15 +347,12 @@ func (s *UserService) UserExists(id int32) (*pages.UserInfo, error) {
 	return userInfo, nil
 }
 
-func (s *UserService) SendPasswordResetCode(email string) (*models.PasswordResetRequest, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) SendPasswordResetCode(email string) (*models.PasswordResetRequest, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	user, err := qtx.GetUserByEmail(s.ctx, email)
 	if err != nil {
@@ -406,10 +412,8 @@ func (s *UserService) SendPasswordResetCode(email string) (*models.PasswordReset
 	return &request, nil
 }
 
-func (s *UserService) VerifyPasswordResetCode(code string) (bool, error) {
-	queries := models.New(s.pool)
-
-	request, err := queries.GetPasswordResetRequestByCode(s.ctx, code)
+func (s *userService) VerifyPasswordResetCode(code string) (bool, error) {
+	request, err := s.queries.GetPasswordResetRequestByCode(s.ctx, code)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return false, err
 	}
@@ -425,15 +429,12 @@ func (s *UserService) VerifyPasswordResetCode(code string) (bool, error) {
 	return true, nil
 }
 
-func (s *UserService) ResetPassword(newPassword, code string) (*models.PasswordResetRequest, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) ResetPassword(newPassword, code string) (*models.PasswordResetRequest, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	request, err := s.verifyAndInvalidatePasswordResetCode(qtx, code)
 	if err != nil {
@@ -462,15 +463,12 @@ func (s *UserService) ResetPassword(newPassword, code string) (*models.PasswordR
 	return request, nil
 }
 
-func (s *UserService) ChangePassword(userId int32, currentPassword, newPassword string) error {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) ChangePassword(userId int32, currentPassword, newPassword string) error {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	user, err := qtx.GetUserById(s.ctx, userId)
 	if err != nil {
@@ -512,15 +510,12 @@ func (s *UserService) ChangePassword(userId int32, currentPassword, newPassword 
 	return nil
 }
 
-func (s *UserService) SendEmailChangeRequestCode(userId int32, password, newEmail string) error {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) SendEmailChangeRequestCode(userId int32, password, newEmail string) error {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	user, err := qtx.GetUserById(s.ctx, userId)
 	if err != nil {
@@ -577,13 +572,12 @@ func (s *UserService) SendEmailChangeRequestCode(userId int32, password, newEmai
 	return nil
 }
 
-func (s *UserService) DeleteAccount(userId int32) error {
-	queries := models.New(s.pool)
-	err := queries.DeleteUser(s.ctx, userId)
+func (s *userService) DeleteAccount(userId int32) error {
+	err := s.queries.DeleteUser(s.ctx, userId)
 	return err
 }
 
-func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, code string) (*models.PasswordResetRequest, error) {
+func (s *userService) verifyAndInvalidatePasswordResetCode(qtx models.DBQueries, code string) (*models.PasswordResetRequest, error) {
 	request, err := qtx.GetPasswordResetRequestByCode(s.ctx, code)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
@@ -614,7 +608,7 @@ func (s *UserService) verifyAndInvalidatePasswordResetCode(qtx *models.Queries, 
 	return &request, nil
 }
 
-func (s *UserService) getUniquePasswordResetCode(qtx *models.Queries) (string, error) {
+func (s *userService) getUniquePasswordResetCode(qtx models.DBQueries) (string, error) {
 	var code string
 	var err error
 
@@ -632,15 +626,12 @@ func (s *UserService) getUniquePasswordResetCode(qtx *models.Queries) (string, e
 	}
 }
 
-func (s *UserService) ChangeEmail(code string) (bool, error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) ChangeEmail(code string) (bool, error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return false, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	request, err := qtx.GetEmailVerificationRequestByCode(s.ctx, code)
 	if err != nil {
@@ -691,15 +682,12 @@ func (s *UserService) ChangeEmail(code string) (bool, error) {
 	return true, nil
 }
 
-func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *pages.UserInfo, err error) {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider models.Provider) (user *pages.UserInfo, err error) {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	authorization, err := qtx.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
 		Provider:       provider,
@@ -775,9 +763,8 @@ func (s *UserService) AuthenticateOAuthUser(oauthUser *OAuthUserInfo, provider m
 	return userInfo, nil
 }
 
-func (s *UserService) GetUserIdByUserProviderId(provider models.Provider, userProviderId string) (id int32, ok bool, err error) {
-	queries := models.New(s.pool)
-	authorization, err := queries.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
+func (s *userService) GetUserIdByUserProviderId(provider models.Provider, userProviderId string) (id int32, ok bool, err error) {
+	authorization, err := s.queries.FindOAuthAuthorization(s.ctx, models.FindOAuthAuthorizationParams{
 		UserProviderID: userProviderId,
 		Provider:       provider,
 	})
@@ -792,9 +779,8 @@ func (s *UserService) GetUserIdByUserProviderId(provider models.Provider, userPr
 	return authorization.UserID, true, nil
 }
 
-func (s *UserService) AddOAuthAuthorization(userProviderId string, userId int32, provider models.Provider) error {
-	queries := models.New(s.pool)
-	_, err := queries.CreateOAuthAuthorization(s.ctx, models.CreateOAuthAuthorizationParams{
+func (s *userService) AddOAuthAuthorization(userProviderId string, userId int32, provider models.Provider) error {
+	_, err := s.queries.CreateOAuthAuthorization(s.ctx, models.CreateOAuthAuthorizationParams{
 		UserID:         userId,
 		UserProviderID: userProviderId,
 		Provider:       provider,
@@ -802,24 +788,20 @@ func (s *UserService) AddOAuthAuthorization(userProviderId string, userId int32,
 	return err
 }
 
-func (s *UserService) RemoveOAuthAuthorization(userId int32, provider models.Provider) error {
-	queries := models.New(s.pool)
-	err := queries.DeleteOAuthAuthorization(s.ctx, models.DeleteOAuthAuthorizationParams{
+func (s *userService) RemoveOAuthAuthorization(userId int32, provider models.Provider) error {
+	err := s.queries.DeleteOAuthAuthorization(s.ctx, models.DeleteOAuthAuthorizationParams{
 		UserID:   userId,
 		Provider: provider,
 	})
 	return err
 }
 
-func (s *UserService) CreatePassword(userId int32, password string) error {
-	tx, err := s.pool.Begin(s.ctx)
+func (s *userService) CreatePassword(userId int32, password string) error {
+	tx, qtx, err := s.txStarter.Begin(s.ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(s.ctx)
-
-	queries := models.New(s.pool)
-	qtx := queries.WithTx(tx)
 
 	user, err := qtx.GetUserById(s.ctx, userId)
 	if err != nil {
@@ -854,10 +836,8 @@ func (s *UserService) CreatePassword(userId int32, password string) error {
 	return nil
 }
 
-func (s *UserService) CheckUserPassword(userId int32, password string) (bool, error) {
-	queries := models.New(s.pool)
-
-	user, err := queries.GetUserById(s.ctx, userId)
+func (s *userService) CheckUserPassword(userId int32, password string) (bool, error) {
+	user, err := s.queries.GetUserById(s.ctx, userId)
 	if err != nil {
 		return false, err
 	}
