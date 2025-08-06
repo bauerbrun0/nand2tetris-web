@@ -1,8 +1,11 @@
-package crypto
+package crypto_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
+	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 )
 
 func TestPasswordHashing(t *testing.T) {
@@ -62,12 +65,12 @@ func TestPasswordHashing(t *testing.T) {
 		},
 	}
 
-	hasher := PasswordHasher{}
+	hasher := crypto.PasswordHasher{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			hash := mustHashPassword(t, hasher, tt.password)
+			hash := testutils.MustHashPassword(t, hasher, tt.password)
 			ok, err := hasher.ComparePasswordAndHash(tt.comparePassword, hash)
 			if err != nil {
 				t.Fatalf(
@@ -94,19 +97,10 @@ func TestPasswordHashing(t *testing.T) {
 
 	t.Run("Same password different hash", func(t *testing.T) {
 		password := "Password123"
-		hash1 := mustHashPassword(t, hasher, password)
-		hash2 := mustHashPassword(t, hasher, password)
+		hash1 := testutils.MustHashPassword(t, hasher, password)
+		hash2 := testutils.MustHashPassword(t, hasher, password)
 		if hash1 == hash2 {
 			t.Logf("warning: hashes for same password are identical.")
 		}
 	})
-}
-
-func mustHashPassword(t *testing.T, hasher PasswordHasher, password string) string {
-	t.Helper()
-	hash, err := hasher.GenerateFromPassword(password, DefaultPasswordHashParams)
-	if err != nil {
-		t.Fatalf("error generating hash for password %q: %v", password, err)
-	}
-	return hash
 }

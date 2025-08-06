@@ -176,6 +176,9 @@ func (m *Middleware) NoSurf(next http.Handler) http.Handler {
 		Path:     "/",
 		Secure:   m.Config.Env == "production",
 	})
+	csrfHandler.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "CSRF", http.StatusBadRequest)
+	}))
 
 	return csrfHandler
 }

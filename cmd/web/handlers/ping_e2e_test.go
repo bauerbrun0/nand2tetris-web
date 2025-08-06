@@ -14,7 +14,7 @@ func TestPing(t *testing.T) {
 	githubOauthService := servicemocks.NewMockOAuthService(t)
 	googleOauthService := servicemocks.NewMockOAuthService(t)
 	queries := modelsmocks.NewMockDBQueries(t)
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService)
+	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
 	defer ts.Close()
 
 	code, _, body := ts.Get(t, "/ping")

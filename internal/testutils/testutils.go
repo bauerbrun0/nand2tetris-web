@@ -2,11 +2,16 @@ package testutils
 
 import (
 	"bytes"
+	"encoding/gob"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,9 +20,11 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
+	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
@@ -25,15 +32,22 @@ import (
 )
 
 func NewTestApplication(
-	t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService,
+	t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService, logs bool,
 ) *application.Application {
+	gob.Register([]pages.Toast{})
+	gob.Register(handlers.Action(""))
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = true
 
 	formDecoder := form.NewDecoder()
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	var logger *slog.Logger
+	if logs {
+		logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	} else {
+		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+	}
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
@@ -81,8 +95,8 @@ type testServer struct {
 	*httptest.Server
 }
 
-func NewTestServer(t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService) *testServer {
-	app := NewTestApplication(t, queries, githubOauthService, googleOauthService)
+func NewTestServer(t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService, logs bool) *testServer {
+	app := NewTestApplication(t, queries, githubOauthService, googleOauthService, logs)
 	h := NewTestHandlers(t, app)
 	m := NewTestMiddleware(t, app)
 	routes := NewTestRoutes(t, app, h, m)
@@ -116,4 +130,82 @@ func (ts *testServer) Get(t *testing.T, urlPath string) (int, http.Header, strin
 	}
 	bytes.TrimSpace(body)
 	return rs.StatusCode, rs.Header, string(body)
+}
+
+func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
+	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Origin", ts.URL)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	rs, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes.TrimSpace(body)
+
+	return rs.StatusCode, rs.Header, string(body)
+}
+
+// Removes the cookie with the provided name from the ookie jar
+// if it exists.
+func (ts *testServer) RemoveCookie(t *testing.T, name string) {
+	serverUrl, err := url.Parse(ts.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cookies := ts.Client().Jar.Cookies(serverUrl)
+	var newCookies []*http.Cookie
+	for _, c := range cookies {
+		if c.Name != name {
+			newCookies = append(newCookies, c)
+		}
+	}
+
+	// have to create a new cookie jar because ts.Client().Jar.SetCookies does nothing
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	jar.SetCookies(serverUrl, newCookies)
+
+	ts.Client().Jar = jar
+}
+
+func (ts *testServer) GetCookies(t *testing.T) []*http.Cookie {
+	serverUrl, err := url.Parse(ts.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ts.Client().Jar.Cookies(serverUrl)
+}
+
+var rxCSRF = regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+?)">`)
+
+func ExtractCSRFToken(t *testing.T, body string) string {
+	matches := rxCSRF.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatalf("no csrf token found in body")
+	}
+
+	return matches[1]
+}
+
+func MustHashPassword(t *testing.T, hasher crypto.PasswordHasher, password string) string {
+	t.Helper()
+	hash, err := hasher.GenerateFromPassword(password, crypto.DefaultPasswordHashParams)
+	if err != nil {
+		t.Fatalf("error generating hash for password %q: %v", password, err)
+	}
+	return hash
 }
