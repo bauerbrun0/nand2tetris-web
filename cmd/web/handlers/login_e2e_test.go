@@ -53,13 +53,31 @@ func TestUserLoginPost(t *testing.T) {
 		validPasswordHash = testutils.MustHashPassword(t, hasher, validPassword)
 	)
 
+	returnUser := models.User{
+		ID:       1,
+		Username: validUsername,
+		Email:    validEmail,
+		EmailVerified: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+		PasswordHash: pgtype.Text{
+			String: validPasswordHash,
+			Valid:  true,
+		},
+		Created: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	}
+
 	tests := []struct {
-		name        string
-		username    string
-		password    string
-		csrfToken   string
-		wantCode    int
-		prepareMock func()
+		name      string
+		username  string
+		password  string
+		csrfToken string
+		wantCode  int
+		before    func()
 	}{
 		{
 			name:      "Valid submission with email",
@@ -67,24 +85,9 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
-			prepareMock: func() {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validEmail).Return(models.User{
-					ID:       1,
-					Username: validUsername,
-					Email:    validEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: validPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now(),
-						Valid: true,
-					},
-				}, nil).Once()
+			before: func() {
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validEmail).
+					Return(returnUser, nil).Once()
 			},
 		},
 		{
@@ -93,24 +96,9 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
-			prepareMock: func() {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).Return(models.User{
-					ID:       1,
-					Username: validUsername,
-					Email:    validEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: validPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now(),
-						Valid: true,
-					},
-				}, nil).Once()
+			before: func() {
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
+					Return(returnUser, nil).Once()
 			},
 		},
 		{
@@ -119,24 +107,9 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword + "wrong",
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
-			prepareMock: func() {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).Return(models.User{
-					ID:       1,
-					Username: validUsername,
-					Email:    validEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: validPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now(),
-						Valid: true,
-					},
-				}, nil).Once()
+			before: func() {
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
+					Return(returnUser, nil).Once()
 			},
 		},
 		{
@@ -145,7 +118,7 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
-			prepareMock: func() {
+			before: func() {
 				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), "wrong").
 					Return(models.User{}, pgx.ErrNoRows).Once()
 			},
@@ -182,8 +155,8 @@ func TestUserLoginPost(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.prepareMock != nil {
-				tt.prepareMock()
+			if tt.before != nil {
+				tt.before()
 			}
 			ts.RemoveCookie(t, "session")
 
