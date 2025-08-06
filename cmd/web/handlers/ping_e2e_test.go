@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/bauerbrun0/nand2tetris-web/internal/assert"
 	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPing(t *testing.T) {

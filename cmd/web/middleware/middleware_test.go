@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/application"
-	"github.com/bauerbrun0/nand2tetris-web/internal/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCommonHeaders(t *testing.T) {

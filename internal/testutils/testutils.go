@@ -26,7 +26,9 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -188,6 +190,45 @@ func (ts *testServer) GetCookies(t *testing.T) []*http.Cookie {
 		t.Fatal(err)
 	}
 	return ts.Client().Jar.Cookies(serverUrl)
+}
+
+func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, username string, email string, password string) {
+	// remove session cookie if already logged in
+	ts.RemoveCookie(t, "session")
+	// visit login page and get csrf token
+	code, _, body := ts.Get(t, "/user/login")
+	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+	csrfToken := ExtractCSRFToken(t, body)
+	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
+
+	var hasher crypto.PasswordHasher
+	returnUser := models.User{
+		ID:       1,
+		Username: username,
+		Email:    email,
+		EmailVerified: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+		PasswordHash: pgtype.Text{
+			String: MustHashPassword(t, hasher, password),
+			Valid:  true,
+		},
+		Created: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	}
+	queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), username).
+		Return(returnUser, nil).Once()
+
+	form := url.Values{}
+	form.Add("username", username)
+	form.Add("password", password)
+	form.Add("csrf_token", csrfToken)
+
+	code, _, _ = ts.PostForm(t, "/user/login", form)
+	assert.Equal(t, http.StatusSeeOther, code)
 }
 
 var rxCSRF = regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+?)">`)

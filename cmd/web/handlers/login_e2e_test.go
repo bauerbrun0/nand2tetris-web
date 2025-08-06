@@ -25,12 +25,36 @@ func TestUserLogin(t *testing.T) {
 	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
 	defer ts.Close()
 
-	code, _, body := ts.Get(t, "/user/login")
+	t.Run("Can visit page", func(t *testing.T) {
+		code, _, body := ts.Get(t, "/user/login")
 
-	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
 
-	csrfToken := testutils.ExtractCSRFToken(t, body)
-	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
+		csrfToken := testutils.ExtractCSRFToken(t, body)
+		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
+	})
+
+	t.Run("Redirect if already logged in", func(t *testing.T) {
+		ts.MustLogIn(t, queries, "walter", "walter.white@example.com", "LosPollos321")
+		queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
+			ID:       1,
+			Username: "walter",
+			Email:    "walter.white@example.com",
+			EmailVerified: pgtype.Bool{
+				Bool:  true,
+				Valid: true,
+			},
+			Created: pgtype.Timestamptz{
+				Time:  time.Now(),
+				Valid: true,
+			},
+			IsPasswordSet:  true,
+			LinkedAccounts: []string{},
+		}, nil)
+
+		code, _, _ := ts.Get(t, "/user/login")
+		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
+	})
 }
 
 func TestUserLoginPost(t *testing.T) {
@@ -77,7 +101,8 @@ func TestUserLoginPost(t *testing.T) {
 		password  string
 		csrfToken string
 		wantCode  int
-		before    func()
+		before    func(t *testing.T)
+		after     func(t *testing.T)
 	}{
 		{
 			name:      "Valid submission with email",
@@ -85,9 +110,12 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
-			before: func() {
+			before: func(t *testing.T) {
 				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validEmail).
 					Return(returnUser, nil).Once()
+			},
+			after: func(t *testing.T) {
+				ts.RemoveCookie(t, "session")
 			},
 		},
 		{
@@ -96,9 +124,12 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
-			before: func() {
+			before: func(t *testing.T) {
 				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
 					Return(returnUser, nil).Once()
+			},
+			after: func(t *testing.T) {
+				ts.RemoveCookie(t, "session")
 			},
 		},
 		{
@@ -107,7 +138,7 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword + "wrong",
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
-			before: func() {
+			before: func(t *testing.T) {
 				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
 					Return(returnUser, nil).Once()
 			},
@@ -118,9 +149,37 @@ func TestUserLoginPost(t *testing.T) {
 			password:  validPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
-			before: func() {
+			before: func(t *testing.T) {
 				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), "wrong").
 					Return(models.User{}, pgx.ErrNoRows).Once()
+			},
+		},
+		{
+			name:      "Redirect if already logged in",
+			username:  validUsername,
+			password:  validPassword,
+			csrfToken: validCSRFToken,
+			wantCode:  http.StatusSeeOther,
+			before: func(t *testing.T) {
+				ts.MustLogIn(t, queries, validUsername, validEmail, validPassword)
+				queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
+					ID:       1,
+					Username: validUsername,
+					Email:    validEmail,
+					EmailVerified: pgtype.Bool{
+						Bool:  true,
+						Valid: true,
+					},
+					Created: pgtype.Timestamptz{
+						Time:  time.Now(),
+						Valid: true,
+					},
+					IsPasswordSet:  true,
+					LinkedAccounts: []string{},
+				}, nil)
+			},
+			after: func(t *testing.T) {
+				ts.RemoveCookie(t, "session")
 			},
 		},
 		{
@@ -156,9 +215,8 @@ func TestUserLoginPost(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.before != nil {
-				tt.before()
+				tt.before(t)
 			}
-			ts.RemoveCookie(t, "session")
 
 			form := url.Values{}
 			form.Add("username", tt.username)
@@ -167,7 +225,9 @@ func TestUserLoginPost(t *testing.T) {
 
 			code, _, _ := ts.PostForm(t, "/user/login", form)
 			assert.Equal(t, tt.wantCode, code)
+			if tt.after != nil {
+				tt.after(t)
+			}
 		})
 	}
-
 }
