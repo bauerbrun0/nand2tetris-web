@@ -58,7 +58,7 @@ func NewTestApplication(
 
 	emailSender := services.NewConsoleEmailSender(logger)
 	emailService := services.NewEmailService(emailSender, logger)
-	userService := services.NewUserService(logger, nil, queries, txStarter, ctx)
+	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
 
 	cfg := application.Config{
 		Env: "test",
