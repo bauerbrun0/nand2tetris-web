@@ -9,4 +9,4 @@ fi
 
 go tool templ fmt -fail .
 
-go test ./...
+go test ./... -count=1
