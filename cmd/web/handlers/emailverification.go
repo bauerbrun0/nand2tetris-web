@@ -51,6 +51,7 @@ func (h *Handlers) UserVerifyEmailPost(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		data.AddFieldError("code", data.T("error.verification_code_invalid"))
+		w.WriteHeader(http.StatusUnprocessableEntity)
 		h.Render(r.Context(), w, r, verifyemailpage.Page(data))
 		return
 	}

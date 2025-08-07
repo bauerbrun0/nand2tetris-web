@@ -26,9 +26,11 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -228,6 +230,64 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 	form.Add("csrf_token", csrfToken)
 
 	code, _, _ = ts.PostForm(t, "/user/login", form)
+	assert.Equal(t, http.StatusSeeOther, code)
+}
+
+func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, username, email, password, emailVerificationCode string) {
+	// remove session cookie if already logged in
+	ts.RemoveCookie(t, "session")
+	// visit register page and get csrf token
+	code, _, body := ts.Get(t, "/user/register")
+	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+	csrfToken := ExtractCSRFToken(t, body)
+	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
+
+	var hasher crypto.PasswordHasher
+	returnUser := models.User{
+		ID:       1,
+		Username: username,
+		Email:    email,
+		EmailVerified: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+		PasswordHash: pgtype.Text{
+			String: MustHashPassword(t, hasher, password),
+			Valid:  true,
+		},
+		Created: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
+		},
+	}
+
+	returnEmailVerificationRequest := models.EmailVerificationRequest{
+		ID:     1,
+		UserID: 1,
+		Email:  email,
+		Code:   emailVerificationCode,
+		Expiry: pgtype.Timestamptz{
+			Time:  time.Now().Add(time.Hour),
+			Valid: true,
+		},
+	}
+
+	queries.EXPECT().CreateNewUser(t.Context(), mock.Anything).
+		Return(returnUser, nil).Once()
+	queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), mock.Anything).
+		Return(models.EmailVerificationRequest{}, pgx.ErrNoRows).Once()
+	queries.EXPECT().CreateEmailVerificationRequest(t.Context(), mock.Anything).
+		Return(returnEmailVerificationRequest, nil).Once()
+
+	form := url.Values{}
+	form.Add("username", username)
+	form.Add("email", email)
+	form.Add("password", password)
+	form.Add("password-confirmation", password)
+	form.Add("terms", "on")
+	form.Add("csrf_token", csrfToken)
+
+	code, _, _ = ts.PostForm(t, "/user/register", form)
 	assert.Equal(t, http.StatusSeeOther, code)
 }
 
