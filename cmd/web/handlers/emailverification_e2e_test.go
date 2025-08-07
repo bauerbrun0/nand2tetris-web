@@ -318,7 +318,7 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 			},
 		},
 		{
-			name:      "Email already in records",
+			name:      "No user with email",
 			email:     email,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
