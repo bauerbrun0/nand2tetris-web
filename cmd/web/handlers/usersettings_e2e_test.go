@@ -60,7 +60,7 @@ func TestUserSettingsPost(t *testing.T) {
 	t.Run("Invalid action", func(t *testing.T) {
 		form := url.Values{}
 		form.Add("csrf_token", csrfToken)
-		form.Add("action", "invalid")
+		form.Add("Action", "invalid")
 
 		code, _, _ := ts.PostForm(t, "/user/settings", form)
 		assert.Equal(t, http.StatusUnprocessableEntity, code)
@@ -69,7 +69,7 @@ func TestUserSettingsPost(t *testing.T) {
 	t.Run("Empty csrf token", func(t *testing.T) {
 		form := url.Values{}
 		form.Add("csrf_token", "")
-		form.Add("action", "invalid")
+		form.Add("Action", "invalid")
 
 		code, _, _ := ts.PostForm(t, "/user/settings", form)
 		assert.Equal(t, http.StatusBadRequest, code)
@@ -80,7 +80,7 @@ func TestUserSettingsPost(t *testing.T) {
 
 		form := url.Values{}
 		form.Add("csrf_token", csrfToken)
-		form.Add("action", "invalid")
+		form.Add("Action", "invalid")
 
 		code, _, _ := ts.PostForm(t, "/user/settings", form)
 		assert.Equal(t, http.StatusSeeOther, code)
