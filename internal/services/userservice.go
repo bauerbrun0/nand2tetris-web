@@ -641,13 +641,13 @@ func (s *userService) ChangeEmail(code string) (bool, error) {
 		return false, err
 	}
 
+	if time.Now().After(request.Expiry.Time) {
+		return false, nil
+	}
+
 	user, err := qtx.GetUserById(s.ctx, request.UserID)
 	if err != nil {
 		return false, err
-	}
-
-	if time.Now().After(request.Expiry.Time) {
-		return false, nil
 	}
 
 	err = qtx.InvalidateEmailVerificationRequest(s.ctx, models.InvalidateEmailVerificationRequestParams{
