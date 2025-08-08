@@ -231,6 +231,22 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 
 	code, _, _ = ts.PostForm(t, "/user/login", form)
 	assert.Equal(t, http.StatusSeeOther, code)
+
+	queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
+		ID:       1,
+		Username: username,
+		Email:    email,
+		EmailVerified: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+		Created: pgtype.Timestamptz{
+			Time:  time.Now().Add(-time.Minute),
+			Valid: true,
+		},
+		IsPasswordSet:  true,
+		LinkedAccounts: []string{},
+	}, nil)
 }
 
 func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, username, email, password, emailVerificationCode string) {

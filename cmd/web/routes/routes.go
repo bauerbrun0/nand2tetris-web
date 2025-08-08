@@ -29,13 +29,6 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	mux.Handle("GET /{$}", dynamicChain.ThenFunc(h.Home))
 
-	mux.Handle("GET /user/reset-password/send-code", dynamicChain.ThenFunc(h.UserResetPasswordSendCode))
-	mux.Handle("POST /user/reset-password/send-code", dynamicChain.ThenFunc(h.UserResetPasswordSendCodePost))
-	mux.Handle("GET /user/reset-password/enter-code", dynamicChain.ThenFunc(h.UserResetPasswordEnterCode))
-	mux.Handle("POST /user/reset-password/enter-code", dynamicChain.ThenFunc(h.UserResetPasswordEnterCodePost))
-	mux.Handle("GET /user/reset-password", dynamicChain.ThenFunc(h.UserResetPassword))
-	mux.Handle("POST /user/reset-password", dynamicChain.ThenFunc(h.UserResetPasswordPost))
-
 	requireUnauthenticatedChain := dynamicChain.Append(m.RequireUnathenticated)
 
 	mux.Handle("GET /user/register", requireUnauthenticatedChain.ThenFunc(h.UserRegister))
@@ -46,6 +39,12 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 	mux.Handle("GET /user/login/google", requireUnauthenticatedChain.ThenFunc(h.UserLoginGoogle))
 	mux.Handle("GET /user/oauth/github/callback/login", requireUnauthenticatedChain.ThenFunc(h.UserLoginGithubCallback))
 	mux.Handle("GET /user/oauth/google/callback/login", requireUnauthenticatedChain.ThenFunc(h.UserLoginGoogleCallback))
+	mux.Handle("GET /user/reset-password/send-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordSendCode))
+	mux.Handle("POST /user/reset-password/send-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordSendCodePost))
+	mux.Handle("GET /user/reset-password/enter-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordEnterCode))
+	mux.Handle("POST /user/reset-password/enter-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordEnterCodePost))
+	mux.Handle("GET /user/reset-password", requireUnauthenticatedChain.ThenFunc(h.UserResetPassword))
+	mux.Handle("POST /user/reset-password", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordPost))
 
 	requireUnverifiedEmailChain := dynamicChain.Append(m.RequireUnverifiedEmail)
 

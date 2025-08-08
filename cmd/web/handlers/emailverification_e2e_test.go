@@ -53,22 +53,6 @@ func TestUserVerifyEmail(t *testing.T) {
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
 		ts.MustLogIn(t, queries, username, email, password)
-		queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
-			ID:       1,
-			Username: username,
-			Email:    email,
-			EmailVerified: pgtype.Bool{
-				Bool:  true,
-				Valid: true,
-			},
-			Created: pgtype.Timestamptz{
-				Time:  time.Now(),
-				Valid: true,
-			},
-			IsPasswordSet:  true,
-			LinkedAccounts: []string{},
-		}, nil)
-
 		code, _, _ := ts.Get(t, "/user/verify-email")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})
@@ -222,22 +206,6 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
 		ts.MustLogIn(t, queries, username, email, password)
-		queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
-			ID:       1,
-			Username: username,
-			Email:    email,
-			EmailVerified: pgtype.Bool{
-				Bool:  true,
-				Valid: true,
-			},
-			Created: pgtype.Timestamptz{
-				Time:  time.Now(),
-				Valid: true,
-			},
-			IsPasswordSet:  true,
-			LinkedAccounts: []string{},
-		}, nil)
-
 		code, _, _ := ts.Get(t, "/user/verify-email/send-code")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})

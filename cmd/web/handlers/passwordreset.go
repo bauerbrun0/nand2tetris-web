@@ -112,6 +112,9 @@ func (h *Handlers) UserResetPasswordEnterCodePost(w http.ResponseWriter, r *http
 
 func (h *Handlers) UserResetPassword(w http.ResponseWriter, r *http.Request) {
 	code := h.SessionManager.PopString(r.Context(), "password-reset-code")
+	if code == "" {
+		http.Redirect(w, r, " /user/reset-password/send-code", http.StatusSeeOther)
+	}
 	basePageData := h.NewPageData(r)
 	data := resetpasswordpage.ResetPasswordPageData{
 		PageData: basePageData,

@@ -38,22 +38,6 @@ func TestUserRegister(t *testing.T) {
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
 		ts.MustLogIn(t, queries, "walter", "walter.white@example.com", "LosPollos321")
-		queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
-			ID:       1,
-			Username: "walter",
-			Email:    "walter.white@example.com",
-			EmailVerified: pgtype.Bool{
-				Bool:  true,
-				Valid: true,
-			},
-			Created: pgtype.Timestamptz{
-				Time:  time.Now(),
-				Valid: true,
-			},
-			IsPasswordSet:  true,
-			LinkedAccounts: []string{},
-		}, nil)
-
 		code, _, _ := ts.Get(t, "/user/register")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})
@@ -192,21 +176,6 @@ func TestUserRegisterPost(t *testing.T) {
 			wantCode:             http.StatusSeeOther,
 			before: func(t *testing.T) {
 				ts.MustLogIn(t, queries, validUsername, validEmail, validPassword)
-				queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
-					ID:       1,
-					Username: validUsername,
-					Email:    validEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now(),
-						Valid: true,
-					},
-					IsPasswordSet:  true,
-					LinkedAccounts: []string{},
-				}, nil)
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
