@@ -20,6 +20,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
+	"github.com/bauerbrun0/nand2tetris-web/internal"
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
@@ -55,7 +56,10 @@ func NewTestApplication(
 
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
-	bundle.LoadMessageFile("internal/translations/en.yaml")
+	_, err := bundle.LoadMessageFileFS(internal.TranslationFiles, "translations/en.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ctx := t.Context()
 	txStarter := mocks.NewMockTxStarter(queries)

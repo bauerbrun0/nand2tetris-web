@@ -19,8 +19,9 @@ func TestHome(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("Can visit page unauthenticated", func(t *testing.T) {
-		code, _, _ := ts.Get(t, "/")
+		code, _, body := ts.Get(t, "/")
 		assert.Equal(t, http.StatusOK, code)
+		assert.Contains(t, body, "Login")
 	})
 	t.Run("Can visit the page authenticated", func(t *testing.T) {
 		ts.MustLogIn(t, queries, "walt", "walter.white@example.com", "LosPollos321")
