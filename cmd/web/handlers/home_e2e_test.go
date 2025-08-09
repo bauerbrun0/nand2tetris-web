@@ -4,18 +4,14 @@ import (
 	"net/http"
 	"testing"
 
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHome(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	t.Run("Can visit page unauthenticated", func(t *testing.T) {

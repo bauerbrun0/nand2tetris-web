@@ -9,8 +9,6 @@ import (
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -18,11 +16,9 @@ import (
 )
 
 func TestUserLogin(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
@@ -46,11 +42,9 @@ func TestUserLogin(t *testing.T) {
 }
 
 func TestUserLoginPost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/login")

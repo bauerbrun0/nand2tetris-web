@@ -24,6 +24,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
+	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
@@ -63,7 +64,7 @@ func NewTestApplication(
 	}
 
 	ctx := t.Context()
-	txStarter := mocks.NewMockTxStarter(queries)
+	txStarter := modelsmocks.NewMockTxStarter(queries)
 
 	emailSender := services.NewConsoleEmailSender(logger)
 	emailService := services.NewEmailService(emailSender, logger)
@@ -104,26 +105,36 @@ type testServer struct {
 	*httptest.Server
 }
 
-func NewTestServer(t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService, logs bool) *testServer {
-	app := NewTestApplication(t, queries, githubOauthService, googleOauthService, logs)
+type TestServerOptions struct {
+	Logs bool
+}
+
+func NewTestServer(t *testing.T, options TestServerOptions) (
+	ts *testServer, queries *mocks.MockDBQueries, githubOauthService, googleOauthService *servicemocks.MockOAuthService,
+) {
+	githubOauthService = servicemocks.NewMockOAuthService(t)
+	googleOauthService = servicemocks.NewMockOAuthService(t)
+	queries = modelsmocks.NewMockDBQueries(t)
+
+	app := NewTestApplication(t, queries, githubOauthService, googleOauthService, options.Logs)
 	h := NewTestHandlers(t, app)
 	m := NewTestMiddleware(t, app)
 	routes := NewTestRoutes(t, app, h, m)
-	ts := httptest.NewTLSServer(routes)
+	server := httptest.NewTLSServer(routes)
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ts.Client().Jar = jar
+	server.Client().Jar = jar
 
 	// disable redirect-following for the test server client
-	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	server.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
 
-	return &testServer{ts}
+	return &testServer{Server: server}, queries, githubOauthService, googleOauthService
 }
 
 func (ts *testServer) Get(t *testing.T, urlPath string) (int, http.Header, string) {

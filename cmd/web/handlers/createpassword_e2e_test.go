@@ -9,8 +9,6 @@ import (
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
@@ -18,11 +16,9 @@ import (
 )
 
 func TestHandleUserSettingsCreatePasswordPost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	var (

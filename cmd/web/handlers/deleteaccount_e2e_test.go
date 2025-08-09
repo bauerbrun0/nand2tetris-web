@@ -10,9 +10,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,11 +19,12 @@ import (
 )
 
 func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(
+		t,
+		testutils.TestServerOptions{
+			Logs: false,
+		},
+	)
 	defer ts.Close()
 
 	var (
@@ -174,11 +173,12 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 }
 
 func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(
+		t,
+		testutils.TestServerOptions{
+			Logs: false,
+		},
+	)
 	defer ts.Close()
 
 	code, _, body := ts.Get(t, "/user/login")

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -17,11 +15,9 @@ import (
 )
 
 func TestUserResetPasswordSendCode(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
@@ -48,11 +44,9 @@ func TestUserResetPasswordSendCode(t *testing.T) {
 }
 
 func TestUserResetPasswordSendCodePost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/reset-password/send-code")
@@ -187,11 +181,9 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 }
 
 func TestUserResetPasswordEnterCode(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
@@ -218,11 +210,9 @@ func TestUserResetPasswordEnterCode(t *testing.T) {
 }
 
 func TestUserResetPasswordEnterCodePost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/reset-password/enter-code")
@@ -357,11 +347,9 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 }
 
 func TestUserResetPassword(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	t.Run("Redirect if code is not in sessions", func(t *testing.T) {
@@ -425,11 +413,9 @@ func TestUserResetPassword(t *testing.T) {
 }
 
 func TestUserResetPasswordPost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/reset-password/enter-code")

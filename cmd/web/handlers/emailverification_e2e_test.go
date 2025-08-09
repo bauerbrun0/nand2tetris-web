@@ -8,8 +8,6 @@ import (
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
-	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -18,11 +16,9 @@ import (
 )
 
 func TestUserVerifyEmail(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	var (
@@ -63,11 +59,9 @@ func TestUserVerifyEmail(t *testing.T) {
 }
 
 func TestUserVerifyEmailPost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/verify-email")
@@ -176,11 +170,9 @@ func TestUserVerifyEmailPost(t *testing.T) {
 }
 
 func TestUserVerifyEmailResendCode(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	var (
@@ -220,11 +212,9 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 }
 
 func TestUserVerifyEmailResendCodePost(t *testing.T) {
-	githubOauthService := servicemocks.NewMockOAuthService(t)
-	googleOauthService := servicemocks.NewMockOAuthService(t)
-	queries := modelsmocks.NewMockDBQueries(t)
-
-	ts := testutils.NewTestServer(t, queries, githubOauthService, googleOauthService, false)
+	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+		Logs: false,
+	})
 	defer ts.Close()
 
 	_, _, body := ts.Get(t, "/user/verify-email/send-code")
