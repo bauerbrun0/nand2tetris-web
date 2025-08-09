@@ -32,7 +32,11 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 		newEmail = "walter.white@new.com"
 		password = "LosPollos321"
 	)
-	ts.MustLogIn(t, queries, username, email, password)
+	ts.MustLogIn(t, queries, testutils.LoginUser{
+		Username: username,
+		Email:    email,
+		Password: password,
+	})
 	code, _, body := ts.Get(t, "/user/settings")
 	assert.Equal(t, http.StatusOK, code)
 	csrfToken := testutils.ExtractCSRFToken(t, body)
@@ -175,7 +179,11 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 		password        = "LosPollos321"
 		emailChangeCode = "12345678"
 	)
-	ts.MustLogIn(t, queries, username, email, password)
+	ts.MustLogIn(t, queries, testutils.LoginUser{
+		Username: username,
+		Email:    email,
+		Password: password,
+	})
 	code, _, body := ts.Get(t, "/user/settings")
 	assert.Equal(t, http.StatusOK, code)
 	csrfToken := testutils.ExtractCSRFToken(t, body)

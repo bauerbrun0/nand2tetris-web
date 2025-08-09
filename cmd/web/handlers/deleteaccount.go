@@ -10,7 +10,12 @@ import (
 func (h *Handlers) handleUserSettingsDeleteAccountPost(w http.ResponseWriter, r *http.Request, data *usersettingspage.UserSettingsPageData) {
 	data.CheckFieldTag(data.DeleteAccount.Email, "required", "DeleteAccount.Email", data.T("error.field_required"))
 	data.CheckFieldTag(data.DeleteAccount.Email, "email", "DeleteAccount.Email", data.T("error.field_invalid_email"))
-	data.CheckFieldTag(data.DeleteAccount.Email, "max=128", "DeleteAccount.Email", data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}))
+	data.CheckFieldTag(
+		data.DeleteAccount.Email,
+		"max=128",
+		"DeleteAccount.Email",
+		data.TTemplate("error.field_too_many_characters", map[string]string{"Max": "128"}),
+	)
 	data.CheckFieldBool(data.DeleteAccount.Email == data.UserInfo.Email, "DeleteAccount.Email", data.T("error.type_current_email"))
 
 	if !data.Valid() {

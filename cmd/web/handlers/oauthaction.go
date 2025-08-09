@@ -199,7 +199,7 @@ func (h *Handlers) UserGithubActionCallback(w http.ResponseWriter, r *http.Reque
 				Duration: 3000,
 			},
 		})
-		http.Redirect(w, r, "/user/settings", http.StatusSeeOther)
+		http.Redirect(w, r, "/user/settings", http.StatusUnauthorized)
 		return
 	}
 

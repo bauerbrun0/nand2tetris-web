@@ -25,6 +25,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
+	servicemocks "github.com/bauerbrun0/nand2tetris-web/internal/services/mocks"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/jackc/pgx/v5"
@@ -198,26 +199,41 @@ func (ts *testServer) GetCookies(t *testing.T) []*http.Cookie {
 	return ts.Client().Jar.Cookies(serverUrl)
 }
 
-func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, username string, email string, password string) {
+type LoginUser struct {
+	Username       string
+	Email          string
+	Password       string
+	LinkedAccounts []models.Provider
+}
+
+func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user LoginUser) (passwordHash string) {
 	// remove session cookie if already logged in
 	ts.RemoveCookie(t, "session")
+
 	// visit login page and get csrf token
 	code, _, body := ts.Get(t, "/user/login")
 	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
 	csrfToken := ExtractCSRFToken(t, body)
 	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 
+	// hash the password
 	var hasher crypto.PasswordHasher
+	if user.Password != "" {
+		passwordHash = MustHashPassword(t, hasher, user.Password)
+	} else {
+		passwordHash = ""
+	}
+
 	returnUser := models.User{
 		ID:       1,
-		Username: username,
-		Email:    email,
+		Username: user.Username,
+		Email:    user.Email,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: MustHashPassword(t, hasher, password),
+			String: passwordHash,
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{
@@ -225,21 +241,26 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 			Valid: true,
 		},
 	}
-	queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), username).
+	queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), user.Username).
 		Return(returnUser, nil).Once()
 
 	form := url.Values{}
-	form.Add("username", username)
-	form.Add("password", password)
+	form.Add("username", user.Username)
+	form.Add("password", user.Password)
 	form.Add("csrf_token", csrfToken)
 
 	code, _, _ = ts.PostForm(t, "/user/login", form)
 	assert.Equal(t, http.StatusSeeOther, code)
 
+	stringLinkedAccounts := []string{}
+	for _, a := range user.LinkedAccounts {
+		stringLinkedAccounts = append(stringLinkedAccounts, string(a))
+	}
+
 	queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
 		ID:       1,
-		Username: username,
-		Email:    email,
+		Username: user.Username,
+		Email:    user.Email,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
@@ -248,9 +269,48 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 			Time:  time.Now().Add(-time.Minute),
 			Valid: true,
 		},
-		IsPasswordSet:  true,
-		LinkedAccounts: []string{},
+		IsPasswordSet:  passwordHash != "",
+		LinkedAccounts: stringLinkedAccounts,
 	}, nil)
+
+	return passwordHash
+}
+
+type UserSettingsOAuthActionParams struct {
+	Action       handlers.Action
+	Verification handlers.VerificationMethod
+	CSRFToken    string
+	FormData     map[string]string
+}
+
+func (ts *testServer) MustSendUserSettingsOAuthAction(t *testing.T, githubOauthService, googleOauthService *servicemocks.MockOAuthService, params UserSettingsOAuthActionParams) (generatedState string) {
+	switch params.Verification {
+	case handlers.VerificationGitHub:
+		githubOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).RunAndReturn(func(state string, callbackPath string) string {
+			generatedState = state
+			return "https://github.com/login/oauth/authorize"
+		}).Once()
+	case handlers.VerificationGoogle:
+		googleOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).RunAndReturn(func(state string, callbackPath string) string {
+			generatedState = state
+			return "https://accounts.google.com/o/oauth2/v2/auth"
+		}).Once()
+	default:
+		t.Fatalf("Unexpected verification method: %v", params.Verification)
+	}
+
+	form := url.Values{}
+	for key, value := range params.FormData {
+		form.Add(key, value)
+	}
+	form.Add("csrf_token", params.CSRFToken)
+	form.Add("Action", string(params.Action))
+	form.Add("Verification", string(params.Verification))
+
+	code, _, _ := ts.PostForm(t, "/user/settings", form)
+	assert.Equal(t, http.StatusSeeOther, code)
+	assert.NotEmpty(t, generatedState)
+	return generatedState
 }
 
 func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, username, email, password, emailVerificationCode string) {

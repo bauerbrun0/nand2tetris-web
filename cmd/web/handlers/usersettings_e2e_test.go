@@ -26,7 +26,11 @@ func TestUserSettings(t *testing.T) {
 	)
 
 	t.Run("Can visit page if authenticated", func(t *testing.T) {
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/settings")
 		assert.Equal(t, http.StatusOK, code)
 	})
@@ -51,7 +55,11 @@ func TestUserSettingsPost(t *testing.T) {
 		email    = "walter.white@example.com"
 		password = "LosPollos321"
 	)
-	ts.MustLogIn(t, queries, username, email, password)
+	ts.MustLogIn(t, queries, testutils.LoginUser{
+		Username: username,
+		Email:    email,
+		Password: password,
+	})
 	code, _, body := ts.Get(t, "/user/settings")
 	assert.Equal(t, http.StatusOK, code)
 	csrfToken := testutils.ExtractCSRFToken(t, body)

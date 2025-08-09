@@ -35,7 +35,11 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, "walter", "walter.white@example.com", "LosPollos321")
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: "walt",
+			Email:    "walter.white@example.com",
+			Password: "LosPollos321",
+		})
 		code, _, _ := ts.Get(t, "/user/login")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})
@@ -145,7 +149,11 @@ func TestUserLoginPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, validUsername, validEmail, validPassword)
+				ts.MustLogIn(t, queries, testutils.LoginUser{
+					Username: validUsername,
+					Email:    validEmail,
+					Password: validPassword,
+				})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")

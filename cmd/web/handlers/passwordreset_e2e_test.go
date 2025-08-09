@@ -37,7 +37,11 @@ func TestUserResetPasswordSendCode(t *testing.T) {
 			email    = "walter.white@example.com"
 			password = "LosPollos321"
 		)
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/reset-password/send-code")
 		assert.Equal(t, http.StatusSeeOther, code)
 	})
@@ -132,7 +136,11 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, username, email, password)
+				ts.MustLogIn(t, queries, testutils.LoginUser{
+					Username: username,
+					Email:    email,
+					Password: password,
+				})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -199,7 +207,11 @@ func TestUserResetPasswordEnterCode(t *testing.T) {
 			email    = "walter.white@example.com"
 			password = "LosPollos321"
 		)
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/reset-password/enter-code")
 		assert.Equal(t, http.StatusSeeOther, code)
 	})
@@ -268,7 +280,11 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, username, email, password)
+				ts.MustLogIn(t, queries, testutils.LoginUser{
+					Username: username,
+					Email:    email,
+					Password: password,
+				})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -398,7 +414,11 @@ func TestUserResetPassword(t *testing.T) {
 			email    = "walter.white@example.com"
 			password = "LosPollos321"
 		)
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/reset-password")
 		assert.Equal(t, http.StatusSeeOther, code)
 	})
@@ -491,7 +511,11 @@ func TestUserResetPasswordPost(t *testing.T) {
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, username, email, password)
+				ts.MustLogIn(t, queries, testutils.LoginUser{
+					Username: username,
+					Email:    email,
+					Password: password,
+				})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")

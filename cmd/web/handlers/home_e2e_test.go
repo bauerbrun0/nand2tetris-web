@@ -24,7 +24,11 @@ func TestHome(t *testing.T) {
 		assert.Contains(t, body, "Login")
 	})
 	t.Run("Can visit the page authenticated", func(t *testing.T) {
-		ts.MustLogIn(t, queries, "walt", "walter.white@example.com", "LosPollos321")
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: "walt",
+			Email:    "walter.white@example.com",
+			Password: "LosPollos321",
+		})
 		code, _, body := ts.Get(t, "/")
 		assert.Equal(t, http.StatusOK, code)
 		assert.Contains(t, body, "walter.white@example.com")

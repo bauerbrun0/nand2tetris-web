@@ -52,7 +52,11 @@ func TestUserVerifyEmail(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/verify-email")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})
@@ -205,7 +209,11 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, username, email, password)
+		ts.MustLogIn(t, queries, testutils.LoginUser{
+			Username: username,
+			Email:    email,
+			Password: password,
+		})
 		code, _, _ := ts.Get(t, "/user/verify-email/send-code")
 		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
 	})
