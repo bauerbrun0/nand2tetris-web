@@ -170,8 +170,8 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 			form.Add("csrf_token", tt.csrfToken)
 			form.Add("email", tt.email)
 
-			code, _, _ := ts.PostForm(t, "/user/reset-password/send-code", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/reset-password/send-code", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)
@@ -336,8 +336,8 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 			form.Add("email", tt.email)
 			form.Add("code", tt.code)
 
-			code, _, _ := ts.PostForm(t, "/user/reset-password/enter-code", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/reset-password/enter-code", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)
@@ -389,8 +389,8 @@ func TestUserResetPassword(t *testing.T) {
 		queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), resetCode).
 			Return(passwordResetRequestMockReturn, nil).Once()
 
-		code, _, _ := ts.PostForm(t, "/user/reset-password/enter-code", form)
-		assert.Equal(t, http.StatusSeeOther, code)
+		postResult := ts.PostForm(t, "/user/reset-password/enter-code", form)
+		assert.Equal(t, http.StatusSeeOther, postResult.Status)
 
 		result = ts.Get(t, "/user/reset-password")
 		assert.Equal(t, http.StatusOK, result.Status)
@@ -561,8 +561,8 @@ func TestUserResetPasswordPost(t *testing.T) {
 			form.Add("new-password-confirmation", tt.newPasswordConfirmation)
 			form.Add("code", tt.code)
 
-			code, _, _ := ts.PostForm(t, "/user/reset-password", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/reset-password", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

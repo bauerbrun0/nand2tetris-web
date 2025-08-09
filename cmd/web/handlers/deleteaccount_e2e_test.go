@@ -162,8 +162,8 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 			form.Add("DeleteAccount.Email", tt.email)
 			form.Add("DeleteAccount.Password", tt.password)
 
-			code, _, _ := ts.PostForm(t, "/user/settings", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/settings", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

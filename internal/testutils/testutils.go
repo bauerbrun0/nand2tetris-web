@@ -170,7 +170,14 @@ func (ts *testServer) Get(t *testing.T, urlPath string) GetResult {
 	}
 }
 
-func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
+type PostFormResult struct {
+	Status      int
+	Header      http.Header
+	Body        string
+	RedirectURL *url.URL
+}
+
+func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) PostFormResult {
 	req, err := http.NewRequest(http.MethodPost, ts.URL+urlPath, strings.NewReader(form.Encode()))
 	if err != nil {
 		t.Fatal(err)
@@ -178,6 +185,12 @@ func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) (i
 
 	req.Header.Set("Origin", ts.URL)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	var redirectUrl *url.URL
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		redirectUrl = req.URL
+		return http.ErrUseLastResponse
+	}
 
 	rs, err := ts.Client().Do(req)
 	if err != nil {
@@ -192,7 +205,12 @@ func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) (i
 	}
 	bytes.TrimSpace(body)
 
-	return rs.StatusCode, rs.Header, string(body)
+	return PostFormResult{
+		Status:      rs.StatusCode,
+		Header:      rs.Header,
+		Body:        string(body),
+		RedirectURL: redirectUrl,
+	}
 }
 
 // Removes the cookie with the provided name from the ookie jar
@@ -278,8 +296,8 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 	form.Add("password", user.Password)
 	form.Add("csrf_token", csrfToken)
 
-	code, _, _ := ts.PostForm(t, "/user/login", form)
-	assert.Equal(t, http.StatusSeeOther, code)
+	postResult := ts.PostForm(t, "/user/login", form)
+	assert.Equal(t, http.StatusSeeOther, postResult.Status)
 
 	stringLinkedAccounts := []string{}
 	for _, a := range user.LinkedAccounts {
@@ -336,8 +354,8 @@ func (ts *testServer) MustSendUserSettingsOAuthAction(t *testing.T, githubOauthS
 	form.Add("Action", string(params.Action))
 	form.Add("Verification", string(params.Verification))
 
-	code, _, _ := ts.PostForm(t, "/user/settings", form)
-	assert.Equal(t, http.StatusSeeOther, code)
+	result := ts.PostForm(t, "/user/settings", form)
+	assert.Equal(t, http.StatusSeeOther, result.Status)
 	assert.NotEmpty(t, generatedState)
 	return generatedState
 }
@@ -396,8 +414,8 @@ func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, u
 	form.Add("terms", "on")
 	form.Add("csrf_token", csrfToken)
 
-	code, _, _ := ts.PostForm(t, "/user/register", form)
-	assert.Equal(t, http.StatusSeeOther, code)
+	postResult := ts.PostForm(t, "/user/register", form)
+	assert.Equal(t, http.StatusSeeOther, postResult.Status)
 }
 
 var rxCSRF = regexp.MustCompile(`<input type="hidden" name="csrf_token" value="(.+?)">`)

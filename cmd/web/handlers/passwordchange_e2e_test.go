@@ -187,8 +187,8 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 			form.Add("ChangePassword.NewPassword", tt.newPassword)
 			form.Add("ChangePassword.NewPasswordConfirmation", tt.newPasswordConfirmation)
 
-			code, _, _ := ts.PostForm(t, "/user/settings", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/settings", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

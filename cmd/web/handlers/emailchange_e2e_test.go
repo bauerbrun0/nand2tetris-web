@@ -151,8 +151,8 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			form.Add("ChangeEmail.Password", tt.password)
 			form.Add("ChangeEmail.NewEmail", tt.newEmail)
 
-			code, _, _ := ts.PostForm(t, "/user/settings", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/settings", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)
@@ -274,8 +274,8 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 			form.Add("csrf_token", csrfToken)
 			form.Add("ChangeEmailSendCode.Code", tt.code)
 
-			code, _, _ := ts.PostForm(t, "/user/settings", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/settings", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

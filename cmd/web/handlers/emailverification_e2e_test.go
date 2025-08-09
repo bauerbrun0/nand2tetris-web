@@ -159,8 +159,8 @@ func TestUserVerifyEmailPost(t *testing.T) {
 			form.Add("csrf_token", tt.csrfToken)
 			form.Add("code", tt.code)
 
-			code, _, _ := ts.PostForm(t, "/user/verify-email", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/verify-email", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)
@@ -333,8 +333,8 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 			form.Add("csrf_token", tt.csrfToken)
 			form.Add("email", tt.email)
 
-			code, _, _ := ts.PostForm(t, "/user/verify-email/send-code", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/verify-email/send-code", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

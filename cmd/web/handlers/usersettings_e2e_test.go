@@ -64,8 +64,8 @@ func TestUserSettingsPost(t *testing.T) {
 		form.Add("csrf_token", csrfToken)
 		form.Add("Action", "invalid")
 
-		code, _, _ := ts.PostForm(t, "/user/settings", form)
-		assert.Equal(t, http.StatusUnprocessableEntity, code)
+		result := ts.PostForm(t, "/user/settings", form)
+		assert.Equal(t, http.StatusUnprocessableEntity, result.Status)
 	})
 
 	t.Run("Empty csrf token", func(t *testing.T) {
@@ -73,8 +73,8 @@ func TestUserSettingsPost(t *testing.T) {
 		form.Add("csrf_token", "")
 		form.Add("Action", "invalid")
 
-		code, _, _ := ts.PostForm(t, "/user/settings", form)
-		assert.Equal(t, http.StatusBadRequest, code)
+		result := ts.PostForm(t, "/user/settings", form)
+		assert.Equal(t, http.StatusBadRequest, result.Status)
 	})
 
 	t.Run("Redirect if unauthenticated", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestUserSettingsPost(t *testing.T) {
 		form.Add("csrf_token", csrfToken)
 		form.Add("Action", "invalid")
 
-		code, _, _ := ts.PostForm(t, "/user/settings", form)
-		assert.Equal(t, http.StatusSeeOther, code)
+		result := ts.PostForm(t, "/user/settings", form)
+		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
 }

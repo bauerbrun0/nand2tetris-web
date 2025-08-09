@@ -309,8 +309,8 @@ func TestUserRegisterPost(t *testing.T) {
 			form.Add("terms", tt.terms)
 			form.Add("csrf_token", tt.csrfToken)
 
-			code, _, _ := ts.PostForm(t, "/user/register", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/register", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

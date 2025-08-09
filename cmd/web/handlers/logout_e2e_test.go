@@ -73,8 +73,8 @@ func TestUserLogoutPost(t *testing.T) {
 			form := url.Values{}
 			form.Add("csrf_token", tt.csrfToken)
 
-			code, _, _ := ts.PostForm(t, "/user/logout", form)
-			assert.Equal(t, tt.wantCode, code)
+			result := ts.PostForm(t, "/user/logout", form)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)
