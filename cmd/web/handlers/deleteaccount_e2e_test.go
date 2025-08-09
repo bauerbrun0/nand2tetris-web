@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
-	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
@@ -60,7 +59,6 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				var hasher crypto.PasswordHasher
 				queries.EXPECT().GetUserById(t.Context(), int32(1)).
 					Return(models.User{
 						ID:       1,
@@ -71,7 +69,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, hasher, password),
+							String: testutils.MustHashPassword(t, password),
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{

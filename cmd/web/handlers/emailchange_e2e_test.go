@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
-	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -52,7 +51,6 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			newEmail: newEmail,
 			wantCode: http.StatusOK,
 			before: func(t *testing.T) {
-				var hasher crypto.PasswordHasher
 				queries.EXPECT().GetUserById(t.Context(), int32(1)).Return(models.User{
 					ID:       1,
 					Username: username,
@@ -62,7 +60,7 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 						Valid: true,
 					},
 					PasswordHash: pgtype.Text{
-						String: testutils.MustHashPassword(t, hasher, password),
+						String: testutils.MustHashPassword(t, password),
 						Valid:  true,
 					},
 					Created: pgtype.Timestamptz{
@@ -93,7 +91,6 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			newEmail: newEmail,
 			wantCode: http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				var hasher crypto.PasswordHasher
 				queries.EXPECT().GetUserById(t.Context(), int32(1)).Return(models.User{
 					ID:       1,
 					Username: username,
@@ -103,7 +100,7 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 						Valid: true,
 					},
 					PasswordHash: pgtype.Text{
-						String: testutils.MustHashPassword(t, hasher, password),
+						String: testutils.MustHashPassword(t, password),
 						Valid:  true,
 					},
 					Created: pgtype.Timestamptz{

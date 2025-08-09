@@ -18,7 +18,9 @@ func ExtractCSRFToken(t *testing.T, body string) string {
 	return matches[1]
 }
 
-func MustHashPassword(t *testing.T, hasher crypto.PasswordHasher, password string) string {
+var hasher crypto.PasswordHasher
+
+func MustHashPassword(t *testing.T, password string) string {
 	t.Helper()
 	hash, err := hasher.GenerateFromPassword(password, crypto.DefaultPasswordHashParams)
 	if err != nil {

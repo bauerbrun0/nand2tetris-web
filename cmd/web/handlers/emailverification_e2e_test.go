@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -226,7 +225,6 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 		password = "LosPollos321"
 	)
 
-	var hasher crypto.PasswordHasher
 	validUserMockReturn := models.User{
 		ID:       1,
 		Username: username,
@@ -236,7 +234,7 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: testutils.MustHashPassword(t, hasher, password),
+			String: testutils.MustHashPassword(t, password),
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{

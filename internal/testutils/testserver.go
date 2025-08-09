@@ -20,7 +20,6 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
-	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
 	modelsmocks "github.com/bauerbrun0/nand2tetris-web/internal/models/mocks"
@@ -262,10 +261,8 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 	csrfToken := ExtractCSRFToken(t, result.Body)
 	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 
-	// hash the password
-	var hasher crypto.PasswordHasher
 	if user.Password != "" {
-		passwordHash = MustHashPassword(t, hasher, user.Password)
+		passwordHash = MustHashPassword(t, user.Password)
 	} else {
 		passwordHash = ""
 	}
@@ -368,7 +365,6 @@ func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, u
 	csrfToken := ExtractCSRFToken(t, result.Body)
 	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 
-	var hasher crypto.PasswordHasher
 	returnUser := models.User{
 		ID:       1,
 		Username: username,
@@ -378,7 +374,7 @@ func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, u
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: MustHashPassword(t, hasher, password),
+			String: MustHashPassword(t, password),
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{

@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bauerbrun0/nand2tetris-web/internal/crypto"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -52,14 +51,12 @@ func TestUserRegisterPost(t *testing.T) {
 	result := ts.Get(t, "/user/register")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var hasher crypto.PasswordHasher
-
 	var (
 		validUsername     = "walter"
 		validEmail        = "walter.white@example.com"
 		validPassword     = "LosPollos321"
 		validTerms        = "on"
-		validPasswordHash = testutils.MustHashPassword(t, hasher, validPassword)
+		validPasswordHash = testutils.MustHashPassword(t, validPassword)
 	)
 
 	returnUser := models.User{
