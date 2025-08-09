@@ -29,22 +29,22 @@ func TestUserVerifyEmail(t *testing.T) {
 	)
 
 	t.Run("Can visit page", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/verify-email")
+		result := ts.Get(t, "/user/verify-email")
 
-		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
 
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 	})
 
 	t.Run("Can visit page after registration", func(t *testing.T) {
 		ts.MustRegister(t, queries, username, email, password, emailVerificationCode)
-		code, _, body := ts.Get(t, "/user/verify-email")
+		result := ts.Get(t, "/user/verify-email")
 
-		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
-		assert.Containsf(t, body, email, "body should contain the email address: %s", email)
+		assert.Containsf(t, result.Body, email, "body should contain the email address: %s", email)
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
@@ -53,8 +53,8 @@ func TestUserVerifyEmail(t *testing.T) {
 			Email:    email,
 			Password: password,
 		})
-		code, _, _ := ts.Get(t, "/user/verify-email")
-		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
+		result := ts.Get(t, "/user/verify-email")
+		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
 }
 
@@ -64,8 +64,8 @@ func TestUserVerifyEmailPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/verify-email")
-	validCSRFToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/verify-email")
+	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var (
 		username              = "walter"
@@ -183,20 +183,20 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	)
 
 	t.Run("Can visit page", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/verify-email/send-code")
+		result := ts.Get(t, "/user/verify-email/send-code")
 
-		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
 
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 	})
 
 	t.Run("Can visit page after registration", func(t *testing.T) {
 		ts.MustRegister(t, queries, username, email, password, emailVerificationCode)
-		code, _, body := ts.Get(t, "/user/verify-email/send-code")
+		result := ts.Get(t, "/user/verify-email/send-code")
 
-		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 	})
 
@@ -206,8 +206,8 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 			Email:    email,
 			Password: password,
 		})
-		code, _, _ := ts.Get(t, "/user/verify-email/send-code")
-		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
+		result := ts.Get(t, "/user/verify-email/send-code")
+		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
 }
 
@@ -217,8 +217,8 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/verify-email/send-code")
-	validCSRFToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/verify-email/send-code")
+	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var (
 		email    = "walter.white@example.com"

@@ -26,9 +26,9 @@ func TestUserLogoutPost(t *testing.T) {
 		Email:    email,
 		Password: password,
 	})
-	code, _, body := ts.Get(t, "/")
-	assert.Equal(t, http.StatusOK, code)
-	csrfToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/")
+	assert.Equal(t, http.StatusOK, result.Status)
+	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	tests := []struct {
 		name      string

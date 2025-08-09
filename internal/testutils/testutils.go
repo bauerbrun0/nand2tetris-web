@@ -137,19 +137,37 @@ func NewTestServer(t *testing.T, options TestServerOptions) (
 	return &testServer{Server: server}, queries, githubOauthService, googleOauthService
 }
 
-func (ts *testServer) Get(t *testing.T, urlPath string) (int, http.Header, string) {
+type GetResult struct {
+	Status      int
+	Header      http.Header
+	Body        string
+	RedirectUrl *url.URL
+}
+
+func (ts *testServer) Get(t *testing.T, urlPath string) GetResult {
+	var redirectUrl *url.URL
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		redirectUrl = req.URL
+		return http.ErrUseLastResponse
+	}
 	rs, err := ts.Client().Get(ts.URL + urlPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer rs.Body.Close()
-	body, err := io.ReadAll(rs.Body)
+	rsBody, err := io.ReadAll(rs.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
-	bytes.TrimSpace(body)
-	return rs.StatusCode, rs.Header, string(body)
+	bytes.TrimSpace(rsBody)
+
+	return GetResult{
+		Status:      rs.StatusCode,
+		Header:      rs.Header,
+		Body:        string(rsBody),
+		RedirectUrl: redirectUrl,
+	}
 }
 
 func (ts *testServer) PostForm(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
@@ -222,9 +240,9 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 	ts.RemoveCookie(t, "session")
 
 	// visit login page and get csrf token
-	code, _, body := ts.Get(t, "/user/login")
-	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
-	csrfToken := ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/login")
+	assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
+	csrfToken := ExtractCSRFToken(t, result.Body)
 	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 
 	// hash the password
@@ -260,7 +278,7 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 	form.Add("password", user.Password)
 	form.Add("csrf_token", csrfToken)
 
-	code, _, _ = ts.PostForm(t, "/user/login", form)
+	code, _, _ := ts.PostForm(t, "/user/login", form)
 	assert.Equal(t, http.StatusSeeOther, code)
 
 	stringLinkedAccounts := []string{}
@@ -328,9 +346,9 @@ func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, u
 	// remove session cookie if already logged in
 	ts.RemoveCookie(t, "session")
 	// visit register page and get csrf token
-	code, _, body := ts.Get(t, "/user/register")
-	assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
-	csrfToken := ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/register")
+	assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
+	csrfToken := ExtractCSRFToken(t, result.Body)
 	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 
 	var hasher crypto.PasswordHasher
@@ -378,7 +396,7 @@ func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, u
 	form.Add("terms", "on")
 	form.Add("csrf_token", csrfToken)
 
-	code, _, _ = ts.PostForm(t, "/user/register", form)
+	code, _, _ := ts.PostForm(t, "/user/register", form)
 	assert.Equal(t, http.StatusSeeOther, code)
 }
 

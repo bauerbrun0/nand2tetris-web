@@ -37,9 +37,9 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		Email:    email,
 		Password: password,
 	})
-	code, _, body := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, code)
-	csrfToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/settings")
+	assert.Equal(t, http.StatusOK, result.Status)
+	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 	assert.NotEmpty(t, csrfToken)
 
 	tests := []struct {
@@ -181,9 +181,9 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 	)
 	defer ts.Close()
 
-	code, _, body := ts.Get(t, "/user/login")
-	assert.Equal(t, http.StatusOK, code)
-	csrfToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/login")
+	assert.Equal(t, http.StatusOK, result.Status)
+	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 	assert.NotEmpty(t, csrfToken)
 
 	var (
@@ -345,8 +345,8 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 			}
 
 			path := fmt.Sprintf("%s?code=%s&state=%s", tt.callbackPath, oauthCode, currentState)
-			code, _, _ = ts.Get(t, path)
-			assert.Equal(t, tt.wantCode, code)
+			result = ts.Get(t, path)
+			assert.Equal(t, tt.wantCode, result.Status)
 
 			if tt.after != nil {
 				tt.after(t)

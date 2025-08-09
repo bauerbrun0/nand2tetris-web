@@ -14,8 +14,8 @@ func TestPing(t *testing.T) {
 	})
 	defer ts.Close()
 
-	code, _, body := ts.Get(t, "/ping")
+	result := ts.Get(t, "/ping")
 
-	assert.Equal(t, code, http.StatusOK)
-	assert.Equal(t, string(body), "OK")
+	assert.Equal(t, result.Status, http.StatusOK)
+	assert.Equal(t, result.Body, "OK")
 }

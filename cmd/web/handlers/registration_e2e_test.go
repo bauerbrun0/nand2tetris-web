@@ -24,11 +24,11 @@ func TestUserRegister(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/register")
+		result := ts.Get(t, "/user/register")
 
-		assert.Equal(t, http.StatusOK, code, "status code should be 200 OK")
+		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
 
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
 	})
 
@@ -38,8 +38,8 @@ func TestUserRegister(t *testing.T) {
 			Email:    "walter.white@example.com",
 			Password: "LosPollos321",
 		})
-		code, _, _ := ts.Get(t, "/user/register")
-		assert.Equal(t, http.StatusSeeOther, code, "status code should be 303 See Other")
+		result := ts.Get(t, "/user/register")
+		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
 }
 
@@ -49,8 +49,8 @@ func TestUserRegisterPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/register")
-	validCSRFToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/register")
+	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var hasher crypto.PasswordHasher
 

@@ -21,9 +21,9 @@ func TestUserResetPasswordSendCode(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/reset-password/send-code")
-		assert.Equal(t, http.StatusOK, code)
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		result := ts.Get(t, "/user/reset-password/send-code")
+		assert.Equal(t, http.StatusOK, result.Status)
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmpty(t, csrfToken)
 	})
 
@@ -38,8 +38,8 @@ func TestUserResetPasswordSendCode(t *testing.T) {
 			Email:    email,
 			Password: password,
 		})
-		code, _, _ := ts.Get(t, "/user/reset-password/send-code")
-		assert.Equal(t, http.StatusSeeOther, code)
+		result := ts.Get(t, "/user/reset-password/send-code")
+		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
 }
 
@@ -49,8 +49,8 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/reset-password/send-code")
-	validCSRFToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/reset-password/send-code")
+	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var (
 		username = "walter"
@@ -187,9 +187,9 @@ func TestUserResetPasswordEnterCode(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("Can visit page", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/reset-password/enter-code")
-		assert.Equal(t, http.StatusOK, code)
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		result := ts.Get(t, "/user/reset-password/enter-code")
+		assert.Equal(t, http.StatusOK, result.Status)
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmpty(t, csrfToken)
 	})
 
@@ -204,8 +204,8 @@ func TestUserResetPasswordEnterCode(t *testing.T) {
 			Email:    email,
 			Password: password,
 		})
-		code, _, _ := ts.Get(t, "/user/reset-password/enter-code")
-		assert.Equal(t, http.StatusSeeOther, code)
+		result := ts.Get(t, "/user/reset-password/enter-code")
+		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
 }
 
@@ -215,8 +215,8 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/reset-password/enter-code")
-	validCSRFToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/reset-password/enter-code")
+	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var (
 		username = "walter"
@@ -353,13 +353,13 @@ func TestUserResetPassword(t *testing.T) {
 	defer ts.Close()
 
 	t.Run("Redirect if code is not in sessions", func(t *testing.T) {
-		code, _, _ := ts.Get(t, "/user/reset-password")
-		assert.Equal(t, http.StatusSeeOther, code)
+		result := ts.Get(t, "/user/reset-password")
+		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
 
 	t.Run("Can visit page if code is in session", func(t *testing.T) {
-		code, _, body := ts.Get(t, "/user/reset-password/enter-code")
-		csrfToken := testutils.ExtractCSRFToken(t, body)
+		result := ts.Get(t, "/user/reset-password/enter-code")
+		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
 		var (
 			email     = "walter.white@example.com"
@@ -389,11 +389,11 @@ func TestUserResetPassword(t *testing.T) {
 		queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), resetCode).
 			Return(passwordResetRequestMockReturn, nil).Once()
 
-		code, _, _ = ts.PostForm(t, "/user/reset-password/enter-code", form)
+		code, _, _ := ts.PostForm(t, "/user/reset-password/enter-code", form)
 		assert.Equal(t, http.StatusSeeOther, code)
 
-		code, _, _ = ts.Get(t, "/user/reset-password")
-		assert.Equal(t, http.StatusOK, code)
+		result = ts.Get(t, "/user/reset-password")
+		assert.Equal(t, http.StatusOK, result.Status)
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
@@ -407,8 +407,8 @@ func TestUserResetPassword(t *testing.T) {
 			Email:    email,
 			Password: password,
 		})
-		code, _, _ := ts.Get(t, "/user/reset-password")
-		assert.Equal(t, http.StatusSeeOther, code)
+		result := ts.Get(t, "/user/reset-password")
+		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
 }
 
@@ -418,8 +418,8 @@ func TestUserResetPasswordPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	_, _, body := ts.Get(t, "/user/reset-password/enter-code")
-	csrfToken := testutils.ExtractCSRFToken(t, body)
+	result := ts.Get(t, "/user/reset-password/enter-code")
+	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
 	var (
 		resetCode = "12345678"
