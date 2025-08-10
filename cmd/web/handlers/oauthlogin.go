@@ -162,8 +162,20 @@ func (h *Handlers) UserLoginGoogleCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	user, err := h.UserService.AuthenticateOAuthUser(oauthUser, models.ProviderGoogle)
-	if err != nil {
+	if err != nil && !errors.Is(err, services.ErrUserAlreadyExists) {
 		h.ServerError(w, r, err)
+		return
+	}
+
+	if err != nil && errors.Is(err, services.ErrUserAlreadyExists) {
+		h.SessionManager.Put(r.Context(), "initialToasts", []pages.Toast{
+			{
+				Message:  data.T("toast.oauth_user_exists"),
+				Variant:  "error",
+				Duration: 5000,
+			},
+		})
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 		return
 	}
 
