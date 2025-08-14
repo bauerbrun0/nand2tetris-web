@@ -101,6 +101,9 @@ func NewTestRoutes(
 
 type testServer struct {
 	*httptest.Server
+	queries            *mocks.MockDBQueries
+	githubOauthService *servicemocks.MockOAuthService
+	googleOauthService *servicemocks.MockOAuthService
 }
 
 type TestServerOptions struct {
@@ -132,7 +135,12 @@ func NewTestServer(t *testing.T, options TestServerOptions) (
 		return http.ErrUseLastResponse
 	}
 
-	return &testServer{Server: server}, queries, githubOauthService, googleOauthService
+	return &testServer{
+		Server:             server,
+		queries:            queries,
+		githubOauthService: githubOauthService,
+		googleOauthService: googleOauthService,
+	}, queries, githubOauthService, googleOauthService
 }
 
 type GetResult struct {
@@ -354,6 +362,77 @@ func (ts *testServer) MustSendUserSettingsOAuthAction(t *testing.T, githubOauthS
 	assert.Equal(t, http.StatusSeeOther, result.Status)
 	assert.NotEmpty(t, generatedState)
 	return generatedState
+}
+
+type AuthenticateOAuthActionParams struct {
+	State                string
+	Verification         handlers.VerificationMethod
+	BeforeActionRedirect func()
+}
+
+func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params AuthenticateOAuthActionParams) {
+	oauthCode := "123456"
+	oauthToken := "123456"
+	username := "walt"
+	email := "walter.white@example.com"
+
+	switch params.Verification {
+	case handlers.VerificationGoogle:
+		ts.googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
+			Code:         oauthCode,
+			RedirectPath: "/user/oauth/google/callback/action",
+		}).Return(oauthToken, nil).Once()
+
+		ts.googleOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
+			Id:       "1",
+			Username: username,
+			Email:    email,
+		}, nil).Once()
+
+		ts.queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
+			UserProviderID: "1",
+			Provider:       models.ProviderGoogle,
+		}).Return(models.OauthAuthorization{
+			ID:             1,
+			UserID:         1,
+			Provider:       models.ProviderGoogle,
+			UserProviderID: "1",
+		}, nil).Once()
+
+		if params.BeforeActionRedirect != nil {
+			params.BeforeActionRedirect()
+		}
+
+		_ = ts.Get(t, "/user/oauth/google/callback/action?state="+params.State+"&code="+oauthCode)
+	case handlers.VerificationGitHub:
+		ts.githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
+			Code: oauthCode,
+		}).Return(oauthToken, nil).Once()
+
+		ts.githubOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
+			Id:       "1",
+			Username: username,
+			Email:    email,
+		}, nil).Once()
+
+		ts.queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
+			UserProviderID: "1",
+			Provider:       models.ProviderGitHub,
+		}).Return(models.OauthAuthorization{
+			ID:             1,
+			UserID:         1,
+			Provider:       models.ProviderGitHub,
+			UserProviderID: "1",
+		}, nil).Once()
+
+		if params.BeforeActionRedirect != nil {
+			params.BeforeActionRedirect()
+		}
+
+		_ = ts.Get(t, "/user/oauth/github/callback/action?state="+params.State+"&code="+oauthCode)
+	default:
+		t.Fatalf("Unexpected verification method: %v", params.Verification)
+	}
 }
 
 func (ts *testServer) MustRegister(t *testing.T, queries *mocks.MockDBQueries, username, email, password, emailVerificationCode string) {
