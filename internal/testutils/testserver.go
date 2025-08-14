@@ -370,7 +370,7 @@ type AuthenticateOAuthActionParams struct {
 	BeforeActionRedirect func()
 }
 
-func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params AuthenticateOAuthActionParams) {
+func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params AuthenticateOAuthActionParams) GetResult {
 	oauthCode := "123456"
 	oauthToken := "123456"
 	username := "walt"
@@ -403,7 +403,7 @@ func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params Authentic
 			params.BeforeActionRedirect()
 		}
 
-		_ = ts.Get(t, "/user/oauth/google/callback/action?state="+params.State+"&code="+oauthCode)
+		return ts.Get(t, "/user/oauth/google/callback/action?state="+params.State+"&code="+oauthCode)
 	case handlers.VerificationGitHub:
 		ts.githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
 			Code: oauthCode,
@@ -429,9 +429,10 @@ func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params Authentic
 			params.BeforeActionRedirect()
 		}
 
-		_ = ts.Get(t, "/user/oauth/github/callback/action?state="+params.State+"&code="+oauthCode)
+		return ts.Get(t, "/user/oauth/github/callback/action?state="+params.State+"&code="+oauthCode)
 	default:
 		t.Fatalf("Unexpected verification method: %v", params.Verification)
+		return GetResult{}
 	}
 }
 
