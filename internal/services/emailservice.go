@@ -13,37 +13,39 @@ type EmailService interface {
 }
 
 type emailService struct {
-	sender EmailSender
-	logger *slog.Logger
+	sender       EmailSender
+	logger       *slog.Logger
+	noreplyEmail string
 }
 
-func NewEmailService(sender EmailSender, logger *slog.Logger) EmailService {
+func NewEmailService(sender EmailSender, logger *slog.Logger, noreplyEmail string) EmailService {
 	return &emailService{
-		sender: sender,
-		logger: logger,
+		sender:       sender,
+		logger:       logger,
+		noreplyEmail: noreplyEmail,
 	}
 }
 
 func (es *emailService) SendVerificationEmail(to string, code string) error {
 	subject := "Verify your account"
 	body := fmt.Sprintf("Your code is: %s", code)
-	return es.sender.Send(to, subject, body)
+	return es.sender.Send(es.noreplyEmail, to, subject, body)
 }
 
 func (es *emailService) SendPasswordResetEmail(to string, code string) error {
 	subject := "Password reset code"
 	body := fmt.Sprintf("Your code is: %s", code)
-	return es.sender.Send(to, subject, body)
+	return es.sender.Send(es.noreplyEmail, to, subject, body)
 }
 
 func (es *emailService) SendChangeEmailVerificationEmail(to string, code string) error {
 	subject := "Verify if this is your new email"
 	body := fmt.Sprintf("Your code is: %s", code)
-	return es.sender.Send(to, subject, body)
+	return es.sender.Send(es.noreplyEmail, to, subject, body)
 }
 
 func (es *emailService) SendChangeEmailNotificationEmail(to string) error {
 	subject := "Your email has been changed"
 	body := "Your email has been changed"
-	return es.sender.Send(to, subject, body)
+	return es.sender.Send(es.noreplyEmail, to, subject, body)
 }

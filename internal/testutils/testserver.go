@@ -61,16 +61,17 @@ func NewTestApplication(
 		t.Fatal(err)
 	}
 
+	cfg := application.Config{
+		Env:          "test",
+		NoreplyEmail: "no-reply@nand2tetris-web.com",
+	}
+
 	ctx := t.Context()
 	txStarter := modelsmocks.NewMockTxStarter(queries)
 
 	emailSender := services.NewConsoleEmailSender(logger)
-	emailService := services.NewEmailService(emailSender, logger)
+	emailService := services.NewEmailService(emailSender, logger, cfg.NoreplyEmail)
 	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
-
-	cfg := application.Config{
-		Env: "test",
-	}
 
 	return &application.Application{
 		Logger:             logger,

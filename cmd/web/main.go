@@ -51,6 +51,9 @@ func main() {
 	flag.StringVar(&cfg.GithubClientSecret, "github-client-secret", os.Getenv("GITHUB_CLIENT_SECRET"), "GitHub Client Secret for OAuth")
 	flag.StringVar(&cfg.GoogleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
 	flag.StringVar(&cfg.GoogleClientSecret, "google-client-secret", os.Getenv("GOOGLE_CLIENT_SECRET"), "Google Client Secret for OAuth")
+	flag.StringVar(&cfg.NoreplyEmail, "no-reply-email", os.Getenv("NOREPLY_EMAIL"), "No-reply email for sending emails to users")
+	flag.StringVar(&cfg.MailgunDomain, "mailgun-domain", os.Getenv("MAILGUN_DOMAIN"), "Mailgun domain")
+	flag.StringVar(&cfg.MailgunAPIKey, "mailgun-api-key", os.Getenv("MAILGUN_API_KEY"), "Mailgun private api key")
 	flag.Parse()
 
 	ctx := context.Background()
@@ -71,8 +74,15 @@ func main() {
 	queries := models.New(pool)
 	txStarter := models.NewTxStarter(pool)
 
-	emailSender := services.NewConsoleEmailSender(logger)
-	emailService := services.NewEmailService(emailSender, logger)
+	var emailSender services.EmailSender
+
+	if cfg.Env == "production" {
+		emailSender = services.NewMailGunEmailSender(logger, cfg.MailgunDomain, cfg.MailgunAPIKey)
+	} else {
+		emailSender = services.NewConsoleEmailSender(logger)
+	}
+
+	emailService := services.NewEmailService(emailSender, logger, cfg.NoreplyEmail)
 	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
 
 	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)

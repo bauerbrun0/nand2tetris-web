@@ -18,6 +18,9 @@ type Config struct {
 	GithubClientSecret string
 	GoogleClientId     string
 	GoogleClientSecret string
+	NoreplyEmail       string
+	MailgunDomain      string
+	MailgunAPIKey      string
 }
 
 type Application struct {
