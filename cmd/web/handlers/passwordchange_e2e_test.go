@@ -20,20 +20,7 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
 
 	tests := []struct {
 		name                    string
@@ -46,22 +33,22 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 	}{
 		{
 			name:                    "Valid submission",
-			currentPassword:         password,
-			newPassword:             password + "new",
-			newPasswordConfirmation: password + "new",
+			currentPassword:         testutils.MockPassword,
+			newPassword:             testutils.MockPassword + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new",
 			wantCode:                http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MustHashPassword(t, testutils.MockPassword),
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -73,31 +60,27 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 					Return(nil).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:                    "Wrong current password",
-			currentPassword:         password + "wrong",
-			newPassword:             password + "new",
-			newPasswordConfirmation: password + "new",
+			currentPassword:         testutils.MockPassword + "wrong",
+			newPassword:             testutils.MockPassword + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new",
 			wantCode:                http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MockPasswordHash,
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -109,16 +92,16 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 		},
 		{
 			name:                    "Password not set",
-			currentPassword:         password,
-			newPassword:             password + "new",
-			newPasswordConfirmation: password + "new",
+			currentPassword:         testutils.MockPassword,
+			newPassword:             testutils.MockPassword + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new",
 			wantCode:                http.StatusInternalServerError,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
@@ -134,39 +117,35 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 					}, nil).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:                    "Empty current password",
 			currentPassword:         "",
-			newPassword:             password + "new",
-			newPasswordConfirmation: password + "new",
+			newPassword:             testutils.MockPassword + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new",
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 		{
 			name:                    "Empty new password",
-			currentPassword:         password,
+			currentPassword:         testutils.MockPassword,
 			newPassword:             "",
-			newPasswordConfirmation: password + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new",
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 		{
 			name:                    "Empty new password confirmation",
-			currentPassword:         password,
-			newPassword:             password + "new",
+			currentPassword:         testutils.MockPassword,
+			newPassword:             testutils.MockPassword + "new",
 			newPasswordConfirmation: "",
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 		{
 			name:                    "New passwords do not match",
-			currentPassword:         password,
-			newPassword:             password + "new",
-			newPasswordConfirmation: password + "new2",
+			currentPassword:         testutils.MockPassword,
+			newPassword:             testutils.MockPassword + "new",
+			newPasswordConfirmation: testutils.MockPassword + "new2",
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 	}

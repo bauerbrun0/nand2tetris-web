@@ -24,20 +24,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 	)
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
 
 	tests := []struct {
 		name         string
@@ -54,21 +41,21 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "GitHub - with password",
 			verification: string(handlers.VerificationPassword),
 			action:       handlers.ActionLinkGitHubAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MockPasswordHash,
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -84,21 +71,21 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "GitHub - with wrong password",
 			verification: string(handlers.VerificationPassword),
 			action:       handlers.ActionLinkGitHubAccount,
-			password:     password + "wrong",
+			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MustHashPassword(t, testutils.MockPassword),
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -112,7 +99,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "GitHub - with google",
 			verification: string(handlers.VerificationGoogle),
 			action:       handlers.ActionLinkGitHubAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -124,7 +111,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "GitHub - with github",
 			verification: string(handlers.VerificationGitHub),
 			action:       handlers.ActionLinkGitHubAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusBadRequest,
 		},
@@ -132,21 +119,21 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "Google - with password",
 			verification: string(handlers.VerificationPassword),
 			action:       handlers.ActionLinkGoogleAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MockPasswordHash,
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -162,21 +149,21 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "Google - with wrong password",
 			verification: string(handlers.VerificationPassword),
 			action:       handlers.ActionLinkGoogleAccount,
-			password:     password + "wrong",
+			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MockPasswordHash,
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -190,7 +177,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "Google - with github",
 			verification: string(handlers.VerificationGitHub),
 			action:       handlers.ActionLinkGoogleAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -202,7 +189,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			name:         "Google - with google",
 			verification: string(handlers.VerificationGoogle),
 			action:       handlers.ActionLinkGoogleAccount,
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusBadRequest,
 		},
@@ -251,21 +238,9 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 	assert.NotEmpty(t, csrfToken)
 
-	var (
-		username   = "walter"
-		email      = "walter.white@example.com"
-		password   = "LosPollos321"
-		oauthCode  = "123456"
-		oauthToken = "123456"
-	)
-
 	var currentState string
 
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
+	ts.MustLogIn(t, testutils.LoginParams{})
 
 	tests := []struct {
 		name             string
@@ -300,29 +275,26 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 				})
 
 				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: oauthCode,
-				}).Return(oauthToken, nil).Once()
+					Code: testutils.MockOAuthCode,
+				}).Return(testutils.MockOAuthToken, nil).Once()
 
-				githubOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Username: username,
-					Id:       "1",
-					Email:    email,
-				}, nil).Once()
+				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 
 				queries.EXPECT().CreateOAuthAuthorization(t.Context(), models.CreateOAuthAuthorizationParams{
-					UserID:         1,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGitHub,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGitHub,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 			},
 		},
@@ -351,30 +323,27 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 				})
 
 				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         oauthCode,
+					Code:         testutils.MockOAuthCode,
 					RedirectPath: "/user/oauth/google/callback/link",
-				}).Return(oauthToken, nil).Once()
+				}).Return(testutils.MockOAuthToken, nil).Once()
 
-				googleOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Username: username,
-					Id:       "1",
-					Email:    email,
-				}, nil).Once()
+				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGoogle,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 
 				queries.EXPECT().CreateOAuthAuthorization(t.Context(), models.CreateOAuthAuthorizationParams{
-					UserID:         1,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGoogle,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGoogle,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 			},
 		},
@@ -403,23 +372,20 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 				})
 
 				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: oauthCode,
-				}).Return(oauthToken, nil).Once()
+					Code: testutils.MockOAuthCode,
+				}).Return(testutils.MockOAuthToken, nil).Once()
 
-				githubOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Username: username,
-					Id:       "1",
-					Email:    email,
-				}, nil).Once()
+				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGitHub,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 			},
 		},
@@ -448,24 +414,21 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 				})
 
 				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         oauthCode,
+					Code:         testutils.MockOAuthCode,
 					RedirectPath: "/user/oauth/google/callback/link",
-				}).Return(oauthToken, nil).Once()
+				}).Return(testutils.MockOAuthToken, nil).Once()
 
-				googleOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Username: username,
-					Id:       "1",
-					Email:    email,
-				}, nil).Once()
+				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGoogle,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGoogle,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 			},
 		},
@@ -477,7 +440,7 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 				tt.before(t)
 			}
 
-			res := ts.Get(t, tt.callbackPath+"?state="+currentState+"&code="+oauthCode)
+			res := ts.Get(t, tt.callbackPath+"?state="+currentState+"&code="+testutils.MockOAuthCode)
 			assert.Equal(t, http.StatusSeeOther, res.Status)
 			if tt.wantRedirectPath != "" {
 				assert.Equal(t, ts.URL+tt.wantRedirectPath, res.RedirectUrl.String())

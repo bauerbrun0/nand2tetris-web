@@ -21,21 +21,9 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		newEmail = "walter.white@new.com"
-		password = "LosPollos321"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
+
+	var newEmail = "walter.white@new.com"
 
 	tests := []struct {
 		name     string
@@ -47,20 +35,20 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 	}{
 		{
 			name:     "Valid submission",
-			password: password,
+			password: testutils.MockPassword,
 			newEmail: newEmail,
 			wantCode: http.StatusOK,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).Return(models.User{
-					ID:       1,
-					Username: username,
-					Email:    email,
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
+					ID:       testutils.MockUserId,
+					Username: testutils.MockUsername,
+					Email:    testutils.MockEmail,
 					EmailVerified: pgtype.Bool{
 						Bool:  true,
 						Valid: true,
 					},
 					PasswordHash: pgtype.Text{
-						String: testutils.MustHashPassword(t, password),
+						String: testutils.MockPasswordHash,
 						Valid:  true,
 					},
 					Created: pgtype.Timestamptz{
@@ -74,9 +62,9 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 					Return(models.EmailVerificationRequest{}, pgx.ErrNoRows).Once()
 				queries.EXPECT().CreateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(models.EmailVerificationRequest{
-						ID:     1,
-						UserID: 1,
-						Email:  email,
+						ID:     testutils.MockId,
+						UserID: testutils.MockUserId,
+						Email:  testutils.MockEmail,
 						Code:   "12345678",
 						Expiry: pgtype.Timestamptz{
 							Time:  time.Now().Add(time.Hour),
@@ -87,20 +75,20 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 		},
 		{
 			name:     "Wrong password",
-			password: password + "wrong",
+			password: testutils.MockPassword + "wrong",
 			newEmail: newEmail,
 			wantCode: http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).Return(models.User{
-					ID:       1,
-					Username: username,
-					Email:    email,
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
+					ID:       testutils.MockUserId,
+					Username: testutils.MockUsername,
+					Email:    testutils.MockEmail,
 					EmailVerified: pgtype.Bool{
 						Bool:  true,
 						Valid: true,
 					},
 					PasswordHash: pgtype.Text{
-						String: testutils.MustHashPassword(t, password),
+						String: testutils.MockPasswordHash,
 						Valid:  true,
 					},
 					Created: pgtype.Timestamptz{
@@ -112,8 +100,8 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 		},
 		{
 			name:     "Provide current email password",
-			password: password + "wrong",
-			newEmail: email,
+			password: testutils.MockPassword + "wrong",
+			newEmail: testutils.MockEmail,
 			wantCode: http.StatusUnprocessableEntity,
 		},
 		{
@@ -124,14 +112,14 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 		},
 		{
 			name:     "Empty new email",
-			password: password,
+			password: testutils.MockPassword,
 			newEmail: "",
 			wantCode: http.StatusUnprocessableEntity,
 		},
 		{
 			name:     "Invalid email",
-			password: password,
-			newEmail: email + "@",
+			password: testutils.MockPassword,
+			newEmail: testutils.MockEmail + "@",
 			wantCode: http.StatusUnprocessableEntity,
 		},
 	}
@@ -164,21 +152,9 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username        = "walter"
-		email           = "walter.white@example.com"
-		password        = "LosPollos321"
-		emailChangeCode = "12345678"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
+
+	var emailChangeCode = "12345678"
 
 	tests := []struct {
 		name     string
@@ -194,25 +170,25 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 			before: func(t *testing.T) {
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailChangeCode).
 					Return(models.EmailVerificationRequest{
-						ID:     1,
-						UserID: 1,
-						Email:  email,
+						ID:     testutils.MockId,
+						UserID: testutils.MockUserId,
+						Email:  testutils.MockEmail,
 						Code:   emailChangeCode,
 						Expiry: pgtype.Timestamptz{
 							Time:  time.Now().Add(time.Hour),
 							Valid: true,
 						},
 					}, nil).Once()
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).Return(models.User{
-					ID:       1,
-					Username: username,
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
+					ID:       testutils.MockUserId,
+					Username: testutils.MockUsername,
 					Email:    "user.oldemail@example.com",
 					EmailVerified: pgtype.Bool{
 						Bool:  true,
 						Valid: true,
 					},
 					PasswordHash: pgtype.Text{
-						String: "hash",
+						String: testutils.MockPasswordHash,
 						Valid:  true,
 					},
 					Created: pgtype.Timestamptz{
@@ -233,9 +209,9 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 			before: func(t *testing.T) {
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailChangeCode).
 					Return(models.EmailVerificationRequest{
-						ID:     1,
-						UserID: 1,
-						Email:  email,
+						ID:     testutils.MockId,
+						UserID: testutils.MockUserId,
+						Email:  testutils.MockEmail,
 						Code:   emailChangeCode,
 						Expiry: pgtype.Timestamptz{
 							Time:  time.Now().Add(-time.Hour),

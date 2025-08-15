@@ -15,7 +15,7 @@ import (
 )
 
 func TestUserResetPasswordSendCode(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
@@ -28,16 +28,7 @@ func TestUserResetPasswordSendCode(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		var (
-			username = "walt"
-			email    = "walter.white@example.com"
-			password = "LosPollos321"
-		)
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/reset-password/send-code")
 		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
@@ -52,22 +43,16 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/send-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-
 	userMockReturn := models.User{
-		ID:       1,
-		Username: username,
-		Email:    email,
+		ID:       testutils.MockUserId,
+		Username: testutils.MockUsername,
+		Email:    testutils.MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: "hash",
+			String: testutils.MockPasswordHash,
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{
@@ -76,9 +61,9 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 		},
 	}
 	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  email,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   "123456789123",
 		VerifyEmailAfter: pgtype.Bool{
 			Bool:  false,
@@ -100,11 +85,11 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 	}{
 		{
 			name:      "Valid submission",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), email).
+				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
 					Return(userMockReturn, nil).Once()
 				queries.EXPECT().InvalidatePasswordResetRequestsOfUser(t.Context(), mock.Anything).
 					Return(nil).Once()
@@ -116,25 +101,21 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 		},
 		{
 			name:      "No user with email",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), email).
+				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
 					Return(models.User{}, pgx.ErrNoRows).Once()
 			},
 		},
 		{
 			name:      "Redirect if already logged in",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -154,7 +135,7 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 		},
 		{
 			name:      "Empty csrf token",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: "",
 			wantCode:  http.StatusBadRequest,
 		},
@@ -181,7 +162,7 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 }
 
 func TestUserResetPasswordEnterCode(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
@@ -194,16 +175,7 @@ func TestUserResetPasswordEnterCode(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		var (
-			username = "walt"
-			email    = "walter.white@example.com"
-			password = "LosPollos321"
-		)
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/reset-password/enter-code")
 		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
@@ -218,17 +190,12 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/enter-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		code     = "12345678"
-		password = "LosPollos321"
-	)
+	code := "12345678"
 
 	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  email,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   code,
 		VerifyEmailAfter: pgtype.Bool{
 			Bool:  false,
@@ -254,7 +221,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 	}{
 		{
 			name:      "Valid submission",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      code,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
@@ -265,16 +232,12 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 		},
 		{
 			name:      "Redirect if already logged in",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      code,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -282,7 +245,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 		},
 		{
 			name:      "Code expired",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      code,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
@@ -293,7 +256,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 		},
 		{
 			name:      "Code does not exists",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      code,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
@@ -304,7 +267,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 		},
 		{
 			name:      "Empty code",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      "",
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
@@ -318,7 +281,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 		},
 		{
 			name:      "Empty csrf token",
-			email:     email,
+			email:     testutils.MockEmail,
 			code:      code,
 			csrfToken: "",
 			wantCode:  http.StatusBadRequest,
@@ -361,20 +324,17 @@ func TestUserResetPassword(t *testing.T) {
 		result := ts.Get(t, "/user/reset-password/enter-code")
 		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
-		var (
-			email     = "walter.white@example.com"
-			resetCode = "12345678"
-		)
+		resetCode := "12345678"
 
 		form := url.Values{}
 		form.Add("csrf_token", csrfToken)
-		form.Add("email", email)
+		form.Add("email", testutils.MockEmail)
 		form.Add("code", resetCode)
 
 		passwordResetRequestMockReturn := models.PasswordResetRequest{
-			ID:     1,
-			UserID: 1,
-			Email:  email,
+			ID:     testutils.MockId,
+			UserID: testutils.MockUserId,
+			Email:  testutils.MockEmail,
 			Code:   resetCode,
 			VerifyEmailAfter: pgtype.Bool{
 				Bool:  false,
@@ -397,16 +357,7 @@ func TestUserResetPassword(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		var (
-			username = "walt"
-			email    = "walter.white@example.com"
-			password = "LosPollos321"
-		)
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/reset-password")
 		assert.Equal(t, http.StatusSeeOther, result.Status)
 	})
@@ -421,22 +372,17 @@ func TestUserResetPasswordPost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/enter-code")
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		resetCode = "12345678"
-		username  = "walter"
-		email     = "walter.white@example.com"
-		password  = "LosPollos321"
-	)
+	resetCode := "12345678"
 
 	form := url.Values{}
 	form.Add("csrf_token", csrfToken)
-	form.Add("email", email)
+	form.Add("email", testutils.MockEmail)
 	form.Add("code", resetCode)
 
 	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  email,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   resetCode,
 		VerifyEmailAfter: pgtype.Bool{
 			Bool:  false,
@@ -464,8 +410,8 @@ func TestUserResetPasswordPost(t *testing.T) {
 		{
 			name:                    "Valid submission",
 			code:                    resetCode,
-			newPassword:             password,
-			newPasswordConfirmation: password,
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -480,8 +426,8 @@ func TestUserResetPasswordPost(t *testing.T) {
 		{
 			name:                    "Expired code",
 			code:                    resetCode,
-			newPassword:             password,
-			newPasswordConfirmation: password,
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnauthorized,
 			before: func(t *testing.T) {
@@ -492,16 +438,12 @@ func TestUserResetPasswordPost(t *testing.T) {
 		{
 			name:                    "Redirect if already logged in",
 			code:                    resetCode,
-			newPassword:             password,
-			newPasswordConfirmation: password,
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -510,8 +452,8 @@ func TestUserResetPasswordPost(t *testing.T) {
 		{
 			name:                    "Empty code",
 			code:                    "",
-			newPassword:             password,
-			newPasswordConfirmation: password,
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnprocessableEntity,
 		},
@@ -519,14 +461,14 @@ func TestUserResetPasswordPost(t *testing.T) {
 			name:                    "Empty password",
 			code:                    resetCode,
 			newPassword:             "",
-			newPasswordConfirmation: password,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 		{
 			name:                    "Empty password confirmation",
 			code:                    resetCode,
-			newPassword:             password,
+			newPassword:             testutils.MockPassword,
 			newPasswordConfirmation: "",
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnprocessableEntity,
@@ -534,16 +476,16 @@ func TestUserResetPasswordPost(t *testing.T) {
 		{
 			name:                    "Passwords do not match",
 			code:                    resetCode,
-			newPassword:             password,
-			newPasswordConfirmation: password + "x",
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword + "x",
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnprocessableEntity,
 		},
 		{
 			name:                    "Empty csrf token",
 			code:                    resetCode,
-			newPassword:             password,
-			newPasswordConfirmation: password,
+			newPassword:             testutils.MockPassword,
+			newPasswordConfirmation: testutils.MockPassword,
 			csrfToken:               "",
 			wantCode:                http.StatusBadRequest,
 		},

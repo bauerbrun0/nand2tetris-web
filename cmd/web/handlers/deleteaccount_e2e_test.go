@@ -18,28 +18,14 @@ import (
 )
 
 func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
-	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(
-		t,
+	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(t,
 		testutils.TestServerOptions{
 			Logs: false,
 		},
 	)
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
 
 	tests := []struct {
 		name         string
@@ -53,23 +39,23 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 	}{
 		{
 			name:         "With password verification",
-			email:        email,
+			email:        testutils.MockEmail,
 			verification: string(handlers.VerificationPassword),
-			password:     password,
+			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, password),
+							String: testutils.MockPasswordHash,
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -77,20 +63,16 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 							Valid: true,
 						},
 					}, nil).Once()
-				queries.EXPECT().DeleteUser(t.Context(), int32(1)).
+				queries.EXPECT().DeleteUser(t.Context(), testutils.MockUserId).
 					Return(nil).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:         "With GitHub verification",
-			email:        email,
+			email:        testutils.MockEmail,
 			verification: string(handlers.VerificationGitHub),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -99,16 +81,12 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 					Return(ts.URL).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:         "With Google verification",
-			email:        email,
+			email:        testutils.MockEmail,
 			verification: string(handlers.VerificationGoogle),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -117,11 +95,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 					Return(ts.URL).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
@@ -133,14 +107,14 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Wrong email",
-			email:        "wrong" + email,
+			email:        "wrong" + testutils.MockEmail,
 			verification: string(handlers.VerificationPassword),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnprocessableEntity,
 		},
 		{
 			name:         "Invalid verification",
-			email:        email,
+			email:        testutils.MockEmail,
 			verification: "invalid",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnprocessableEntity,
@@ -171,8 +145,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 }
 
 func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
-	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(
-		t,
+	ts, queries, githubOauthService, googleOauthService := testutils.NewTestServer(t,
 		testutils.TestServerOptions{
 			Logs: false,
 		},
@@ -180,26 +153,12 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 	defer ts.Close()
 
 	result := ts.Get(t, "/user/login")
-	assert.Equal(t, http.StatusOK, result.Status)
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
-
-	var (
-		username   = "walter"
-		email      = "walter.white@example.com"
-		password   = "LosPollos321"
-		oauthCode  = "123456"
-		oauthToken = "123456"
-	)
 
 	var currentState string
 
 	beforeEach := func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 	}
 
 	tests := []struct {
@@ -224,32 +183,30 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 					Verification: handlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
-						"DeleteAccount.Email": email,
+						"DeleteAccount.Email": testutils.MockEmail,
 					},
 				})
 
 				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: oauthCode,
+					Code: testutils.MockOAuthCode,
 				}).
-					Return(oauthToken, nil).Once()
+					Return(testutils.MockOAuthToken, nil).Once()
 
-				githubOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Id:       "1",
-					Username: username,
-					Email:    email,
-				}, nil).Once()
+				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGitHub,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 
-				queries.EXPECT().DeleteUser(t.Context(), int32(1)).Return(nil).Once()
+				queries.EXPECT().DeleteUser(t.Context(), testutils.MockUserId).
+					Return(nil).Once()
 			},
 		},
 		{
@@ -267,33 +224,31 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 					Verification: handlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
-						"DeleteAccount.Email": email,
+						"DeleteAccount.Email": testutils.MockEmail,
 					},
 				})
 
 				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         oauthCode,
+					Code:         testutils.MockOAuthCode,
 					RedirectPath: "/user/oauth/google/callback/action",
 				}).
-					Return(oauthToken, nil).Once()
+					Return(testutils.MockOAuthToken, nil).Once()
 
-				googleOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Id:       "1",
-					Username: username,
-					Email:    email,
-				}, nil).Once()
+				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGoogle,
 				}).Return(models.OauthAuthorization{
-					ID:             1,
-					UserID:         1,
+					ID:             testutils.MockId,
+					UserID:         testutils.MockUserId,
 					Provider:       models.ProviderGoogle,
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 				}, nil).Once()
 
-				queries.EXPECT().DeleteUser(t.Context(), int32(1)).Return(nil).Once()
+				queries.EXPECT().DeleteUser(t.Context(), testutils.MockUserId).
+					Return(nil).Once()
 			},
 		},
 		{
@@ -311,23 +266,20 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 					Verification: handlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
-						"DeleteAccount.Email": email,
+						"DeleteAccount.Email": testutils.MockEmail,
 					},
 				})
 
 				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: oauthCode,
+					Code: testutils.MockOAuthCode,
 				}).
-					Return(oauthToken, nil).Once()
+					Return(testutils.MockOAuthToken, nil).Once()
 
-				githubOauthService.EXPECT().GetUserInfo(oauthToken).Return(&services.OAuthUserInfo{
-					Id:       "1",
-					Username: username,
-					Email:    email,
-				}, nil).Once()
+				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
+					Return(&testutils.MockOAuthUserInfo, nil).Once()
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: "1",
+					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 			},
@@ -342,7 +294,7 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 				tt.before(t)
 			}
 
-			path := fmt.Sprintf("%s?code=%s&state=%s", tt.callbackPath, oauthCode, currentState)
+			path := fmt.Sprintf("%s?code=%s&state=%s", tt.callbackPath, testutils.MockOAuthCode, currentState)
 			result = ts.Get(t, path)
 			assert.Equal(t, tt.wantCode, result.Status)
 

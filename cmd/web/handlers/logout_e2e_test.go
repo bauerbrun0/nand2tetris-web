@@ -10,22 +10,12 @@ import (
 )
 
 func TestUserLogoutPost(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
+	ts.MustLogIn(t, testutils.LoginParams{})
 	result := ts.Get(t, "/")
 	assert.Equal(t, http.StatusOK, result.Status)
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
@@ -55,11 +45,7 @@ func TestUserLogoutPost(t *testing.T) {
 			csrfToken: "",
 			wantCode:  http.StatusBadRequest,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 	}

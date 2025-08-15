@@ -3,7 +3,6 @@ package handlers_test
 import (
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 )
 
 func TestUserLogin(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
@@ -30,11 +29,7 @@ func TestUserLogin(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: "walt",
-			Email:    "walter.white@example.com",
-			Password: "LosPollos321",
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/login")
 		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
@@ -49,23 +44,16 @@ func TestUserLoginPost(t *testing.T) {
 	result := ts.Get(t, "/user/login")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		validUsername     = "walter"
-		validEmail        = "walter.white@example.com"
-		validPassword     = "LosPollos321"
-		validPasswordHash = testutils.MustHashPassword(t, validPassword)
-	)
-
 	returnUser := models.User{
-		ID:       1,
-		Username: validUsername,
-		Email:    validEmail,
+		ID:       testutils.MockUserId,
+		Username: testutils.MockUsername,
+		Email:    testutils.MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: validPasswordHash,
+			String: testutils.MockPasswordHash,
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{
@@ -85,12 +73,12 @@ func TestUserLoginPost(t *testing.T) {
 	}{
 		{
 			name:      "Valid submission with email",
-			username:  validEmail,
-			password:  validPassword,
+			username:  testutils.MockEmail,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validEmail).
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockEmail).
 					Return(returnUser, nil).Once()
 			},
 			after: func(t *testing.T) {
@@ -99,12 +87,12 @@ func TestUserLoginPost(t *testing.T) {
 		},
 		{
 			name:      "Valid submission with username",
-			username:  validUsername,
-			password:  validPassword,
+			username:  testutils.MockUsername,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockUsername).
 					Return(returnUser, nil).Once()
 			},
 			after: func(t *testing.T) {
@@ -113,19 +101,19 @@ func TestUserLoginPost(t *testing.T) {
 		},
 		{
 			name:      "Wrong password",
-			username:  validUsername,
-			password:  validPassword + "wrong",
+			username:  testutils.MockUsername,
+			password:  testutils.MockPassword + "wrong",
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), validUsername).
+				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockUsername).
 					Return(returnUser, nil).Once()
 			},
 		},
 		{
 			name:      "Wrong username",
 			username:  "wrong",
-			password:  validPassword,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
 			before: func(t *testing.T) {
@@ -135,16 +123,12 @@ func TestUserLoginPost(t *testing.T) {
 		},
 		{
 			name:      "Redirect if already logged in",
-			username:  validUsername,
-			password:  validPassword,
+			username:  testutils.MockUsername,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: validUsername,
-					Email:    validEmail,
-					Password: validPassword,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -152,29 +136,29 @@ func TestUserLoginPost(t *testing.T) {
 		},
 		{
 			name:      "Invalid csrf token",
-			username:  validUsername,
-			password:  validPassword,
+			username:  testutils.MockUsername,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken + "wrong",
 			wantCode:  http.StatusBadRequest,
 		},
 		{
 			name:      "empty username",
 			username:  "",
-			password:  validPassword,
+			password:  testutils.MockPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
 		},
 		{
 			name:      "empty password",
-			username:  validUsername,
+			username:  testutils.MockUsername,
 			password:  "",
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
 		},
 		{
 			name:      "too long password",
-			username:  validUsername,
-			password:  strings.Repeat("x", 100),
+			username:  testutils.MockUsername,
+			password:  testutils.MockLongPassword,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
 		},

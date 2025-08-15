@@ -28,3 +28,11 @@ func MustHashPassword(t *testing.T, password string) string {
 	}
 	return hash
 }
+
+func HashPassword(password string) string {
+	hash, err := hasher.GenerateFromPassword(password, crypto.DefaultPasswordHashParams)
+	if err != nil {
+		panic("error generating hash for password")
+	}
+	return hash
+}

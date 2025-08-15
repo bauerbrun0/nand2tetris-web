@@ -3,7 +3,6 @@ package handlers_test
 import (
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,20 +20,7 @@ func TestHandleUserSettingsCreatePasswordPost(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username = "walter"
-		email    = "walter.white@example.com"
-		password = "LosPollos321"
-	)
-	ts.MustLogIn(t, queries, testutils.LoginUser{
-		Username: username,
-		Email:    email,
-		Password: password,
-	})
-	result := ts.Get(t, "/user/settings")
-	assert.Equal(t, http.StatusOK, result.Status)
-	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
-	assert.NotEmpty(t, csrfToken)
+	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
 
 	tests := []struct {
 		name                 string
@@ -47,16 +33,16 @@ func TestHandleUserSettingsCreatePasswordPost(t *testing.T) {
 	}{
 		{
 			name:                 "Valid submission",
-			password:             password,
-			passwordConfirmation: password,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
@@ -74,31 +60,27 @@ func TestHandleUserSettingsCreatePasswordPost(t *testing.T) {
 					Return(nil).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:                 "Password already set",
-			password:             password,
-			passwordConfirmation: password,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusInternalServerError,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
+				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
 					Return(models.User{
-						ID:       1,
-						Username: username,
-						Email:    email,
+						ID:       testutils.MockUserId,
+						Username: testutils.MockUsername,
+						Email:    testutils.MockEmail,
 						EmailVerified: pgtype.Bool{
 							Bool:  true,
 							Valid: true,
 						},
 						PasswordHash: pgtype.Text{
-							String: "passwordhash",
+							String: "passwordalreadyset",
 							Valid:  true,
 						},
 						Created: pgtype.Timestamptz{
@@ -108,38 +90,34 @@ func TestHandleUserSettingsCreatePasswordPost(t *testing.T) {
 					}, nil).Once()
 			},
 			after: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: username,
-					Email:    email,
-					Password: password,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 		},
 		{
 			name:                 "Empty password",
 			password:             "",
-			passwordConfirmation: password,
+			passwordConfirmation: testutils.MockPassword,
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Empty password confirmation",
-			password:             password,
+			password:             testutils.MockPassword,
 			passwordConfirmation: "",
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Passwords do not match",
-			password:             password,
-			passwordConfirmation: password + "x",
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword + "x",
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Too long password",
-			password:             strings.Repeat("x", 100),
-			passwordConfirmation: strings.Repeat("x", 100),
+			password:             testutils.MockLongPassword,
+			passwordConfirmation: testutils.MockLongPassword,
 			csrfToken:            csrfToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},

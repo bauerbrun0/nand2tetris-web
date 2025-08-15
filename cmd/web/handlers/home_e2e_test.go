@@ -9,7 +9,7 @@ import (
 )
 
 func TestHome(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
@@ -20,11 +20,7 @@ func TestHome(t *testing.T) {
 		assert.Contains(t, result.Body, "Login")
 	})
 	t.Run("Can visit the page authenticated", func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: "walt",
-			Email:    "walter.white@example.com",
-			Password: "LosPollos321",
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/")
 		assert.Equal(t, http.StatusOK, result.Status)
 		assert.Contains(t, result.Body, "walter.white@example.com")

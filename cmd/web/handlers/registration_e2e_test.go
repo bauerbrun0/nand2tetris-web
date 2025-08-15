@@ -17,7 +17,7 @@ import (
 )
 
 func TestUserRegister(t *testing.T) {
-	ts, queries, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
+	ts, _, _, _ := testutils.NewTestServer(t, testutils.TestServerOptions{
 		Logs: false,
 	})
 	defer ts.Close()
@@ -32,11 +32,7 @@ func TestUserRegister(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: "walter",
-			Email:    "walter.white@example.com",
-			Password: "LosPollos321",
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/register")
 		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
@@ -51,24 +47,16 @@ func TestUserRegisterPost(t *testing.T) {
 	result := ts.Get(t, "/user/register")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		validUsername     = "walter"
-		validEmail        = "walter.white@example.com"
-		validPassword     = "LosPollos321"
-		validTerms        = "on"
-		validPasswordHash = testutils.MustHashPassword(t, validPassword)
-	)
-
 	returnUser := models.User{
-		ID:       1,
-		Username: validUsername,
-		Email:    validEmail,
+		ID:       testutils.MockUserId,
+		Username: testutils.MockUsername,
+		Email:    testutils.MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: validPasswordHash,
+			String: testutils.MockPasswordHash,
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{
@@ -78,9 +66,9 @@ func TestUserRegisterPost(t *testing.T) {
 	}
 
 	returnEmailVerificationRequest := models.EmailVerificationRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  validEmail,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   "123456",
 		Expiry: pgtype.Timestamptz{
 			Time:  time.Now().Add(time.Hour),
@@ -102,11 +90,11 @@ func TestUserRegisterPost(t *testing.T) {
 	}{
 		{
 			name:                 "Valid submission",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -120,11 +108,11 @@ func TestUserRegisterPost(t *testing.T) {
 		},
 		{
 			name:                 "Duplicate email",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 			before: func(t *testing.T) {
@@ -141,11 +129,11 @@ func TestUserRegisterPost(t *testing.T) {
 		},
 		{
 			name:                 "Duplicate username",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 			before: func(t *testing.T) {
@@ -162,19 +150,15 @@ func TestUserRegisterPost(t *testing.T) {
 		},
 		{
 			name:                 "Redirect if already logged in",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustLogIn(t, queries, testutils.LoginUser{
-					Username: validUsername,
-					Email:    validEmail,
-					Password: validPassword,
-				})
+				ts.MustLogIn(t, testutils.LoginParams{})
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -182,110 +166,110 @@ func TestUserRegisterPost(t *testing.T) {
 		},
 		{
 			name:                 "Empty password",
-			username:             validUsername,
-			email:                validEmail,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
 			password:             "",
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Empty password confirmation",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
 			passwordConfirmation: "",
-			terms:                validTerms,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Passwords do not match",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword + "extra",
-			terms:                validTerms,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword + "extra",
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Password too short",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
 			passwordConfirmation: "123",
-			terms:                validTerms,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Empty username",
 			username:             "",
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Username too short",
 			username:             "xy",
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Username too long",
 			username:             strings.Repeat("x", 100),
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Username contains whitespace",
 			username:             "walter white",
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Empty email",
-			username:             validUsername,
+			username:             testutils.MockUsername,
 			email:                "",
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Invalid email",
-			username:             validUsername,
+			username:             testutils.MockUsername,
 			email:                "notemail@example",
-			password:             validPassword,
-			passwordConfirmation: validPassword,
-			terms:                validTerms,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
+			terms:                testutils.MockTerms,
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,
 		},
 		{
 			name:                 "Terms not accepted",
-			username:             validUsername,
-			email:                validEmail,
-			password:             validPassword,
-			passwordConfirmation: validPassword,
+			username:             testutils.MockUsername,
+			email:                testutils.MockEmail,
+			password:             testutils.MockPassword,
+			passwordConfirmation: testutils.MockPassword,
 			terms:                "",
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusUnprocessableEntity,

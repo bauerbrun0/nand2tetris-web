@@ -252,33 +252,31 @@ func (ts *testServer) GetCookies(t *testing.T) []*http.Cookie {
 	return ts.Client().Jar.Cookies(serverUrl)
 }
 
-type LoginUser struct {
-	Username       string
-	Email          string
-	Password       string
+type LoginParams struct {
 	LinkedAccounts []models.Provider
+	PasswordNotSet bool
 }
 
-func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user LoginUser) (passwordHash string) {
+func (ts *testServer) MustLogIn(t *testing.T, params LoginParams) (passwordHash string, csrfToken string) {
 	// remove session cookie if already logged in
 	ts.RemoveCookie(t, "session")
 
 	// visit login page and get csrf token
 	result := ts.Get(t, "/user/login")
-	assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
-	csrfToken := ExtractCSRFToken(t, result.Body)
-	assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
+	assert.Equal(t, http.StatusOK, result.Status)
+	csrfToken = ExtractCSRFToken(t, result.Body)
+	assert.NotEmpty(t, csrfToken)
 
-	if user.Password != "" {
-		passwordHash = MustHashPassword(t, user.Password)
-	} else {
+	if params.PasswordNotSet {
 		passwordHash = ""
+	} else {
+		passwordHash = MustHashPassword(t, MockPassword)
 	}
 
 	returnUser := models.User{
-		ID:       1,
-		Username: user.Username,
-		Email:    user.Email,
+		ID:       MockUserId,
+		Username: MockUsername,
+		Email:    MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
@@ -292,26 +290,26 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 			Valid: true,
 		},
 	}
-	queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), user.Username).
+	ts.queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), MockUsername).
 		Return(returnUser, nil).Once()
 
 	form := url.Values{}
-	form.Add("username", user.Username)
-	form.Add("password", user.Password)
+	form.Add("username", MockUsername)
+	form.Add("password", MockPassword)
 	form.Add("csrf_token", csrfToken)
 
 	postResult := ts.PostForm(t, "/user/login", form)
 	assert.Equal(t, http.StatusSeeOther, postResult.Status)
 
 	stringLinkedAccounts := []string{}
-	for _, a := range user.LinkedAccounts {
+	for _, a := range params.LinkedAccounts {
 		stringLinkedAccounts = append(stringLinkedAccounts, string(a))
 	}
 
-	queries.EXPECT().GetUserInfo(t.Context(), int32(1)).Return(models.UserInfo{
-		ID:       1,
-		Username: user.Username,
-		Email:    user.Email,
+	ts.queries.EXPECT().GetUserInfo(t.Context(), MockUserId).Return(models.UserInfo{
+		ID:       MockUserId,
+		Username: MockUsername,
+		Email:    MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  true,
 			Valid: true,
@@ -324,7 +322,7 @@ func (ts *testServer) MustLogIn(t *testing.T, queries *mocks.MockDBQueries, user
 		LinkedAccounts: stringLinkedAccounts,
 	}, nil)
 
-	return passwordHash
+	return passwordHash, csrfToken
 }
 
 type UserSettingsOAuthActionParams struct {

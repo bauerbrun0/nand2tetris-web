@@ -20,13 +20,6 @@ func TestUserVerifyEmail(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username              = "walter"
-		email                 = "walter.white@example.com"
-		password              = "LosPollos321"
-		emailVerificationCode = "12345678"
-	)
-
 	t.Run("Can visit page", func(t *testing.T) {
 		result := ts.Get(t, "/user/verify-email")
 
@@ -37,21 +30,24 @@ func TestUserVerifyEmail(t *testing.T) {
 	})
 
 	t.Run("Can visit page after registration", func(t *testing.T) {
-		ts.MustRegister(t, queries, username, email, password, emailVerificationCode)
+		ts.MustRegister(
+			t,
+			queries,
+			testutils.MockUsername,
+			testutils.MockEmail,
+			testutils.MockPassword,
+			"12345678",
+		)
 		result := ts.Get(t, "/user/verify-email")
 
 		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
 		csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 		assert.NotEmptyf(t, csrfToken, "csrfToken should not be empty")
-		assert.Containsf(t, result.Body, email, "body should contain the email address: %s", email)
+		assert.Containsf(t, result.Body, testutils.MockEmail, "body should contain the email address: %s", testutils.MockEmail)
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/verify-email")
 		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
@@ -66,17 +62,12 @@ func TestUserVerifyEmailPost(t *testing.T) {
 	result := ts.Get(t, "/user/verify-email")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		username              = "walter"
-		email                 = "walter.white@example.com"
-		password              = "LosPollos321"
-		emailVerificationCode = "12345678"
-	)
+	emailVerificationCode := "12345678"
 
 	validEmailVerificationRequest := models.EmailVerificationRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  email,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   emailVerificationCode,
 		Expiry: pgtype.Timestamptz{
 			Time:  time.Now().Add(time.Hour),
@@ -105,7 +96,7 @@ func TestUserVerifyEmailPost(t *testing.T) {
 					Return(validEmailVerificationRequest, nil).Once()
 				queries.EXPECT().InvalidateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
-				queries.EXPECT().VerifyUserEmail(t.Context(), int32(1)).
+				queries.EXPECT().VerifyUserEmail(t.Context(), testutils.MockId).
 					Return(nil).Once()
 			},
 		},
@@ -115,12 +106,19 @@ func TestUserVerifyEmailPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				ts.MustRegister(t, queries, username, email, password, emailVerificationCode)
+				ts.MustRegister(
+					t,
+					queries,
+					testutils.MockUsername,
+					testutils.MockEmail,
+					testutils.MockPassword,
+					emailVerificationCode,
+				)
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailVerificationCode).
 					Return(validEmailVerificationRequest, nil).Once()
 				queries.EXPECT().InvalidateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
-				queries.EXPECT().VerifyUserEmail(t.Context(), int32(1)).
+				queries.EXPECT().VerifyUserEmail(t.Context(), testutils.MockUserId).
 					Return(nil).Once()
 			},
 		},
@@ -174,12 +172,7 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	})
 	defer ts.Close()
 
-	var (
-		username              = "walter"
-		email                 = "walter.white@example.com"
-		password              = "LosPollos321"
-		emailVerificationCode = "12345678"
-	)
+	emailVerificationCode := "12345678"
 
 	t.Run("Can visit page", func(t *testing.T) {
 		result := ts.Get(t, "/user/verify-email/send-code")
@@ -191,7 +184,14 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	})
 
 	t.Run("Can visit page after registration", func(t *testing.T) {
-		ts.MustRegister(t, queries, username, email, password, emailVerificationCode)
+		ts.MustRegister(
+			t,
+			queries,
+			testutils.MockUsername,
+			testutils.MockEmail,
+			testutils.MockPassword,
+			emailVerificationCode,
+		)
 		result := ts.Get(t, "/user/verify-email/send-code")
 
 		assert.Equal(t, http.StatusOK, result.Status, "status code should be 200 OK")
@@ -200,11 +200,7 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	})
 
 	t.Run("Redirect if already logged in", func(t *testing.T) {
-		ts.MustLogIn(t, queries, testutils.LoginUser{
-			Username: username,
-			Email:    email,
-			Password: password,
-		})
+		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/user/verify-email/send-code")
 		assert.Equal(t, http.StatusSeeOther, result.Status, "status code should be 303 See Other")
 	})
@@ -219,22 +215,16 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/verify-email/send-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	var (
-		email    = "walter.white@example.com"
-		username = "walt"
-		password = "LosPollos321"
-	)
-
 	validUserMockReturn := models.User{
-		ID:       1,
-		Username: username,
-		Email:    email,
+		ID:       testutils.MockUserId,
+		Username: testutils.MockUsername,
+		Email:    testutils.MockEmail,
 		EmailVerified: pgtype.Bool{
 			Bool:  false,
 			Valid: true,
 		},
 		PasswordHash: pgtype.Text{
-			String: testutils.MustHashPassword(t, password),
+			String: testutils.MockPasswordHash,
 			Valid:  true,
 		},
 		Created: pgtype.Timestamptz{
@@ -247,9 +237,9 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 	emailVerifiedUserMockReturn.EmailVerified.Bool = true
 
 	validEmailVerificationRequestMockReturn := models.EmailVerificationRequest{
-		ID:     1,
-		UserID: 1,
-		Email:  email,
+		ID:     testutils.MockId,
+		UserID: testutils.MockUserId,
+		Email:  testutils.MockEmail,
 		Code:   "123456",
 		Expiry: pgtype.Timestamptz{
 			Time:  time.Now().Add(time.Hour),
@@ -267,11 +257,11 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 	}{
 		{
 			name:      "Valid submission",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), email).
+				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
 					Return(validUserMockReturn, nil).Once()
 				queries.EXPECT().InvalidateEmailVerificationRequestsOfUser(t.Context(), mock.Anything).
 					Return(nil).Once()
@@ -283,22 +273,22 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 		},
 		{
 			name:      "No user with email",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), email).
+				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
 					Return(models.User{}, pgx.ErrNoRows).Once()
 			},
 		},
 		{
 			name:      "Email already verified",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), email).
-					Return(emailVerifiedUserMockReturn, pgx.ErrNoRows).Once()
+				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
+					Return(emailVerifiedUserMockReturn, nil).Once()
 			},
 		},
 		{
@@ -315,7 +305,7 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 		},
 		{
 			name:      "Empty csrf token",
-			email:     email,
+			email:     testutils.MockEmail,
 			csrfToken: "",
 			wantCode:  http.StatusBadRequest,
 		},
