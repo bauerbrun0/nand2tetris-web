@@ -5,13 +5,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -47,35 +45,6 @@ func TestUserRegisterPost(t *testing.T) {
 	result := ts.Get(t, "/user/register")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	returnUser := models.User{
-		ID:       testutils.MockUserId,
-		Username: testutils.MockUsername,
-		Email:    testutils.MockEmail,
-		EmailVerified: pgtype.Bool{
-			Bool:  true,
-			Valid: true,
-		},
-		PasswordHash: pgtype.Text{
-			String: testutils.MockPasswordHash,
-			Valid:  true,
-		},
-		Created: pgtype.Timestamptz{
-			Time:  time.Now(),
-			Valid: true,
-		},
-	}
-
-	returnEmailVerificationRequest := models.EmailVerificationRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   "123456",
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
 	tests := []struct {
 		name                 string
 		username             string
@@ -98,12 +67,10 @@ func TestUserRegisterPost(t *testing.T) {
 			csrfToken:            validCSRFToken,
 			wantCode:             http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().CreateNewUser(t.Context(), mock.Anything).
-					Return(returnUser, nil).Once()
+				testutils.ExpectCreateNewUserReturnsUser(t, queries)
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), mock.Anything).
 					Return(models.EmailVerificationRequest{}, pgx.ErrNoRows)
-				queries.EXPECT().CreateEmailVerificationRequest(t.Context(), mock.Anything).
-					Return(returnEmailVerificationRequest, nil)
+				testutils.ExpectCreateEmailVerificationRequestReturnsRequest(t, queries)
 			},
 		},
 		{

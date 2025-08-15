@@ -22,6 +22,8 @@ var (
 		Email:     MockEmail,
 		AvatarUrl: "",
 	}
-	MockId           = int32(1)
-	MockPasswordHash = HashPassword(MockPassword)
+	MockId                           = int32(1)
+	MockPasswordHash                 = HashPassword(MockPassword)
+	MockEmailVerificationRequestCode = "123456789"
+	MockPasswordResetRequestCode     = "1234567890123"
 )

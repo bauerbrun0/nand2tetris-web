@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -113,38 +110,9 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/github")
 
-				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: testutils.MockOAuthCode,
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
-				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: testutils.MockOAuthUserId,
-					Provider:       models.ProviderGitHub,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGitHub,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
-
-				queries.EXPECT().GetUserInfo(t.Context(), testutils.MockUserId).Return(models.UserInfo{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Hour),
-						Valid: true,
-					},
-					IsPasswordSet:  true,
-					LinkedAccounts: []string{string(models.ProviderGitHub)},
-				}, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, githubOauthService)
+				testutils.ExpectFindOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGitHub)
+				testutils.ExpectGetUserInfoReturnsUserInfoWithLinkedAccount(t, queries, models.ProviderGitHub)
 			},
 		},
 		{
@@ -160,13 +128,7 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/github")
 
-				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: testutils.MockOAuthCode,
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
+				testutils.ExpectExchangeCodeForUserInfo(t, githubOauthService)
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
@@ -175,46 +137,9 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 				queries.EXPECT().GetUserInfoByEmailOrUsername(t.Context(), mock.Anything).
 					Return(models.UserInfo{}, pgx.ErrNoRows).Once()
 
-				queries.EXPECT().CreateNewUser(t.Context(), mock.Anything).Return(models.User{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: testutils.MockPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Minute),
-						Valid: true,
-					},
-				}, nil).Once()
-
-				queries.EXPECT().CreateOAuthAuthorization(t.Context(), mock.Anything).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGitHub,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
-
-				queries.EXPECT().GetUserInfo(t.Context(), testutils.MockUserId).Return(models.UserInfo{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Minute),
-						Valid: true,
-					},
-					IsPasswordSet:  false,
-					LinkedAccounts: []string{string(models.ProviderGitHub)},
-				}, nil).Once()
+				testutils.ExpectCreateNewUserReturnsUser(t, queries)
+				testutils.ExpectCreateOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGitHub)
+				testutils.ExpectGetUserInfoReturnsUserInfoWithLinkedAccount(t, queries, models.ProviderGitHub)
 			},
 		},
 		{
@@ -230,34 +155,13 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/github")
 
-				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: testutils.MockOAuthCode,
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, githubOauthService)
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
-
-				queries.EXPECT().GetUserInfoByEmailOrUsername(t.Context(), mock.Anything).
-					Return(models.UserInfo{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Hour),
-							Valid: true,
-						},
-						IsPasswordSet:  true,
-						LinkedAccounts: []string{},
-					}, nil).Once()
+				testutils.ExpectGetUserInfoByEmailOrUsernameReturnsUserInfo(t, queries)
 			},
 		},
 		{
@@ -273,39 +177,10 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/google")
 
-				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         testutils.MockOAuthCode,
-					RedirectPath: "/user/oauth/google/callback/login",
-				}).Return(testutils.MockOAuthToken, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, googleOauthService)
 
-				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
-				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: testutils.MockOAuthUserId,
-					Provider:       models.ProviderGoogle,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGoogle,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
-
-				queries.EXPECT().GetUserInfo(t.Context(), testutils.MockUserId).Return(models.UserInfo{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Hour),
-						Valid: true,
-					},
-					IsPasswordSet:  true,
-					LinkedAccounts: []string{string(models.ProviderGoogle)},
-				}, nil).Once()
+				testutils.ExpectFindOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGoogle)
+				testutils.ExpectGetUserInfoReturnsUserInfoWithLinkedAccount(t, queries, models.ProviderGoogle)
 			},
 		},
 		{
@@ -321,13 +196,7 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/google")
 
-				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         testutils.MockOAuthCode,
-					RedirectPath: "/user/oauth/google/callback/login",
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, googleOauthService)
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
@@ -337,46 +206,9 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 				queries.EXPECT().GetUserInfoByEmailOrUsername(t.Context(), mock.Anything).
 					Return(models.UserInfo{}, pgx.ErrNoRows).Once()
 
-				queries.EXPECT().CreateNewUser(t.Context(), mock.Anything).Return(models.User{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: testutils.MockPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Minute),
-						Valid: true,
-					},
-				}, nil).Once()
-
-				queries.EXPECT().CreateOAuthAuthorization(t.Context(), mock.Anything).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGoogle,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
-
-				queries.EXPECT().GetUserInfo(t.Context(), testutils.MockUserId).Return(models.UserInfo{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Minute),
-						Valid: true,
-					},
-					IsPasswordSet:  false,
-					LinkedAccounts: []string{string(models.ProviderGoogle)},
-				}, nil).Once()
+				testutils.ExpectCreateNewUserReturnsUser(t, queries)
+				testutils.ExpectCreateOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGoogle)
+				testutils.ExpectGetUserInfoReturnsUserInfoWithLinkedAccount(t, queries, models.ProviderGoogle)
 			},
 		},
 		{
@@ -392,35 +224,14 @@ func TestUserLoginOAuthCallback(t *testing.T) {
 					}).Once()
 				ts.Get(t, "/user/login/google")
 
-				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         testutils.MockOAuthCode,
-					RedirectPath: "/user/oauth/google/callback/login",
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, googleOauthService)
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGoogle,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 
-				queries.EXPECT().GetUserInfoByEmailOrUsername(t.Context(), mock.Anything).
-					Return(models.UserInfo{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Hour),
-							Valid: true,
-						},
-						IsPasswordSet:  true,
-						LinkedAccounts: []string{},
-					}, nil).Once()
+				testutils.ExpectGetUserInfoByEmailOrUsernameReturnsUserInfo(t, queries)
 			},
 		},
 	}

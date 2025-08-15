@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,24 +42,6 @@ func TestUserLoginPost(t *testing.T) {
 	result := ts.Get(t, "/user/login")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	returnUser := models.User{
-		ID:       testutils.MockUserId,
-		Username: testutils.MockUsername,
-		Email:    testutils.MockEmail,
-		EmailVerified: pgtype.Bool{
-			Bool:  true,
-			Valid: true,
-		},
-		PasswordHash: pgtype.Text{
-			String: testutils.MockPasswordHash,
-			Valid:  true,
-		},
-		Created: pgtype.Timestamptz{
-			Time:  time.Now(),
-			Valid: true,
-		},
-	}
-
 	tests := []struct {
 		name      string
 		username  string
@@ -78,8 +58,7 @@ func TestUserLoginPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockEmail).
-					Return(returnUser, nil).Once()
+				testutils.ExpectGetUserByUsernameOrEmailReturnsUser(t, queries, testutils.MockEmail)
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -92,8 +71,7 @@ func TestUserLoginPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockUsername).
-					Return(returnUser, nil).Once()
+				testutils.ExpectGetUserByUsernameOrEmailReturnsUser(t, queries, testutils.MockUsername)
 			},
 			after: func(t *testing.T) {
 				ts.RemoveCookie(t, "session")
@@ -106,8 +84,7 @@ func TestUserLoginPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByUsernameOrEmail(t.Context(), testutils.MockUsername).
-					Return(returnUser, nil).Once()
+				testutils.ExpectGetUserByUsernameOrEmailReturnsUser(t, queries, testutils.MockUsername)
 			},
 		},
 		{

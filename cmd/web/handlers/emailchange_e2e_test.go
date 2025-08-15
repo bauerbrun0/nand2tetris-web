@@ -39,38 +39,12 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			newEmail: newEmail,
 			wantCode: http.StatusOK,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: testutils.MockPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Hour),
-						Valid: true,
-					},
-				}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				queries.EXPECT().InvalidateEmailVerificationRequestsOfUser(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), mock.Anything).
 					Return(models.EmailVerificationRequest{}, pgx.ErrNoRows).Once()
-				queries.EXPECT().CreateEmailVerificationRequest(t.Context(), mock.Anything).
-					Return(models.EmailVerificationRequest{
-						ID:     testutils.MockId,
-						UserID: testutils.MockUserId,
-						Email:  testutils.MockEmail,
-						Code:   "12345678",
-						Expiry: pgtype.Timestamptz{
-							Time:  time.Now().Add(time.Hour),
-							Valid: true,
-						}}, nil).
-					Once()
+				testutils.ExpectCreateEmailVerificationRequestReturnsRequest(t, queries)
 			},
 		},
 		{
@@ -79,23 +53,7 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			newEmail: newEmail,
 			wantCode: http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    testutils.MockEmail,
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: testutils.MockPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Hour),
-						Valid: true,
-					},
-				}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 			},
 		},
 		{
@@ -154,7 +112,7 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 
 	_, csrfToken := ts.MustLogIn(t, testutils.LoginParams{})
 
-	var emailChangeCode = "12345678"
+	emailChangeCode := testutils.MockEmailVerificationRequestCode
 
 	tests := []struct {
 		name     string
@@ -168,34 +126,8 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 			code:     emailChangeCode,
 			wantCode: http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailChangeCode).
-					Return(models.EmailVerificationRequest{
-						ID:     testutils.MockId,
-						UserID: testutils.MockUserId,
-						Email:  testutils.MockEmail,
-						Code:   emailChangeCode,
-						Expiry: pgtype.Timestamptz{
-							Time:  time.Now().Add(time.Hour),
-							Valid: true,
-						},
-					}, nil).Once()
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).Return(models.User{
-					ID:       testutils.MockUserId,
-					Username: testutils.MockUsername,
-					Email:    "user.oldemail@example.com",
-					EmailVerified: pgtype.Bool{
-						Bool:  true,
-						Valid: true,
-					},
-					PasswordHash: pgtype.Text{
-						String: testutils.MockPasswordHash,
-						Valid:  true,
-					},
-					Created: pgtype.Timestamptz{
-						Time:  time.Now().Add(-time.Hour),
-						Valid: true,
-					},
-				}, nil).Once()
+				testutils.ExpectGetEmailVerificationRequestByCodeReturnsRequest(t, queries)
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				queries.EXPECT().InvalidateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().ChangeUserEmail(t.Context(), mock.Anything).

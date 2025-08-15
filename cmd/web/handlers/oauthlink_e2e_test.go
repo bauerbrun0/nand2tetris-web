@@ -4,14 +4,11 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
-	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -45,24 +42,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				githubOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, "/user/oauth/github/callback/link").
 					Return("https://github.com/oauth").Once()
 			},
@@ -75,24 +55,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MustHashPassword(t, testutils.MockPassword),
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 			},
 		},
 		{
@@ -123,24 +86,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				googleOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, "/user/oauth/google/callback/link").
 					Return("https://google.com/oauth").Once()
 			},
@@ -153,24 +99,7 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 			},
 		},
 		{
@@ -274,28 +203,13 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 					},
 				})
 
-				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: testutils.MockOAuthCode,
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
+				testutils.ExpectExchangeCodeForUserInfo(t, githubOauthService)
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGitHub,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 
-				queries.EXPECT().CreateOAuthAuthorization(t.Context(), models.CreateOAuthAuthorizationParams{
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGitHub,
-					UserProviderID: testutils.MockOAuthUserId,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGitHub,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
+				testutils.ExpectCreateOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGitHub)
 			},
 		},
 		{
@@ -322,29 +236,14 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 					},
 				})
 
-				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         testutils.MockOAuthCode,
-					RedirectPath: "/user/oauth/google/callback/link",
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, googleOauthService)
 
 				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
 					UserProviderID: testutils.MockOAuthUserId,
 					Provider:       models.ProviderGoogle,
 				}).Return(models.OauthAuthorization{}, pgx.ErrNoRows).Once()
 
-				queries.EXPECT().CreateOAuthAuthorization(t.Context(), models.CreateOAuthAuthorizationParams{
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGoogle,
-					UserProviderID: testutils.MockOAuthUserId,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGoogle,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
+				testutils.ExpectCreateOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGoogle)
 			},
 		},
 		{
@@ -371,22 +270,8 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 					},
 				})
 
-				githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code: testutils.MockOAuthCode,
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				githubOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
-				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: testutils.MockOAuthUserId,
-					Provider:       models.ProviderGitHub,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGitHub,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, githubOauthService)
+				testutils.ExpectFindOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGitHub)
 			},
 		},
 		{
@@ -413,23 +298,8 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 					},
 				})
 
-				googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
-					Code:         testutils.MockOAuthCode,
-					RedirectPath: "/user/oauth/google/callback/link",
-				}).Return(testutils.MockOAuthToken, nil).Once()
-
-				googleOauthService.EXPECT().GetUserInfo(testutils.MockOAuthToken).
-					Return(&testutils.MockOAuthUserInfo, nil).Once()
-
-				queries.EXPECT().FindOAuthAuthorization(t.Context(), models.FindOAuthAuthorizationParams{
-					UserProviderID: testutils.MockOAuthUserId,
-					Provider:       models.ProviderGoogle,
-				}).Return(models.OauthAuthorization{
-					ID:             testutils.MockId,
-					UserID:         testutils.MockUserId,
-					Provider:       models.ProviderGoogle,
-					UserProviderID: testutils.MockOAuthUserId,
-				}, nil).Once()
+				testutils.ExpectExchangeCodeForUserInfo(t, googleOauthService)
+				testutils.ExpectFindOAuthAuthorizationReturnsAuthorization(t, queries, models.ProviderGoogle)
 			},
 		},
 	}

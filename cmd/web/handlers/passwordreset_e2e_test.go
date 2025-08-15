@@ -43,38 +43,6 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/send-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	userMockReturn := models.User{
-		ID:       testutils.MockUserId,
-		Username: testutils.MockUsername,
-		Email:    testutils.MockEmail,
-		EmailVerified: pgtype.Bool{
-			Bool:  true,
-			Valid: true,
-		},
-		PasswordHash: pgtype.Text{
-			String: testutils.MockPasswordHash,
-			Valid:  true,
-		},
-		Created: pgtype.Timestamptz{
-			Time:  time.Now().Add(-time.Hour),
-			Valid: true,
-		},
-	}
-	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   "123456789123",
-		VerifyEmailAfter: pgtype.Bool{
-			Bool:  false,
-			Valid: true,
-		},
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
 	tests := []struct {
 		name      string
 		email     string
@@ -89,14 +57,12 @@ func TestUserResetPasswordSendCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
-					Return(userMockReturn, nil).Once()
+				testutils.ExpectGetUserByEmailReturnVerifiedEmailUser(t, queries)
 				queries.EXPECT().InvalidatePasswordResetRequestsOfUser(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), mock.Anything).
 					Return(models.PasswordResetRequest{}, pgx.ErrNoRows).Once()
-				queries.EXPECT().CreatePasswordResetRequest(t.Context(), mock.Anything).
-					Return(passwordResetRequestMockReturn, nil).Once()
+				testutils.ExpectCreatePasswordResetRequestReturnsRequest(t, queries)
 			},
 		},
 		{
@@ -190,25 +156,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/enter-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	code := "12345678"
-
-	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   code,
-		VerifyEmailAfter: pgtype.Bool{
-			Bool:  false,
-			Valid: true,
-		},
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
-	expiredPasswordResetRequestMockReturn := passwordResetRequestMockReturn
-	expiredPasswordResetRequestMockReturn.Expiry.Time = time.Now().Add(-time.Minute)
+	code := testutils.MockPasswordResetRequestCode
 
 	tests := []struct {
 		name      string
@@ -226,8 +174,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), code).
-					Return(passwordResetRequestMockReturn, nil).Once()
+				testutils.ExpectGetPasswordResetRequestByCodeReturnsRequest(t, queries)
 			},
 		},
 		{
@@ -250,8 +197,7 @@ func TestUserResetPasswordEnterCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), code).
-					Return(expiredPasswordResetRequestMockReturn, nil).Once()
+				testutils.ExpectGetPasswordResetRequestByCodeReturnsExpiredRequest(t, queries)
 			},
 		},
 		{
@@ -372,30 +318,12 @@ func TestUserResetPasswordPost(t *testing.T) {
 	result := ts.Get(t, "/user/reset-password/enter-code")
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	resetCode := "12345678"
+	resetCode := testutils.MockPasswordResetRequestCode
 
 	form := url.Values{}
 	form.Add("csrf_token", csrfToken)
 	form.Add("email", testutils.MockEmail)
 	form.Add("code", resetCode)
-
-	passwordResetRequestMockReturn := models.PasswordResetRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   resetCode,
-		VerifyEmailAfter: pgtype.Bool{
-			Bool:  false,
-			Valid: true,
-		},
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
-	expiredPasswordResetRequestMockReturn := passwordResetRequestMockReturn
-	expiredPasswordResetRequestMockReturn.Expiry.Time = time.Now().Add(-time.Minute)
 
 	tests := []struct {
 		name                    string
@@ -415,8 +343,7 @@ func TestUserResetPasswordPost(t *testing.T) {
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), resetCode).
-					Return(passwordResetRequestMockReturn, nil).Once()
+				testutils.ExpectGetPasswordResetRequestByCodeReturnsRequest(t, queries)
 				queries.EXPECT().InvalidatePasswordResetRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().ChangeUserPasswordHash(t.Context(), mock.Anything).
@@ -431,8 +358,7 @@ func TestUserResetPasswordPost(t *testing.T) {
 			csrfToken:               csrfToken,
 			wantCode:                http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetPasswordResetRequestByCode(t.Context(), resetCode).
-					Return(expiredPasswordResetRequestMockReturn, nil).Once()
+				testutils.ExpectGetPasswordResetRequestByCodeReturnsExpiredRequest(t, queries)
 			},
 		},
 		{

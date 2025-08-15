@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -62,21 +60,7 @@ func TestUserVerifyEmailPost(t *testing.T) {
 	result := ts.Get(t, "/user/verify-email")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	emailVerificationCode := "12345678"
-
-	validEmailVerificationRequest := models.EmailVerificationRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   emailVerificationCode,
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
-	expiredEmailVerificationRequest := validEmailVerificationRequest
-	expiredEmailVerificationRequest.Expiry.Time = time.Now().Add(-time.Hour)
+	emailVerificationCode := testutils.MockEmailVerificationRequestCode
 
 	tests := []struct {
 		name      string
@@ -92,8 +76,7 @@ func TestUserVerifyEmailPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailVerificationCode).
-					Return(validEmailVerificationRequest, nil).Once()
+				testutils.ExpectGetEmailVerificationRequestByCodeReturnsRequest(t, queries)
 				queries.EXPECT().InvalidateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().VerifyUserEmail(t.Context(), testutils.MockId).
@@ -114,8 +97,7 @@ func TestUserVerifyEmailPost(t *testing.T) {
 					testutils.MockPassword,
 					emailVerificationCode,
 				)
-				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailVerificationCode).
-					Return(validEmailVerificationRequest, nil).Once()
+				testutils.ExpectGetEmailVerificationRequestByCodeReturnsRequest(t, queries)
 				queries.EXPECT().InvalidateEmailVerificationRequest(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().VerifyUserEmail(t.Context(), testutils.MockUserId).
@@ -128,8 +110,7 @@ func TestUserVerifyEmailPost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusUnprocessableEntity,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), emailVerificationCode).
-					Return(expiredEmailVerificationRequest, nil).Once()
+				testutils.ExpectGetEmailVerificationRequestByCodeReturnsExpiredRequest(t, queries)
 			},
 		},
 		{
@@ -172,7 +153,7 @@ func TestUserVerifyEmailResendCode(t *testing.T) {
 	})
 	defer ts.Close()
 
-	emailVerificationCode := "12345678"
+	emailVerificationCode := testutils.MockEmailVerificationRequestCode
 
 	t.Run("Can visit page", func(t *testing.T) {
 		result := ts.Get(t, "/user/verify-email/send-code")
@@ -215,38 +196,6 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 	result := ts.Get(t, "/user/verify-email/send-code")
 	validCSRFToken := testutils.ExtractCSRFToken(t, result.Body)
 
-	validUserMockReturn := models.User{
-		ID:       testutils.MockUserId,
-		Username: testutils.MockUsername,
-		Email:    testutils.MockEmail,
-		EmailVerified: pgtype.Bool{
-			Bool:  false,
-			Valid: true,
-		},
-		PasswordHash: pgtype.Text{
-			String: testutils.MockPasswordHash,
-			Valid:  true,
-		},
-		Created: pgtype.Timestamptz{
-			Time:  time.Now().Add(-time.Minute),
-			Valid: true,
-		},
-	}
-
-	emailVerifiedUserMockReturn := validUserMockReturn
-	emailVerifiedUserMockReturn.EmailVerified.Bool = true
-
-	validEmailVerificationRequestMockReturn := models.EmailVerificationRequest{
-		ID:     testutils.MockId,
-		UserID: testutils.MockUserId,
-		Email:  testutils.MockEmail,
-		Code:   "123456",
-		Expiry: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Hour),
-			Valid: true,
-		},
-	}
-
 	tests := []struct {
 		email     string
 		name      string
@@ -261,14 +210,12 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
-					Return(validUserMockReturn, nil).Once()
+				testutils.ExpectGetUserByEmailReturnUnverifiedEmailUser(t, queries)
 				queries.EXPECT().InvalidateEmailVerificationRequestsOfUser(t.Context(), mock.Anything).
 					Return(nil).Once()
 				queries.EXPECT().GetEmailVerificationRequestByCode(t.Context(), mock.Anything).
 					Return(models.EmailVerificationRequest{}, pgx.ErrNoRows).Once()
-				queries.EXPECT().CreateEmailVerificationRequest(t.Context(), mock.Anything).
-					Return(validEmailVerificationRequestMockReturn, nil).Once()
+				testutils.ExpectCreateEmailVerificationRequestReturnsRequest(t, queries)
 			},
 		},
 		{
@@ -287,8 +234,7 @@ func TestUserVerifyEmailResendCodePost(t *testing.T) {
 			csrfToken: validCSRFToken,
 			wantCode:  http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserByEmail(t.Context(), testutils.MockEmail).
-					Return(emailVerifiedUserMockReturn, nil).Once()
+				testutils.ExpectGetUserByEmailReturnVerifiedEmailUser(t, queries)
 			},
 		},
 		{

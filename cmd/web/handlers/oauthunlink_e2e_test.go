@@ -4,12 +4,10 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -43,24 +41,7 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), int32(1)).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				queries.EXPECT().DeleteOAuthAuthorization(t.Context(), models.DeleteOAuthAuthorizationParams{
 					UserID:   testutils.MockUserId,
 					Provider: models.ProviderGitHub,
@@ -75,24 +56,7 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 			},
 		},
 		{
@@ -127,24 +91,7 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 				queries.EXPECT().DeleteOAuthAuthorization(t.Context(), models.DeleteOAuthAuthorizationParams{
 					UserID:   testutils.MockUserId,
 					Provider: models.ProviderGoogle,
@@ -159,24 +106,7 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
 			before: func(t *testing.T) {
-				queries.EXPECT().GetUserById(t.Context(), testutils.MockUserId).
-					Return(models.User{
-						ID:       testutils.MockUserId,
-						Username: testutils.MockUsername,
-						Email:    testutils.MockEmail,
-						EmailVerified: pgtype.Bool{
-							Bool:  true,
-							Valid: true,
-						},
-						PasswordHash: pgtype.Text{
-							String: testutils.MockPasswordHash,
-							Valid:  true,
-						},
-						Created: pgtype.Timestamptz{
-							Time:  time.Now().Add(-time.Minute),
-							Valid: true,
-						},
-					}, nil).Once()
+				testutils.ExpectGetUserByIdReturnsUser(t, queries)
 			},
 		},
 		{
