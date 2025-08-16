@@ -49,7 +49,8 @@ func NewMailGunEmailSender(logger *slog.Logger, domain, apiKey string) *MailGunE
 }
 
 func (mg *MailGunEmailSender) Send(from, to, subject, body string) error {
-	message := mailgun.NewMessage(mg.domain, from, subject, body, to)
+	message := mailgun.NewMessage(mg.domain, from, subject, "", to)
+	message.SetHTML(body)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 

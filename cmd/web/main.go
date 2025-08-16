@@ -82,12 +82,6 @@ func main() {
 		emailSender = services.NewConsoleEmailSender(logger)
 	}
 
-	emailService := services.NewEmailService(emailSender, logger, cfg.NoreplyEmail)
-	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
-
-	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)
-	googleOauthService := services.NewGoogleOAuthService(cfg.GoogleClientId, cfg.GoogleClientSecret, cfg.BaseUrl, logger)
-
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("yaml", yaml.Unmarshal)
 	if cfg.Env == "production" {
@@ -95,6 +89,18 @@ func main() {
 	} else {
 		bundle.LoadMessageFile("internal/translations/en.yaml")
 	}
+
+	emailService := services.NewEmailService(
+		emailSender,
+		logger,
+		i18n.NewLocalizer(bundle, language.English.String()),
+		cfg.NoreplyEmail,
+		cfg.BaseUrl,
+	)
+	userService := services.NewUserService(logger, emailService, queries, txStarter, ctx)
+
+	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)
+	googleOauthService := services.NewGoogleOAuthService(cfg.GoogleClientId, cfg.GoogleClientSecret, cfg.BaseUrl, logger)
 
 	app := &application.Application{
 		Logger:             logger,

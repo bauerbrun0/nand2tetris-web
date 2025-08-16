@@ -150,3 +150,23 @@
 "user_settings_page.unlink_github_account_note": "Unlink your GitHub account from this profile"
 "user_settings_page.authenticated_modal_verify": "To perform this action securely, please confirm your identity."
 "user_settings_page.verify_with": "Verify with {{ .Provider }}"
+
+# emails
+"verification_email.subject": "Verify your account"
+"verification_email.title": "Verify your account"
+"verification_email.use_code": "Welcome to the Nand2Tetris Web App! Please use the following code to verify your email address:"
+"verification_email.did_not_create_account": "If you didn't create an account, you can safely ignore this email."
+
+"password_reset_email.subject": "Password reset"
+"password_reset_email.title": "Reset your password"
+"password_reset_email.code_is": "Use the following code to reset your password:"
+"password_reset_email.did_not_reset_password": "If you didn't request a password reset, you can safely ignore this email."
+
+"email_change_email.subject": "Verify new email"
+"email_change_email.title": "Verify if this is your new email"
+"email_change_email.code_is": "Please use the following code to verify your new email address:"
+"email_change_email.wasnt_you": "If you didn't request an email change, you can safely ignore this email."
+
+"email_change_notification_email.subject": "Email updated"
+"email_change_notification_email.title": "Your email address has been changed"
+"email_change_email.message": "We sent you this email to notify you that your account's email address has been changed."
