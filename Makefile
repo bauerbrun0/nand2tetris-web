@@ -1,11 +1,13 @@
 # run templ generation in watch mode to detect all .templ file changes and
 # re-create _templ.go and _templ.txt files on change, then send reload event to browser.
 # web server is running at http://localhost:3000
-# live reload is at http://0.0.0.0:8080 (open this in your browser)
+# Keep the --proxy in sync with the PORT environment variable.
+# live reload is at http://0.0.0.0:8080 (or http://localhost:8080) (open this in your browser)
 dev/templ:
 	go tool templ generate --watch --proxy="http://localhost:3000" --proxyport 8080 --proxybind "0.0.0.0" --open-browser=false -v
 
-# run air to detect any go file changes to re-build and re-run the server.
+# run air to detect any go or yaml (translation files)
+# file changes to re-build and re-run the server.
 dev/server:
 	go tool github.com/air-verse/air \
 	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" \
@@ -91,6 +93,6 @@ test/generate:
 test/all:
 	go test ./... -count=1
 
-# remove generated files (excluding sqlc generated files)
+# remove generated files
 clear:
 	rm -rf build ui/static/css ui/static/js && make rm/templ
