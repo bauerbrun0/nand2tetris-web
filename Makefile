@@ -76,7 +76,7 @@ rm/templ:
 
 # remove sqlc generated db access files
 rm/sqlc:
-	rm internal/models/db.go internal/models/models.go internal/models/queryt.sql.go
+	rm internal/models/db.go internal/models/models.go && find . -type f \( -name '*.sql.go' \) -exec rm {} +
 
 # migrate db
 db/migrate:
@@ -96,3 +96,7 @@ test/all:
 # remove generated files
 clear:
 	rm -rf build ui/static/css ui/static/js && make rm/templ
+
+# remove all generated files, including slower-to-generate ones like sqlc output
+clear/all:
+	rm -rf build ui/static/css ui/static/js && make rm/templ rm/sqlc
