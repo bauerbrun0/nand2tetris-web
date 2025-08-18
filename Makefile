@@ -22,11 +22,11 @@ dev/esbuild:
 dev/tailwind:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --watch --map
 
-# watch for any js or css change in the ui/static/ folder, then reload the browser via templ proxy.
+# watch for any change in the ui/static/ folder, then reload the browser via templ proxy.
 dev/sync_static:
 	go run github.com/air-verse/air \
-	--build.cmd "templ generate --notify-proxy --proxyport 8080 --proxybind \"0.0.0.0\"" \
-	--build.bin "true" \
+	--build.cmd "go tool templ generate --notify-proxy --proxyport 8080 --proxybind \"0.0.0.0\"" \
+	--build.full_bin "true" \
 	--build.delay "100" \
 	--build.exclude_dir "" \
 	--build.include_dir "ui/static" \
