@@ -17,6 +17,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/application"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
@@ -40,7 +41,7 @@ func NewTestApplication(
 	t *testing.T, queries models.DBQueries, githubOauthService, googleOauthService services.OAuthService, logs bool,
 ) *application.Application {
 	gob.Register([]pages.Toast{})
-	gob.Register(handlers.Action(""))
+	gob.Register(userhandlers.Action(""))
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 12 * time.Hour
 	sessionManager.Cookie.Secure = true
@@ -334,20 +335,20 @@ func (ts *testServer) MustLogIn(t *testing.T, params LoginParams) (passwordHash 
 }
 
 type UserSettingsOAuthActionParams struct {
-	Action       handlers.Action
-	Verification handlers.VerificationMethod
+	Action       userhandlers.Action
+	Verification userhandlers.VerificationMethod
 	CSRFToken    string
 	FormData     map[string]string
 }
 
 func (ts *testServer) MustSendUserSettingsOAuthAction(t *testing.T, githubOauthService, googleOauthService *servicemocks.MockOAuthService, params UserSettingsOAuthActionParams) (generatedState string) {
 	switch params.Verification {
-	case handlers.VerificationGitHub:
+	case userhandlers.VerificationGitHub:
 		githubOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).RunAndReturn(func(state string, callbackPath string) string {
 			generatedState = state
 			return "https://github.com/login/oauth/authorize"
 		}).Once()
-	case handlers.VerificationGoogle:
+	case userhandlers.VerificationGoogle:
 		googleOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).RunAndReturn(func(state string, callbackPath string) string {
 			generatedState = state
 			return "https://accounts.google.com/o/oauth2/v2/auth"
@@ -372,7 +373,7 @@ func (ts *testServer) MustSendUserSettingsOAuthAction(t *testing.T, githubOauthS
 
 type AuthenticateOAuthActionParams struct {
 	State                string
-	Verification         handlers.VerificationMethod
+	Verification         userhandlers.VerificationMethod
 	BeforeActionRedirect func()
 }
 
@@ -383,7 +384,7 @@ func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params Authentic
 	email := "walter.white@example.com"
 
 	switch params.Verification {
-	case handlers.VerificationGoogle:
+	case userhandlers.VerificationGoogle:
 		ts.googleOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
 			Code:         oauthCode,
 			RedirectPath: "/user/oauth/google/callback/action",
@@ -410,7 +411,7 @@ func (ts *testServer) MustAuthenticateOAuthAction(t *testing.T, params Authentic
 		}
 
 		return ts.Get(t, "/user/oauth/google/callback/action?state="+params.State+"&code="+oauthCode)
-	case handlers.VerificationGitHub:
+	case userhandlers.VerificationGitHub:
 		ts.githubOauthService.EXPECT().ExchangeCodeForToken(services.TokenExchangeOptions{
 			Code: oauthCode,
 		}).Return(oauthToken, nil).Once()

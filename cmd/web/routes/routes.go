@@ -32,44 +32,44 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	requireUnauthenticatedChain := dynamicChain.Append(m.RequireUnathenticated)
 
-	mux.Handle("GET /user/register", requireUnauthenticatedChain.ThenFunc(h.UserRegister))
+	mux.Handle("GET /user/register", requireUnauthenticatedChain.ThenFunc(h.User.UserRegister))
 	mux.Handle("POST /user/register", requireUnauthenticatedChain.
-		Append(m.GetIPRateLimiter(50, time.Hour)).ThenFunc(h.UserRegisterPost))
-	mux.Handle("GET /user/login", requireUnauthenticatedChain.ThenFunc(h.UserLogin))
-	mux.Handle("POST /user/login", requireUnauthenticatedChain.Append(m.UserLoginPostRateLimiter).ThenFunc(h.UserLoginPost))
-	mux.Handle("GET /user/login/github", requireUnauthenticatedChain.ThenFunc(h.UserLoginGithub))
-	mux.Handle("GET /user/login/google", requireUnauthenticatedChain.ThenFunc(h.UserLoginGoogle))
-	mux.Handle("GET /user/oauth/github/callback/login", requireUnauthenticatedChain.ThenFunc(h.UserLoginGithubCallback))
-	mux.Handle("GET /user/oauth/google/callback/login", requireUnauthenticatedChain.ThenFunc(h.UserLoginGoogleCallback))
-	mux.Handle("GET /user/reset-password/send-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordSendCode))
+		Append(m.GetIPRateLimiter(50, time.Hour)).ThenFunc(h.User.UserRegisterPost))
+	mux.Handle("GET /user/login", requireUnauthenticatedChain.ThenFunc(h.User.UserLogin))
+	mux.Handle("POST /user/login", requireUnauthenticatedChain.Append(m.UserLoginPostRateLimiter).ThenFunc(h.User.UserLoginPost))
+	mux.Handle("GET /user/login/github", requireUnauthenticatedChain.ThenFunc(h.User.UserLoginGithub))
+	mux.Handle("GET /user/login/google", requireUnauthenticatedChain.ThenFunc(h.User.UserLoginGoogle))
+	mux.Handle("GET /user/oauth/github/callback/login", requireUnauthenticatedChain.ThenFunc(h.User.UserLoginGithubCallback))
+	mux.Handle("GET /user/oauth/google/callback/login", requireUnauthenticatedChain.ThenFunc(h.User.UserLoginGoogleCallback))
+	mux.Handle("GET /user/reset-password/send-code", requireUnauthenticatedChain.ThenFunc(h.User.UserResetPasswordSendCode))
 	mux.Handle("POST /user/reset-password/send-code", requireUnauthenticatedChain.
-		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.UserResetPasswordSendCodePost))
-	mux.Handle("GET /user/reset-password/enter-code", requireUnauthenticatedChain.ThenFunc(h.UserResetPasswordEnterCode))
+		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserResetPasswordSendCodePost))
+	mux.Handle("GET /user/reset-password/enter-code", requireUnauthenticatedChain.ThenFunc(h.User.UserResetPasswordEnterCode))
 	mux.Handle("POST /user/reset-password/enter-code", requireUnauthenticatedChain.
-		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.UserResetPasswordEnterCodePost))
-	mux.Handle("GET /user/reset-password", requireUnauthenticatedChain.ThenFunc(h.UserResetPassword))
+		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserResetPasswordEnterCodePost))
+	mux.Handle("GET /user/reset-password", requireUnauthenticatedChain.ThenFunc(h.User.UserResetPassword))
 	mux.Handle("POST /user/reset-password", requireUnauthenticatedChain.
-		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.UserResetPasswordPost))
+		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserResetPasswordPost))
 
 	requireUnverifiedEmailChain := dynamicChain.Append(m.RequireUnverifiedEmail)
 
-	mux.Handle("GET /user/verify-email", requireUnverifiedEmailChain.ThenFunc(h.UserVerifyEmail))
+	mux.Handle("GET /user/verify-email", requireUnverifiedEmailChain.ThenFunc(h.User.UserVerifyEmail))
 	mux.Handle("POST /user/verify-email", requireUnverifiedEmailChain.
-		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.UserVerifyEmailPost))
-	mux.Handle("GET /user/verify-email/send-code", requireUnverifiedEmailChain.ThenFunc(h.UserVerifyEmailResendCode))
+		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserVerifyEmailPost))
+	mux.Handle("GET /user/verify-email/send-code", requireUnverifiedEmailChain.ThenFunc(h.User.UserVerifyEmailResendCode))
 	mux.Handle("POST /user/verify-email/send-code", requireUnverifiedEmailChain.
-		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.UserVerifyEmailResendCodePost))
+		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserVerifyEmailResendCodePost))
 
 	protectedChain := dynamicChain.Append(m.RequireAuthentication)
 
-	mux.Handle("POST /user/logout", protectedChain.ThenFunc(h.UserLogoutPost))
-	mux.Handle("GET /user/settings", protectedChain.ThenFunc(h.UserSettings))
+	mux.Handle("POST /user/logout", protectedChain.ThenFunc(h.User.UserLogoutPost))
+	mux.Handle("GET /user/settings", protectedChain.ThenFunc(h.User.UserSettings))
 	mux.Handle("POST /user/settings", protectedChain.
-		Append(m.GetIPRateLimiter(30, 15*time.Minute)).ThenFunc(h.UserSettingsPost))
-	mux.Handle("GET /user/oauth/github/callback/action", protectedChain.ThenFunc(h.UserGithubActionCallback))
-	mux.Handle("GET /user/oauth/google/callback/action", protectedChain.ThenFunc(h.UserGoogleActionCallback))
-	mux.Handle("GET /user/oauth/google/callback/link", protectedChain.ThenFunc(h.UserLinkGoogleCallback))
-	mux.Handle("GET /user/oauth/github/callback/link", protectedChain.ThenFunc(h.UserLinkGithubCallback))
+		Append(m.GetIPRateLimiter(30, 15*time.Minute)).ThenFunc(h.User.UserSettingsPost))
+	mux.Handle("GET /user/oauth/github/callback/action", protectedChain.ThenFunc(h.User.UserGithubActionCallback))
+	mux.Handle("GET /user/oauth/google/callback/action", protectedChain.ThenFunc(h.User.UserGoogleActionCallback))
+	mux.Handle("GET /user/oauth/google/callback/link", protectedChain.ThenFunc(h.User.UserLinkGoogleCallback))
+	mux.Handle("GET /user/oauth/github/callback/link", protectedChain.ThenFunc(h.User.UserLinkGithubCallback))
 
 	commonChain := alice.New(m.RecoverPanic, m.LogRequest, m.CommonHeaders)
 

@@ -1,4 +1,4 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -37,7 +37,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		{
 			name:         "With password verification",
 			email:        testutils.MockEmail,
-			verification: string(handlers.VerificationPassword),
+			verification: string(userhandlers.VerificationPassword),
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -53,7 +53,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		{
 			name:         "With GitHub verification",
 			email:        testutils.MockEmail,
-			verification: string(handlers.VerificationGitHub),
+			verification: string(userhandlers.VerificationGitHub),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -67,7 +67,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		{
 			name:         "With Google verification",
 			email:        testutils.MockEmail,
-			verification: string(handlers.VerificationGoogle),
+			verification: string(userhandlers.VerificationGoogle),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
 			before: func(t *testing.T) {
@@ -81,14 +81,14 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 		{
 			name:         "Empty email",
 			email:        "",
-			verification: string(handlers.VerificationPassword),
+			verification: string(userhandlers.VerificationPassword),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnprocessableEntity,
 		},
 		{
 			name:         "Wrong email",
 			email:        "wrong" + testutils.MockEmail,
-			verification: string(handlers.VerificationPassword),
+			verification: string(userhandlers.VerificationPassword),
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnprocessableEntity,
 		},
@@ -108,7 +108,7 @@ func TestHandleUserSettingsDeleteAccountPost(t *testing.T) {
 			}
 
 			form := url.Values{}
-			form.Add("Action", string(handlers.ActionDeleteAccount))
+			form.Add("Action", string(userhandlers.ActionDeleteAccount))
 			form.Add("Verification", tt.verification)
 			form.Add("csrf_token", tt.csrfToken)
 			form.Add("DeleteAccount.Email", tt.email)
@@ -159,8 +159,8 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 				// function will return the state which should be used when sending a request
 				// to /user/oauth/github|google/callback/action as a query parameter
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionDeleteAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionDeleteAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
 						"DeleteAccount.Email": testutils.MockEmail,
@@ -184,8 +184,8 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 				// function will return the state which should be used when sending a request
 				// to /user/oauth/github|google/callback/action as a query parameter
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionDeleteAccount,
-					Verification: handlers.VerificationGoogle,
+					Action:       userhandlers.ActionDeleteAccount,
+					Verification: userhandlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
 						"DeleteAccount.Email": testutils.MockEmail,
@@ -209,8 +209,8 @@ func TestUserDeleteAccountActionOAuthCallback(t *testing.T) {
 				// function will return the state which should be used when sending a request
 				// to /user/oauth/github|google/callback/action as a query parameter
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionDeleteAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionDeleteAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 					FormData: map[string]string{
 						"DeleteAccount.Email": testutils.MockEmail,

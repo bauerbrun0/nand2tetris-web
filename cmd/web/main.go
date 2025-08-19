@@ -16,6 +16,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/application"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
@@ -66,7 +67,7 @@ func main() {
 	defer pool.Close()
 
 	gob.Register([]pages.Toast{})
-	gob.Register(handlers.Action(""))
+	gob.Register(userhandlers.Action(""))
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(pool)
 	sessionManager.Lifetime = 12 * time.Hour

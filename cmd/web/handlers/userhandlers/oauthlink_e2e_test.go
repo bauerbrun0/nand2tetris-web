@@ -1,11 +1,11 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"net/http"
 	"net/url"
 	"testing"
 
-	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -29,15 +29,15 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		verification string
 		password     string
 		csrfToken    string
-		action       handlers.Action
+		action       userhandlers.Action
 		wantCode     int
 		before       func(t *testing.T)
 		after        func(t *testing.T)
 	}{
 		{
 			name:         "GitHub - with password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionLinkGitHubAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionLinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -49,8 +49,8 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with wrong password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionLinkGitHubAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionLinkGitHubAccount,
 			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
@@ -60,8 +60,8 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with google",
-			verification: string(handlers.VerificationGoogle),
-			action:       handlers.ActionLinkGitHubAccount,
+			verification: string(userhandlers.VerificationGoogle),
+			action:       userhandlers.ActionLinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -72,16 +72,16 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with github",
-			verification: string(handlers.VerificationGitHub),
-			action:       handlers.ActionLinkGitHubAccount,
+			verification: string(userhandlers.VerificationGitHub),
+			action:       userhandlers.ActionLinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusBadRequest,
 		},
 		{
 			name:         "Google - with password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionLinkGoogleAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionLinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -93,8 +93,8 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with wrong password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionLinkGoogleAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionLinkGoogleAccount,
 			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
@@ -104,8 +104,8 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with github",
-			verification: string(handlers.VerificationGitHub),
-			action:       handlers.ActionLinkGoogleAccount,
+			verification: string(userhandlers.VerificationGitHub),
+			action:       userhandlers.ActionLinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -116,8 +116,8 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with google",
-			verification: string(handlers.VerificationGoogle),
-			action:       handlers.ActionLinkGoogleAccount,
+			verification: string(userhandlers.VerificationGoogle),
+			action:       userhandlers.ActionLinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusBadRequest,
@@ -136,9 +136,9 @@ func TestHandleUserSettingsLinkAccountPost(t *testing.T) {
 			form.Add("csrf_token", tt.csrfToken)
 
 			switch tt.action {
-			case handlers.ActionLinkGitHubAccount:
+			case userhandlers.ActionLinkGitHubAccount:
 				form.Add("LinkGithub.Password", tt.password)
-			case handlers.ActionLinkGoogleAccount:
+			case userhandlers.ActionLinkGoogleAccount:
 				form.Add("LinkGoogle.Password", tt.password)
 			default:
 				t.Fatal("Invalid action")
@@ -186,14 +186,14 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionLinkGitHubAccount,
-					Verification: handlers.VerificationGoogle,
+					Action:       userhandlers.ActionLinkGitHubAccount,
+					Verification: userhandlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 				})
 
 				ts.MustAuthenticateOAuthAction(t, testutils.AuthenticateOAuthActionParams{
 					State:        currentState,
-					Verification: handlers.VerificationGoogle,
+					Verification: userhandlers.VerificationGoogle,
 					BeforeActionRedirect: func() {
 						githubOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).
 							RunAndReturn(func(state string, callbackPath string) string {
@@ -219,14 +219,14 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionLinkGoogleAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionLinkGoogleAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 				})
 
 				ts.MustAuthenticateOAuthAction(t, testutils.AuthenticateOAuthActionParams{
 					State:        currentState,
-					Verification: handlers.VerificationGitHub,
+					Verification: userhandlers.VerificationGitHub,
 					BeforeActionRedirect: func() {
 						googleOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).
 							RunAndReturn(func(state string, callbackPath string) string {
@@ -253,14 +253,14 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionLinkGitHubAccount,
-					Verification: handlers.VerificationGoogle,
+					Action:       userhandlers.ActionLinkGitHubAccount,
+					Verification: userhandlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 				})
 
 				ts.MustAuthenticateOAuthAction(t, testutils.AuthenticateOAuthActionParams{
 					State:        currentState,
-					Verification: handlers.VerificationGoogle,
+					Verification: userhandlers.VerificationGoogle,
 					BeforeActionRedirect: func() {
 						githubOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).
 							RunAndReturn(func(state string, callbackPath string) string {
@@ -281,14 +281,14 @@ func TestUserLinkOAuthCallback(t *testing.T) {
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionLinkGoogleAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionLinkGoogleAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 				})
 
 				ts.MustAuthenticateOAuthAction(t, testutils.AuthenticateOAuthActionParams{
 					State:        currentState,
-					Verification: handlers.VerificationGitHub,
+					Verification: userhandlers.VerificationGitHub,
 					BeforeActionRedirect: func() {
 						googleOauthService.EXPECT().GetRedirectUrlWithCustomCallbackPath(mock.Anything, mock.Anything).
 							RunAndReturn(func(state string, callbackPath string) string {

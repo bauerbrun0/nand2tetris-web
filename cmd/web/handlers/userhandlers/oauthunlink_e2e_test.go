@@ -1,11 +1,11 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"net/http"
 	"net/url"
 	"testing"
 
-	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/stretchr/testify/assert"
@@ -28,15 +28,15 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		verification string
 		password     string
 		csrfToken    string
-		action       handlers.Action
+		action       userhandlers.Action
 		wantCode     int
 		before       func(t *testing.T)
 		after        func(t *testing.T)
 	}{
 		{
 			name:         "GitHub - with password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionUnlinkGitHubAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionUnlinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -50,8 +50,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with wrong password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionUnlinkGitHubAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionUnlinkGitHubAccount,
 			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
@@ -61,8 +61,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with google",
-			verification: string(handlers.VerificationGoogle),
-			action:       handlers.ActionUnlinkGitHubAccount,
+			verification: string(userhandlers.VerificationGoogle),
+			action:       userhandlers.ActionUnlinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -73,8 +73,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "GitHub - with github",
-			verification: string(handlers.VerificationGitHub),
-			action:       handlers.ActionUnlinkGitHubAccount,
+			verification: string(userhandlers.VerificationGitHub),
+			action:       userhandlers.ActionUnlinkGitHubAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -85,8 +85,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionUnlinkGoogleAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionUnlinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -100,8 +100,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with wrong password",
-			verification: string(handlers.VerificationPassword),
-			action:       handlers.ActionUnlinkGoogleAccount,
+			verification: string(userhandlers.VerificationPassword),
+			action:       userhandlers.ActionUnlinkGoogleAccount,
 			password:     testutils.MockPassword + "wrong",
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusUnauthorized,
@@ -111,8 +111,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with github",
-			verification: string(handlers.VerificationGitHub),
-			action:       handlers.ActionUnlinkGoogleAccount,
+			verification: string(userhandlers.VerificationGitHub),
+			action:       userhandlers.ActionUnlinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -123,8 +123,8 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 		},
 		{
 			name:         "Google - with google",
-			verification: string(handlers.VerificationGoogle),
-			action:       handlers.ActionUnlinkGoogleAccount,
+			verification: string(userhandlers.VerificationGoogle),
+			action:       userhandlers.ActionUnlinkGoogleAccount,
 			password:     testutils.MockPassword,
 			csrfToken:    csrfToken,
 			wantCode:     http.StatusSeeOther,
@@ -147,9 +147,9 @@ func TestHandleUserSettingsUnlinkAccountPost(t *testing.T) {
 			form.Add("csrf_token", tt.csrfToken)
 
 			switch tt.action {
-			case handlers.ActionUnlinkGitHubAccount:
+			case userhandlers.ActionUnlinkGitHubAccount:
 				form.Add("UnlinkGithub.Password", tt.password)
-			case handlers.ActionUnlinkGoogleAccount:
+			case userhandlers.ActionUnlinkGoogleAccount:
 				form.Add("UnlinkGoogle.Password", tt.password)
 			default:
 				t.Fatal("Invalid action")
@@ -184,7 +184,7 @@ func TestUserUnlinkOAuthCallback(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		verification     handlers.VerificationMethod
+		verification     userhandlers.VerificationMethod
 		wantCode         int
 		wantRedirectPath string
 		before           func(t *testing.T)
@@ -192,13 +192,13 @@ func TestUserUnlinkOAuthCallback(t *testing.T) {
 	}{
 		{
 			name:             "Unlink GitHub account using Google verification",
-			verification:     handlers.VerificationGoogle,
+			verification:     userhandlers.VerificationGoogle,
 			wantCode:         http.StatusSeeOther,
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionUnlinkGitHubAccount,
-					Verification: handlers.VerificationGoogle,
+					Action:       userhandlers.ActionUnlinkGitHubAccount,
+					Verification: userhandlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 				})
 
@@ -210,13 +210,13 @@ func TestUserUnlinkOAuthCallback(t *testing.T) {
 		},
 		{
 			name:             "Unlink GitHub account using GitHub verification",
-			verification:     handlers.VerificationGitHub,
+			verification:     userhandlers.VerificationGitHub,
 			wantCode:         http.StatusSeeOther,
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionUnlinkGitHubAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionUnlinkGitHubAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 				})
 
@@ -228,13 +228,13 @@ func TestUserUnlinkOAuthCallback(t *testing.T) {
 		},
 		{
 			name:             "Unlink Google account using GitHub verification",
-			verification:     handlers.VerificationGitHub,
+			verification:     userhandlers.VerificationGitHub,
 			wantCode:         http.StatusSeeOther,
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionUnlinkGoogleAccount,
-					Verification: handlers.VerificationGitHub,
+					Action:       userhandlers.ActionUnlinkGoogleAccount,
+					Verification: userhandlers.VerificationGitHub,
 					CSRFToken:    csrfToken,
 				})
 
@@ -246,13 +246,13 @@ func TestUserUnlinkOAuthCallback(t *testing.T) {
 		},
 		{
 			name:             "Unlink Google account using Google verification",
-			verification:     handlers.VerificationGoogle,
+			verification:     userhandlers.VerificationGoogle,
 			wantCode:         http.StatusSeeOther,
 			wantRedirectPath: "/user/settings",
 			before: func(t *testing.T) {
 				currentState = ts.MustSendUserSettingsOAuthAction(t, githubOauthService, googleOauthService, testutils.UserSettingsOAuthActionParams{
-					Action:       handlers.ActionUnlinkGoogleAccount,
-					Verification: handlers.VerificationGoogle,
+					Action:       userhandlers.ActionUnlinkGoogleAccount,
+					Verification: userhandlers.VerificationGoogle,
 					CSRFToken:    csrfToken,
 				})
 

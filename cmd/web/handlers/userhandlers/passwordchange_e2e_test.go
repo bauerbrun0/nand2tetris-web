@@ -1,11 +1,11 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"net/http"
 	"net/url"
 	"testing"
 
-	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -103,7 +103,7 @@ func TestHandleUserSettingsChangePasswordPost(t *testing.T) {
 			}
 
 			form := url.Values{}
-			form.Add("Action", string(handlers.ActionChangePassword))
+			form.Add("Action", string(userhandlers.ActionChangePassword))
 			form.Add("csrf_token", csrfToken)
 			form.Add("ChangePassword.CurrentPassword", tt.currentPassword)
 			form.Add("ChangePassword.NewPassword", tt.newPassword)

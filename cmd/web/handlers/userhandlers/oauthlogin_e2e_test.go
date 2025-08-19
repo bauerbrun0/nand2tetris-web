@@ -1,4 +1,4 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"fmt"

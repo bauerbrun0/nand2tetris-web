@@ -1,4 +1,4 @@
-package handlers_test
+package userhandlers_test
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers"
+	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/testutils"
 	"github.com/jackc/pgx/v5"
@@ -89,7 +89,7 @@ func TestHandleUserSettingsChangeEmailPost(t *testing.T) {
 			}
 
 			form := url.Values{}
-			form.Add("Action", string(handlers.ActionChangeEmail))
+			form.Add("Action", string(userhandlers.ActionChangeEmail))
 			form.Add("csrf_token", csrfToken)
 			form.Add("ChangeEmail.Password", tt.password)
 			form.Add("ChangeEmail.NewEmail", tt.newEmail)
@@ -175,7 +175,7 @@ func TestHandleUserSettingsChangeEmailSendCodePost(t *testing.T) {
 			}
 
 			form := url.Values{}
-			form.Add("Action", string(handlers.ActionChangeEmailSendCode))
+			form.Add("Action", string(userhandlers.ActionChangeEmailSendCode))
 			form.Add("csrf_token", csrfToken)
 			form.Add("ChangeEmailSendCode.Code", tt.code)
 
