@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/gob"
 	"flag"
 	"fmt"
@@ -118,10 +119,15 @@ func main() {
 	middleware := middleware.NewMiddleware(app)
 	routes := routes.GetRoutes(app, middleware, handlers)
 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      routes,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
+		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -129,7 +135,12 @@ func main() {
 
 	logger.Info("Starting application", slog.String("env", cfg.Env), slog.Int("port", cfg.Port))
 
-	err = srv.ListenAndServe()
+	if cfg.Env == "production" {
+		err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	} else {
+		err = srv.ListenAndServe()
+	}
+
 	logger.Error(err.Error())
 	os.Exit(1)
 }
