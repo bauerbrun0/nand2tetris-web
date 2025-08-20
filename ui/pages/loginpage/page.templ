@@ -1,0 +1,112 @@
+package loginpage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+type LoginPageData struct {
+	Username            string `form:"username"`
+	Password            string `form:"password"`
+	validator.Validator `form:-`
+	pages.PageData      `form:-`
+}
+
+templ Page(data LoginPageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container min-h-full flex justify-center items-center">
+			@form(data)
+		</div>
+	}
+}
+
+templ form(data LoginPageData) {
+	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+		<form class="space-y-6" action="/user/login" method="POST" novalidate>
+			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+				{ ctxi18n.T(ctx, "login_page.welcome_back") }
+			</h5>
+			@components.CSRFTokenInput(data.CSRFToken)
+			@components.Input(components.InputOptions{
+				Label:       ctxi18n.T(ctx, "text.username"),
+				Name:        "username",
+				Value:       data.Username,
+				Placeholder: ctxi18n.T(ctx, "login_page.username_or_email"),
+				FieldType:   "text",
+				Icon:        components.UserIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				Err:         data.FieldErrors["username"],
+			})
+			@components.Input(components.InputOptions{
+				Label:       ctxi18n.T(ctx, "text.password"),
+				Name:        "password",
+				Value:       "",
+				Placeholder: "••••••••",
+				FieldType:   "password",
+				Icon:        components.KeyIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+				Err:         data.FieldErrors["password"],
+			})
+			<a href="/user/reset-password/send-code" class="text-sm text-link dark:text-link-dark inline-block">{ ctxi18n.T(ctx, "login_page.forgot_password") }</a>
+			@loginButton()
+			@divider()
+			@ssoButtons()
+			<div class="text-sm font-medium text-silver-600">
+				{ ctxi18n.T(ctx, "login_page.not_registered") } <a href="/user/register" class="text-link dark:text-link-dark">{ ctxi18n.T(ctx, "login_page.create_account") }</a>
+			</div>
+		</form>
+	</div>
+}
+
+templ loginButton() {
+	<button
+		type="submit"
+		class={ `
+			w-full
+			hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+			focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+			px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+			dark:focus:ring-primary-800
+		` }
+	>
+		{ ctxi18n.T(ctx, "button.login") }
+	</button>
+}
+
+templ divider() {
+	<div class="flex items-center space-x-2 w-full">
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+		<span class="text-divider dark:text-divider-dark text-sm font-medium">{ ctxi18n.T(ctx, "text.or") }</span>
+		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+	</div>
+}
+
+templ ssoButtons() {
+	<div class="flex mx-auto w-full justify-center space-x-4">
+		<a
+			href="/user/login/github"
+		>
+			@ssoButton(components.GitHubIcon("w-4 h-4"))
+		</a>
+		<a
+			href="/user/login/google"
+		>
+			@ssoButton(components.GoogleIcon("w-4 h-4"))
+		</a>
+	</div>
+}
+
+templ ssoButton(icon templ.Component) {
+	<button
+		type="button"
+		class={ `
+			rounded-lg py-3 px-4 text-center inline-flex items-center
+			bg-white dark:bg-silver-800 hover:bg-white-600 dark:hover:bg-silver-600
+			focus:ring-4 focus:outline-none focus:ring-primary-500 font-medium
+			cursor-pointer
+		` }
+	>
+		@icon
+	</button>
+}

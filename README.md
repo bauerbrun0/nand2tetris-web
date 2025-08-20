@@ -16,6 +16,11 @@ $ mv migrate $GOPATH/bin/migrate
 $ migrate -version
 ```
 
+Create the `.env` file and fill in the values:
+```bash
+$ cp .env.example .env
+```
+
 Generate `sqlc` files:
 ```bash
 $ make build/sqlc
@@ -29,6 +34,11 @@ $ docker compose -f development/docker-compose.yaml up -d
 Run migrations:
 ```bash
 $ make db/migrate
+```
+
+Generate mock files for testing:
+```bash
+make test/generate
 ```
 
 Run the `dev` target with `make`:

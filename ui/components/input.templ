@@ -1,0 +1,61 @@
+package components
+
+type InputOptions struct {
+	Label       string
+	Name        string
+	Value       string
+	Placeholder string
+	FieldType   string
+	Icon        templ.Component
+	Err         string
+}
+
+templ Input(options InputOptions) {
+	{{
+		inputClasses := `
+			block w-full rounded-lg
+			bg-white-500 focus:bg-white-200 dark:bg-silver-800 dark:focus:bg-silver-900
+			text-silver-800 dark:text-silver-100
+			border border-silver-800 dark:border-silver-700
+			focus:border-primary-500 dark:focus:border-primary-500
+			focus:ring-primary-500 dark:focus:ring-primary-500
+		`
+		if options.Err != "" {
+			inputClasses += " !border-red-500"
+		}
+
+		if options.Icon != nil {
+			inputClasses += " ps-10 p-2.5"
+		} else {
+			inputClasses += " px-3 py-2"
+		}
+	}}
+	if options.Err == "" && options.Label != "" {
+		<label for={ options.Name } class="block mb-2 font-medium text-text-light dark:text-text-dark">{ options.Label }</label>
+	}
+	if options.Err != "" && options.Label != "" {
+		<label for={ options.Name } class="block mb-2 font-medium text-red-500">{ options.Label } - { options.Err }</label>
+	}
+	if options.Err != "" && options.Label == "" {
+		<label for={ options.Name } class="block mb-2 font-medium text-red-500">{ options.Err }</label>
+	}
+	<div class="relative mb-6">
+		if options.Icon != nil {
+			<div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+				@options.Icon
+			</div>
+		}
+		<input
+			type={ options.FieldType }
+			id={ options.Name }
+			name={ options.Name }
+			value={ options.Value }
+			class={ inputClasses }
+			placeholder={ options.Placeholder }
+		/>
+	</div>
+}
+
+templ CSRFTokenInput(token string) {
+	<input type="hidden" name="csrf_token" value={ token }/>
+}

@@ -1,16 +1,18 @@
 # run templ generation in watch mode to detect all .templ file changes and
 # re-create _templ.go and _templ.txt files on change, then send reload event to browser.
 # web server is running at http://localhost:3000
-# live reload is at http://0.0.0.0:8080 (open this in your browser)
+# Keep the --proxy in sync with the PORT environment variable.
+# live reload is at http://0.0.0.0:8080 (or http://localhost:8080) (open this in your browser)
 dev/templ:
 	go tool templ generate --watch --proxy="http://localhost:3000" --proxyport 8080 --proxybind "0.0.0.0" --open-browser=false -v
 
-# run air to detect any go file changes to re-build and re-run the server.
+# run air to detect any go or yaml (translation files)
+# file changes to re-build and re-run the server.
 dev/server:
 	go tool github.com/air-verse/air \
 	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
-	--build.include_ext "go" \
+	--build.include_ext "go,yaml" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
@@ -22,11 +24,11 @@ dev/esbuild:
 dev/tailwind:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --watch --map
 
-# watch for any js or css change in the ui/static/ folder, then reload the browser via templ proxy.
+# watch for any change in the ui/static/ folder, then reload the browser via templ proxy.
 dev/sync_static:
 	go run github.com/air-verse/air \
-	--build.cmd "templ generate --notify-proxy --proxyport 8080 --proxybind \"0.0.0.0\"" \
-	--build.bin "true" \
+	--build.cmd "go tool templ generate --notify-proxy --proxyport 8080 --proxybind \"0.0.0.0\"" \
+	--build.full_bin "true" \
 	--build.delay "100" \
 	--build.exclude_dir "" \
 	--build.include_dir "ui/static" \
@@ -74,7 +76,7 @@ rm/templ:
 
 # remove sqlc generated db access files
 rm/sqlc:
-	rm internal/models/db.go internal/models/models.go internal/models/queryt.sql.go
+	rm internal/models/db.go internal/models/models.go && find . -type f \( -name '*.sql.go' \) -exec rm {} +
 
 # migrate db
 db/migrate:
@@ -83,6 +85,18 @@ db/migrate:
 db/migrate/down:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" down
 
-# remove generated files (excluding sqlc generated files)
+# generate mock files
+test/generate:
+	go tool mockery
+
+# run all tests
+test/all:
+	go test ./... -count=1
+
+# remove generated files
 clear:
 	rm -rf build ui/static/css ui/static/js && make rm/templ
+
+# remove all generated files, including slower-to-generate ones like sqlc output
+clear/all:
+	rm -rf build ui/static/css ui/static/js && make rm/templ rm/sqlc

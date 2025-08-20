@@ -1,11 +1,21 @@
 package components
 
-templ Header() {
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+templ Header(data pages.PageData) {
 	<div>
 		<div class="inner-container py-3">
-			<div class="flex justify-between">
+			<div class="flex justify-between relative">
 				@title()
-				@navigation()
+				if data.IsAuthenticated {
+					@profileButton(data)
+					@profileDropDown(data)
+				} else {
+					@navigation()
+				}
 			</div>
 		</div>
 		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
@@ -21,10 +31,27 @@ templ title() {
 	</div>
 }
 
+templ profileButton(data pages.PageData) {
+	<button
+		x-data
+		@click="$store.profileDropDown = !$store.profileDropDown"
+		aria-label="profile-button"
+		class="flex space-x-3 items-center rounded-full md:hover:dark:bg-silver-900 md:hover:bg-silver-100 md:pr-6 cursor-pointer"
+	>
+		<div class="w-10 h-10 bg-silver-50 rounded-full dark:bg-white flex items-center">
+			@UserIcon("text-silver-900 w-6 h-6 mx-auto")
+		</div>
+		<div class="flex-col space-y-1 hidden md:flex">
+			<span class="text-sm font-medium text-left">{ data.UserInfo.Username }</span>
+			<span class="text-sm text-left">{ data.UserInfo.Email }</span>
+		</div>
+	</button>
+}
+
 templ navigation() {
 	<div class="flex space-x-3 md:space-x-5 items-center">
 		@themeToggle()
-		<a href="/">
+		<a href="/user/register">
 			<button
 				type="button"
 				class={ `
@@ -34,10 +61,10 @@ templ navigation() {
 				 	dark:focus:ring-primary-800
 				` }
 			>
-				Register
+				{ ctxi18n.T(ctx, "button.register") }
 			</button>
 		</a>
-		<a href="/">
+		<a href="/user/login">
 			<button
 				type="button"
 				class={ `
@@ -47,7 +74,7 @@ templ navigation() {
 					dark:focus:ring-primary-800
 				` }
 			>
-				Login
+				{ ctxi18n.T(ctx, "button.login") }
 			</button>
 		</a>
 	</div>

@@ -11,12 +11,22 @@ ui/static/css/*
 *_templ.txt
 
 # sqlc generated database access files
-internal/models/db.go
-internal/models/models.go
-internal/models/sessions.sql.go
+internal/models/*
+!internal/models/errors.go
+!internal/models/queries.go
+!internal/models/transactions.go
+!internal/models/mocks/
 
 # tmp directory
 tmp/
 
 # build directory
 build/
+
+.env
+
+# mockery generated mock files
+**/mocks/generated.go
+
+# tls directory
+tls/

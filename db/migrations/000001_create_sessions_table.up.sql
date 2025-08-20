@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS sessions (
     expiry TIMESTAMPTZ NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS sessions_expiry_idx ON sessions (expiry);
+CREATE INDEX IF NOT EXISTS sessions_idx_expiry ON sessions (expiry);

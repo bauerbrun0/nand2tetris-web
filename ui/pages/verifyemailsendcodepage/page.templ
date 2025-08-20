@@ -1,0 +1,63 @@
+package verifyemailsendcodepage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+type VerifyEmailSendCodePageData struct {
+	Email               string `form:"email"`
+	validator.Validator `form:-`
+	pages.PageData      `form:-`
+}
+
+templ Page(data VerifyEmailSendCodePageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container min-h-full flex justify-center items-center">
+			<div class="w-full max-w-sm p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+				<form class="space-y-6" action="/user/verify-email/send-code" method="POST" novalidate>
+					<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+						{ ctxi18n.T(ctx, "verify_email_page.send_email_verification_code") }
+					</h5>
+					<p class="text-center text-sm">
+						{ ctxi18n.T(ctx, "verify_email_page.enter_email") }
+					</p>
+					@components.CSRFTokenInput(data.CSRFToken)
+					@components.Input(components.InputOptions{
+						Label:       "",
+						Name:        "email",
+						Value:       data.Email,
+						Placeholder: ctxi18n.T(ctx, "text.email_placeholder"),
+						FieldType:   "email",
+						Icon:        components.EmailIcon("w-4 h-4 text-silver-800 dark:text-silver-100"),
+						Err:         data.FieldErrors["email"],
+					})
+					<button
+						type="submit"
+						class={ `
+							w-full
+							hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+							focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+							px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+							dark:focus:ring-primary-800
+						` }
+					>
+						{ ctxi18n.T(ctx, "text.resend_code") }
+					</button>
+					<div class="text-sm font-medium text-silver-600">
+						{ ctxi18n.T(ctx, "verify_email_page.received_email") }
+						<a
+							href="/user/verify-email"
+							class="text-link dark:text-link-dark cursor-pointer"
+						>
+							{ ctxi18n.T(ctx, "text.enter_code") }
+						</a>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

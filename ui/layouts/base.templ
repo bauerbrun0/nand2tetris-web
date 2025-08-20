@@ -1,6 +1,9 @@
 package layouts
 
-import "github.com/bauerbrun0/nand2tetris-web/ui/components"
+import (
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
 
 templ head() {
 	<head>
@@ -22,14 +25,18 @@ templ head() {
 	</head>
 }
 
-templ BaseLayout() {
+templ BaseLayout(data pages.PageData) {
 	<!DOCTYPE html>
 	<html class="">
 		@head()
-		<body class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark">
-			@components.Header()
+		<body
+			class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark"
+			x-data={ templ.JSONString(data) }
+			x-init="initialToasts.forEach(t => showToast(t))"
+		>
+			@components.Header(data)
 			{ children... }
-			@components.Footer()
+			@components.Footer(data)
 		</body>
 	</html>
 }

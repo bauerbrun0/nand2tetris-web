@@ -1,0 +1,15 @@
+packages:
+  github.com/bauerbrun0/nand2tetris-web/internal/models:
+    config:
+      dir: internal/models/mocks
+      pkgname: "mocks"
+      filename: "generated.go"
+    interfaces:
+      DBQueries:
+  github.com/bauerbrun0/nand2tetris-web/internal/services:
+    config:
+      dir: internal/services/mocks
+      pkgname: "mocks"
+      filename: "generated.go"
+    interfaces:
+      OAuthService:

@@ -1,0 +1,84 @@
+package components
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+templ profileDropDown(data pages.PageData) {
+	<div
+		x-cloak
+		x-data
+		x-show="$store.profileDropDown"
+		@click.outside="$store.profileDropDown = false"
+		class={ `
+			absolute top-full right-0 mt-5
+			flex flex-col space-y-1 w-[250px]
+			text-sm rounded-md p-4
+			bg-white dark:bg-silver-900
+		` }
+	>
+		<div class="flex md:hidden flex-col space-y-2">
+			<span class="font-bold">{ data.UserInfo.Username }</span>
+			<span>{ data.UserInfo.Email }</span>
+		</div>
+		<hr class="md:hidden h-px border-0 bg-divider dark:bg-divider-dark my-2"/>
+		<div class="flex flex-col space-y-2">
+			@themeToggleButton()
+			@profileSettingsLink()
+			@logoutForm(data)
+		</div>
+	</div>
+}
+
+templ themeToggleButton() {
+	<template x-data x-if="$store.theme.current === 'dark'">
+		<button
+			@click="$store.theme.switchTheme('light')"
+			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
+		>
+			@SunIcon("w-5 h-5")
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.light_theme") }
+			</span>
+		</button>
+	</template>
+	<template x-data x-if="$store.theme.current === 'light'">
+		<button
+			@click="$store.theme.switchTheme('dark')"
+			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
+		>
+			@MoonIcon("w-5 h-5")
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.dark_theme") }
+			</span>
+		</button>
+	</template>
+}
+
+templ profileSettingsLink() {
+	<a
+		class="hover:cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100 p-2 rounded-md flex items center space-x-3"
+		href="/user/settings"
+	>
+		@ToolIcon("w-5 h-5")
+		<span>
+			{ ctxi18n.T(ctx, "text.settings") }
+		</span>
+	</a>
+}
+
+templ logoutForm(data pages.PageData) {
+	<form action="/user/logout" method="POST">
+		@CSRFTokenInput(data.CSRFToken)
+		<button
+			type="submit"
+			class="w-full text-left text-red-500 cursor-pointer hover:bg-red-100 hover:dark:bg-silver-800 p-2 rounded-md flex items center space-x-3"
+		>
+			@LogOutIcon("w-5 h-5")
+			<span>
+				{ ctxi18n.T(ctx, "profile_drop_down.log_out") }
+			</span>
+		</button>
+	</form>
+}
