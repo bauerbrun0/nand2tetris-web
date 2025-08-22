@@ -18,7 +18,11 @@ dev/server:
 
 # transpile and bundle main.ts with esbuild in watch mode
 dev/esbuild:
-	bunx esbuild ui/js/main.ts --bundle --outdir=ui/static/js/ --sourcemap --watch
+	bunx esbuild ui/js/entries/main.ts --bundle --outdir=ui/static/js/ --sourcemap --watch
+
+# compile and bundle svelte files in watch mode
+dev/esbuild/svelte:
+	bun ui/js/svelte/esbuild/build-watch.js
 
 # build css using tailwind in watch mode
 dev/tailwind:
@@ -40,11 +44,15 @@ build/templ:
 
 # transpile and bundle main.ts with esbuild with sourcemap for development
 build/esbuild:
-	bunx esbuild ui/js/main.ts --bundle --outdir=ui/static/js/ --sourcemap
+	bunx esbuild ui/js/entries/main.ts --bundle --outdir=ui/static/js/ --sourcemap
 
 # transpile and bundle main.ts with esbuild for production
 build/esbuild/prod:
-	bunx esbuild ui/js/main.ts --bundle --outdir=ui/static/js/ --minify
+	bunx esbuild ui/js/entries/main.ts --bundle --outdir=ui/static/js/ --minify
+
+# compile and bundle svelte files for production
+build/esbuild/svelte/prod:
+	bun ui/js/svelte/esbuild/build-prod.js
 
 # build css using tailwind with sourcemap for development
 build/tailwind:
@@ -68,7 +76,7 @@ dev:
 
 # build for production
 build/prod:
-	make build/templ build/esbuild/prod build/tailwind/prod build/sqlc build/web
+	make build/templ build/esbuild/prod build/esbuild/svelte/prod build/tailwind/prod build/sqlc build/web
 
 # remove generated templ files
 rm/templ:

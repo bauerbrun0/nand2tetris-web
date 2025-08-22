@@ -3,7 +3,7 @@
 @import "./toast.css";
 
 @source "../../node_modules/flowbite";
-@source "../**/*.{templ,ts}";
+@source "../**/*.{templ,ts,svelte}";
 
 @plugin "flowbite/plugin";
 

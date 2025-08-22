@@ -5,7 +5,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 )
 
-templ head() {
+templ head(sveltePage pages.SveltePage) {
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width"/>
@@ -21,21 +21,30 @@ templ head() {
             document.documentElement.classList.remove('dark')
           }
         </script>
-		<script defer src="/static/js/main.js"></script>
+		switch sveltePage {
+			case pages.SveltePageNone:
+				<script defer src="/static/js/main.js"></script>
+			case pages.SveltePageHardwareSimulator:
+				<script defer src="/static/js/main-hardware-simulator.js"></script>
+		}
 	</head>
 }
 
 templ BaseLayout(data pages.PageData) {
 	<!DOCTYPE html>
 	<html class="">
-		@head()
+		@head(data.SveltePage)
 		<body
 			class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark"
 			x-data={ templ.JSONString(data) }
 			x-init="initialToasts.forEach(t => showToast(t))"
 		>
 			@components.Header(data)
-			{ children... }
+			if data.SveltePage == pages.SveltePageNone {
+				{ children... }
+			} else {
+				<div id="svelte-app"></div>
+			}
 			@components.Footer(data)
 		</body>
 	</html>

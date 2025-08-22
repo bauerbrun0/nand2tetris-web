@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names templ,server,esbuild,tailwind,sync_static --prefix \"[{index}] {name}\" --prefix-colors blue,blueBright,green,yellow,pink \"make dev/templ\" \"make dev/server\" \"make dev/esbuild\" \"make dev/tailwind\" \"make dev/sync_static\"",
+    "dev": "concurrently --names templ,server,esbuild,esbuild_svelte,tailwind,sync_static --prefix \"[{index}] {name}\" --prefix-colors blue,blueBright,green,yellow,pink \"make dev/templ\" \"make dev/server\" \"make dev/esbuild\" \"make dev/tailwind\" \"make dev/sync_static\" \"make dev/esbuild/svelte\"",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -14,7 +14,10 @@
     "@types/bun": "latest",
     "concurrently": "^9.2.0",
     "esbuild": "^0.25.6",
+    "esbuild-svelte": "^0.9.3",
     "husky": "^9.1.7",
+    "svelte": "^5.38.2",
+    "svelte-preprocess": "^6.0.3",
     "tailwindcss": "^4.1.11"
   },
   "peerDependencies": {

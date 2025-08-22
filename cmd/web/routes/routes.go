@@ -71,6 +71,8 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 	mux.Handle("GET /user/oauth/google/callback/link", protectedChain.ThenFunc(h.User.UserLinkGoogleCallback))
 	mux.Handle("GET /user/oauth/github/callback/link", protectedChain.ThenFunc(h.User.UserLinkGithubCallback))
 
+	mux.Handle("GET /hardware-simulator", protectedChain.ThenFunc(h.HardwareSimulator))
+
 	commonChain := alice.New(m.RecoverPanic, m.LogRequest, m.CommonHeaders)
 
 	return commonChain.Then(mux)

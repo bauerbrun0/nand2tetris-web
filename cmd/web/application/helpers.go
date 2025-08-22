@@ -58,6 +58,7 @@ func (app *Application) NewPageData(r *http.Request) pages.PageData {
 		InitialToasts:   app.GetInitialToasts(r),
 		Localizer:       app.GetLocalizer(r),
 		CSRFToken:       nosurf.Token(r),
+		SveltePage:      pages.SveltePageNone,
 	}
 }
 
