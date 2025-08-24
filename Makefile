@@ -28,6 +28,10 @@ dev/esbuild/svelte:
 dev/tailwind:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --watch --map
 
+# run svelte-check in watch mode
+dev/svelte-check:
+	bunx svelte-check --watch
+
 # watch for any change in the ui/static/ folder, then reload the browser via templ proxy.
 dev/sync_static:
 	go run github.com/air-verse/air \
@@ -41,6 +45,10 @@ dev/sync_static:
 # generate _templ.go files
 build/templ:
 	go tool templ generate
+
+# run svelte-check before building
+build/svelte-check:
+	bunx svelte-check --fail-on-warnings
 
 # transpile and bundle main.ts with esbuild with sourcemap for development
 build/esbuild:
@@ -76,7 +84,7 @@ dev:
 
 # build for production
 build/prod:
-	make build/templ build/esbuild/prod build/esbuild/svelte/prod build/tailwind/prod build/sqlc build/web
+	make build/templ build/svelte-check build/esbuild/prod build/esbuild/svelte/prod build/tailwind/prod build/sqlc build/web
 
 # remove generated templ files
 rm/templ:
