@@ -59,3 +59,24 @@ To attach to the postgres container:
 ```bash
 $ docker exec -it develpment-db sh
 ```
+
+You can generate a TLS certificate for local development using:
+
+```bash
+./scripts/generate-tls.sh
+# Or specify your local IP to access the server from your network:
+./scripts/generate-tls.sh
+```
+
+You can generate a TLS certificate for local development using:
+
+```bash
+./scripts/generate-tls.sh
+# Or specify your local IP to access the server from your network:
+./scripts/generate-tls.sh --local-ip <your-local-ip>
+```
+
+> **Note:**
+>
+> - This only works with production builds (`make build/prod`). The Templ proxy does not support HTTPS.
+> - OAuth will not work because `https://localhost` is not registered as a redirect URL in GitHub or Google.
