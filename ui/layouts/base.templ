@@ -13,14 +13,18 @@ templ head(sveltePage pages.SveltePage) {
 		<link rel="icon" type="image/svg+xml" href="/static/images/logo.svg"/>
 		<link rel="stylesheet" href="/static/css/main.css"/>
 		<script>
-		  // setting the initial theme
-		  // best to add inline in `head` to avoid FOUC
-          if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark')
-          }
-        </script>
+			// setting the initial theme
+			// best to add inline in `head` to avoid FOUC
+			if (
+				localStorage.getItem("color-theme") === "dark" ||
+				(!("color-theme" in localStorage) &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches)
+			) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+		</script>
 		switch sveltePage {
 			case pages.SveltePageNone:
 				<script defer src="/static/js/main.js"></script>
@@ -35,7 +39,7 @@ templ BaseLayout(data pages.PageData) {
 	<html class="">
 		@head(data.SveltePage)
 		<body
-			class="grid grid-rows-[auto_1fr_auto] min-h-[calc(100dvh)] bg-bg dark:bg-bg-dark text-text dark:text-text-dark"
+			class="bg-bg dark:bg-bg-dark text-text dark:text-text-dark grid min-h-[calc(100dvh)] grid-rows-[auto_1fr_auto]"
 			x-data={ templ.JSONString(data) }
 			x-init="initialToasts.forEach(t => showToast(t))"
 		>

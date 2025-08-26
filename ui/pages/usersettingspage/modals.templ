@@ -11,10 +11,10 @@ templ emailChangeModal(data UserSettingsPageData) {
 		Id:      "email-change-modal",
 		Classes: "max-w-[500px]",
 	}) {
-		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div x-data class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -44,7 +44,7 @@ templ emailChangeModal(data UserSettingsPageData) {
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
-			<div class="text-sm font-medium text-silver-600 mt-6">
+			<div class="text-silver-600 mt-6 text-sm font-medium">
 				{ ctxi18n.T(ctx, "user_settings_page.already_received_email") }
 				<button
 					class="text-link dark:text-link-dark cursor-pointer"
@@ -63,7 +63,7 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 		Id:      "email-change-send-code-modal",
 		Classes: "max-w-[500px]",
 	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form
 				class="space-y-6"
 				action="/user/settings"
@@ -71,7 +71,7 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 				novalidate
 			>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ ctxi18n.T(ctx, "user_settings_page.change_email") }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -95,7 +95,7 @@ templ emailChangeSendCodeModal(data UserSettingsPageData) {
 				})
 				@components.FormSubmitButton(ctxi18n.T(ctx, "user_settings_page.change_email"))
 			</form>
-			<div class="text-sm font-medium text-silver-600 mt-6">
+			<div class="text-silver-600 mt-6 text-sm font-medium">
 				{ ctxi18n.T(ctx, "user_settings_page.to_change_email") }
 				<button
 					data-modal-hide="email-change-send-code-modal"
@@ -114,10 +114,10 @@ templ passwordChangeModal(data UserSettingsPageData) {
 		Id:      "password-change-modal",
 		Classes: "max-w-[500px]",
 	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ ctxi18n.T(ctx, "text.password") }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -164,10 +164,10 @@ templ deleteAccountModal(data UserSettingsPageData) {
 		Id:      "delete-account-modal",
 		Classes: "max-w-[500px]",
 	}) {
-		<div class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ ctxi18n.T(ctx, "user_settings_page.delete_account") }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -214,10 +214,10 @@ templ createPasswordModal(data UserSettingsPageData) {
 		Id:      "create-password-modal",
 		Classes: "max-w-[500px]",
 	}) {
-		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div x-data class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ ctxi18n.T(ctx, "user_settings_page.create_password") }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -284,10 +284,10 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 		Id:      options.ModalId,
 		Classes: "max-w-[500px]",
 	}) {
-		<div x-data class="p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900">
+		<div x-data class="bg-white-500 dark:bg-silver-900 rounded-lg p-4 sm:p-6 md:p-8">
 			<form class="space-y-6" action="/user/settings" method="POST" novalidate>
 				<div class="flex items-center justify-between">
-					<h5 class="text-xl font-medium text-text dark:text-text-dark w-full">
+					<h5 class="text-text dark:text-text-dark w-full text-xl font-medium">
 						{ options.Title }
 					</h5>
 					@components.CloseModalButton(components.CloseModalButtonOptions{
@@ -315,10 +315,10 @@ templ authenticatedActionModal(options AuthenticatedActionModalOptions) {
 					@authenticatedActionModalPasswordSubmitButton(options.PasswordButtonText)
 				}
 				if options.Data.UserInfo.IsPasswordSet && len(options.Data.UserInfo.LinkedAccounts) >= 1 {
-					<div class="flex items-center space-x-2 w-full">
-						<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+					<div class="flex w-full items-center space-x-2">
+						<hr class="bg-divider dark:bg-divider-dark h-px w-full border-0"/>
 						<span class="text-divider dark:text-divider-dark text-sm font-medium">{ ctxi18n.T(ctx, "text.or") }</span>
-						<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+						<hr class="bg-divider dark:bg-divider-dark h-px w-full border-0"/>
 					</div>
 				}
 				if slices.Contains(options.Data.UserInfo.LinkedAccounts, "GitHub") {

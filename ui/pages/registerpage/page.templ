@@ -21,16 +21,16 @@ type RegisterPageData struct {
 
 templ Page(data RegisterPageData) {
 	@layouts.BaseLayout(data.PageData) {
-		<div class="inner-container min-h-full flex justify-center items-center">
+		<div class="inner-container flex min-h-full items-center justify-center">
 			@form(data)
 		</div>
 	}
 }
 
 templ form(data RegisterPageData) {
-	<div class="w-full max-w-md p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+	<div class="bg-white-500 dark:bg-silver-900 my-10 w-full max-w-md rounded-lg p-4 sm:p-6 md:my-15 md:p-8">
 		<form class="space-y-6" action="/user/register" method="POST" novalidate>
-			<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+			<h5 class="text-text dark:text-text-dark w-full text-center text-xl font-medium">
 				{ ctxi18n.T(ctx, "register_page.create_account") }
 			</h5>
 			@components.CSRFTokenInput(data.CSRFToken)
@@ -74,7 +74,7 @@ templ form(data RegisterPageData) {
 			@registerButton()
 			@divider()
 			@ssoButtons()
-			<div class="text-sm font-medium text-silver-600">
+			<div class="text-silver-600 text-sm font-medium">
 				{ ctxi18n.T(ctx, "register_page.already_have_account") } <a href="/user/login" class="text-link dark:text-link-dark">{ ctxi18n.T(ctx, "register_page.login_here") }</a>
 			</div>
 		</form>
@@ -96,7 +96,7 @@ templ termsCheckboxInput(err string) {
 			<span class="text-red-500">{ err }</span>
 		}
 		<div class="flex items-center">
-			<div class="flex items-center h-5">
+			<div class="flex h-5 items-center">
 				<input
 					id="terms"
 					name="terms"
@@ -132,15 +132,15 @@ templ registerButton() {
 }
 
 templ divider() {
-	<div class="flex items-center space-x-2 w-full">
-		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+	<div class="flex w-full items-center space-x-2">
+		<hr class="bg-divider dark:bg-divider-dark h-px w-full border-0"/>
 		<span class="text-divider dark:text-divider-dark text-sm font-medium">{ ctxi18n.T(ctx, "text.or") }</span>
-		<hr class="h-px border-0 bg-divider dark:bg-divider-dark w-full"/>
+		<hr class="bg-divider dark:bg-divider-dark h-px w-full border-0"/>
 	</div>
 }
 
 templ ssoButtons() {
-	<div class="flex mx-auto w-full justify-center space-x-4">
+	<div class="mx-auto flex w-full justify-center space-x-4">
 		<a
 			href="/user/login/github"
 		>

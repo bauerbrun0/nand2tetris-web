@@ -16,8 +16,8 @@ type ResetPasswordSendCodePageData struct {
 
 templ Page(data ResetPasswordSendCodePageData) {
 	@layouts.BaseLayout(data.PageData) {
-		<div class="inner-container min-h-full flex justify-center items-center">
-			<div class="w-full max-w-sm p-4 bg-white-500 rounded-lg sm:p-6 md:p-8 dark:bg-silver-900 my-10 md:my-15">
+		<div class="inner-container flex min-h-full items-center justify-center">
+			<div class="bg-white-500 dark:bg-silver-900 my-10 w-full max-w-sm rounded-lg p-4 sm:p-6 md:my-15 md:p-8">
 				@form(data)
 			</div>
 		</div>
@@ -26,7 +26,7 @@ templ Page(data ResetPasswordSendCodePageData) {
 
 templ form(data ResetPasswordSendCodePageData) {
 	<form class="space-y-6" action="/user/reset-password/send-code " method="POST" novalidate>
-		<h5 class="text-xl font-medium text-text dark:text-text-dark text-center w-full">
+		<h5 class="text-text dark:text-text-dark w-full text-center text-xl font-medium">
 			{ ctxi18n.T(ctx, "reset_password_page.reset_password") }
 		</h5>
 		<p class="text-center text-sm">
