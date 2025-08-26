@@ -11,8 +11,8 @@ import (
 type ResetPasswordEnterCodePageData struct {
 	Code                string `form:"code"`
 	Email               string `form:"email"`
-	validator.Validator `form:-`
-	pages.PageData      `form:-`
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
 }
 
 templ Page(data ResetPasswordEnterCodePageData) {

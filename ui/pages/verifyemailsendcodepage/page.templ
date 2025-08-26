@@ -10,8 +10,8 @@ import (
 
 type VerifyEmailSendCodePageData struct {
 	Email               string `form:"email"`
-	validator.Validator `form:-`
-	pages.PageData      `form:-`
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
 }
 
 templ Page(data VerifyEmailSendCodePageData) {

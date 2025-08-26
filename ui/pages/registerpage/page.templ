@@ -15,8 +15,8 @@ type RegisterPageData struct {
 	Password             string `form:"password"`
 	PasswordConfirmation string `form:"password-confirmation"`
 	Terms                string `form:"terms"`
-	validator.Validator  `form:-`
-	pages.PageData       `form:-`
+	validator.Validator  `form:"-"`
+	pages.PageData       `form:"-"`
 }
 
 templ Page(data RegisterPageData) {

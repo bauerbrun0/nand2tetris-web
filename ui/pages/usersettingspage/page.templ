@@ -44,8 +44,8 @@ type UserSettingsPageData struct {
 		Password string
 	}
 	Verification        VerificationMethod
-	validator.Validator `form:-`
-	pages.PageData      `form:-`
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
 }
 
 type VerificationMethod string

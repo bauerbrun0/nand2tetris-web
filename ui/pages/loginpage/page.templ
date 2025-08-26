@@ -11,8 +11,8 @@ import (
 type LoginPageData struct {
 	Username            string `form:"username"`
 	Password            string `form:"password"`
-	validator.Validator `form:-`
-	pages.PageData      `form:-`
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
 }
 
 templ Page(data LoginPageData) {

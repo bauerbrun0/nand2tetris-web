@@ -12,8 +12,8 @@ type ResetPasswordPageData struct {
 	NewPassword             string `form:"new-password"`
 	NewPasswordConfirmation string `form:"new-password-confirmation"`
 	Code                    string `form:"code"`
-	validator.Validator     `form:-`
-	pages.PageData          `form:-`
+	validator.Validator     `form:"-"`
+	pages.PageData          `form:"-"`
 }
 
 templ Page(data ResetPasswordPageData) {
