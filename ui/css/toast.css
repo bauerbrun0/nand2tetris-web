@@ -1,51 +1,51 @@
 .toast-container {
-    @apply z-50 fixed left-1/2 bottom-16 w-fit min-w-72 -translate-x-1/2 flex flex-col items-center;
+  @apply fixed bottom-16 left-1/2 z-50 flex w-fit min-w-72 -translate-x-1/2 flex-col items-center;
 }
 
 .toast-element {
-    @apply opacity-0 flex items-center w-fit min-w-xs min-h-8 max-w-sm p-4 -mt-10 text-text bg-white rounded-lg dark:text-text-dark dark:bg-silver-900;
+  @apply text-text dark:text-text-dark dark:bg-silver-900 -mt-10 flex min-h-8 w-fit max-w-sm min-w-xs items-center rounded-lg bg-white p-4 opacity-0;
 }
 
 .toast-element > .icon-container {
-    @apply inline-flex items-center justify-center shrink-0 w-9 h-9 rounded-lg me-3;
+  @apply me-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg;
 }
 
 .toast-element > .icon-container > svg {
-    @apply w-6 h-6;
+  @apply h-6 w-6;
 }
 
 .toast-element > .icon-container.success {
-    @apply text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200;
+  @apply bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200;
 }
 
 .toast-element > .icon-container.error {
-    @apply text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200;
+  @apply bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200;
 }
 
 .toast-element > .icon-container.warning {
-    @apply text-yellow-500 bg-yellow-100 dark:bg-yellow-800 dark:text-yellow-200;
+  @apply bg-yellow-100 text-yellow-500 dark:bg-yellow-800 dark:text-yellow-200;
 }
 
 .toast-element > .icon-container.info {
-    @apply text-blue-500 bg-blue-100 dark:bg-blue-800 dark:text-blue-200;
+  @apply bg-blue-100 text-blue-500 dark:bg-blue-800 dark:text-blue-200;
 }
 
 .toast-element > .text-container {
-    @apply text-base font-normal mr-2;
+  @apply mr-2 text-base font-normal;
 }
 
 .toast-element > .close-button {
-    @apply ms-auto -mx-1.5 -my-1.5 text-silver-200 hover:text-text dark:text-silver-700 hover:dark:text-text-dark rounded-lg focus:ring-2 focus:ring-silver-300 p-1.5 hover:bg-silver-100 inline-flex items-center justify-center h-8 w-8 dark:hover:bg-silver-700;
+  @apply text-silver-200 hover:text-text dark:text-silver-700 hover:dark:text-text-dark focus:ring-silver-300 hover:bg-silver-100 dark:hover:bg-silver-700 -mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5 focus:ring-2;
 }
 
 .toast-element {
-    transform: scale(0.9) translateY(50px);
-    transition:
-        margin-top 0.25s,
-        transform 0.25s,
-        opacity 0.25s;
+  transform: scale(0.9) translateY(50px);
+  transition:
+    margin-top 0.25s,
+    transform 0.25s,
+    opacity 0.25s;
 }
 
 .toast-element.open {
-    @apply mt-2 scale-100 translate-y-0 opacity-100;
+  @apply mt-2 translate-y-0 scale-100 opacity-100;
 }

@@ -1,3 +1,5 @@
+.zed/
+
 node_modules
 
 # esbuild generated js files

@@ -1,12 +1,7 @@
-unformatted=$(gofmt -l .)
+make format/check
 
-if [ -n "$unformatted" ]; then
-  echo "The following .go files are not properly formatted:"
-  echo "$unformatted"
-  echo "run gofmt -l -s -w ."
-  exit 1
-fi
+make lint/check
 
-go tool templ fmt -fail .
+make build/svelte-check
 
-go test ./...
+make test/all

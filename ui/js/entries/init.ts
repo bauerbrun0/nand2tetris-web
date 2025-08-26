@@ -11,9 +11,9 @@ import {
 import { showToast } from "../utils/toast.ts";
 
 export function init() {
-  // @ts-expect-error
+  // @ts-expect-error: showToast is not part of the Window type
   window.showToast = showToast;
-  // @ts-expect-error
+  // @ts-expect-error: Alpine is not part of the Window type
   window.Alpine = Alpine;
   Alpine.store("profileDropDown", false);
   Alpine.store("theme", {
