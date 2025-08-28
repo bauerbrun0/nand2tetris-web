@@ -29,6 +29,7 @@ templ head(sveltePage pages.SveltePage) {
 			case pages.SveltePageNone:
 				<script defer src="/static/js/main.js"></script>
 			case pages.SveltePageHardwareSimulator:
+				<script defer src="/static/js/wasm_exec.js"></script>
 				<script defer src="/static/js/main-hardware-simulator.js"></script>
 		}
 	</head>

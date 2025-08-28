@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names templ,server,svelte-check,esbuild,esbuild_svelte,tailwind,sync_static --prefix \"[{index}] {name}\" --prefix-colors blue,blueBright,magenta,green,yellow,cyan,red \"make dev/templ\" \"make dev/server\" \"make dev/svelte-check\" \"make dev/esbuild\" \"make dev/esbuild/svelte\" \"make dev/tailwind\" \"make dev/sync_static\"",
+    "dev": "concurrently --names templ,server,svelte-check,esbuild,esbuild_svelte,wasm,tailwind,sync_static --prefix \"[{index}] {name}\" --prefix-colors blue,blueBright,magenta,green,yellow,greenBright,cyan,red \"make dev/templ\" \"make dev/server\" \"make dev/svelte-check\" \"make dev/esbuild\" \"make dev/esbuild/svelte\" \"make dev/wasm\" \"make dev/tailwind\" \"make dev/sync_static\"",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -13,6 +13,7 @@
     "@tailwindcss/cli": "^4.1.11",
     "@types/alpinejs": "^3.13.11",
     "@types/bun": "latest",
+    "@types/golang-wasm-exec": "^1.15.2",
     "concurrently": "^9.2.0",
     "esbuild": "^0.25.6",
     "esbuild-svelte": "^0.9.3",

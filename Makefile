@@ -13,10 +13,14 @@ dev/templ:
 
 # run air to detect any go or yaml (translation files)
 # file changes to re-build and re-run the server.
+# also build files in ui/wasm (make build/wasm),
+# since they may import other .go sources
 dev/server:
 	go tool github.com/air-verse/air \
-	--build.cmd "go build -o tmp/bin/web ./cmd/web" --build.bin "tmp/bin/web" --build.delay "100" \
-	--build.exclude_dir "node_modules" \
+	--build.cmd "go build -o tmp/bin/web ./cmd/web && make build/wasm" \
+	--build.bin "tmp/bin/web" \
+	--build.delay "100" \
+	--build.exclude_dir "node_modules,ui/wasm" \
 	--build.include_ext "go,yaml" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
@@ -31,6 +35,16 @@ dev/sync_static:
 	--build.include_dir "ui/static" \
 	--build.include_ext "js,css"
 
+# build wasm sources in watch mode
+dev/wasm:
+	go tool github.com/air-verse/air \
+	--build.cmd "make build/wasm" \
+	--build.full_bin "true" \
+	--build.delay "100" \
+	--build.include_dir "ui/wasm" \
+	--build.stop_on_error "false" \
+	--misc.clean_on_exit true
+
 # run svelte-check in watch mode
 dev/svelte-check:
 	bunx svelte-check --watch
@@ -43,13 +57,17 @@ dev/esbuild:
 dev/esbuild/svelte:
 	bun scripts/esbuild/svelte/build-watch.js
 
+# copy wasm_exec.js file to ui/static/js/
+cp/wasm-exec:
+	mkdir -p ui/static/js && cp "$$(go env GOROOT)/lib/wasm/wasm_exec.js" ui/static/js/
+
 # build css using tailwind in watch mode
 dev/tailwind:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --watch --map
 
 # run live dev environment
 dev:
-	bun run dev
+	make cp/wasm-exec && bun run dev
 
 
 ##################
@@ -77,13 +95,21 @@ build/esbuild/svelte:
 build/tailwind:
 	bunx @tailwindcss/cli -i ./ui/css/main.css -o ./ui/static/css/main.css --minify
 
+# build wasm hardware simulator
+build/wasm/hardwaresimulator:
+	GOOS=js GOARCH=wasm go build -o ./ui/static/wasm/hardware_simulator.wasm ./ui/wasm/hardwaresimulator/hardwaresimulator.go
+
+# build wasm source for production
+build/wasm:
+	make build/wasm/hardwaresimulator
+
 # build go web server for production
 build/web:
 	go build -o build/bin/web ./cmd/web
 
 # build for production
 build/prod:
-	make build/templ build/svelte-check build/esbuild build/esbuild/svelte build/tailwind db/sqlc build/web
+	make build/templ build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec wasm/build build/tailwind db/sqlc build/web
 
 
 ##########

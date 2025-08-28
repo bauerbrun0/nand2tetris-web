@@ -40,6 +40,7 @@ const svelteConfig: Linter.Config[] = [
       },
       globals: {
         ...globals.browser,
+        Go: "readonly",
       },
     },
     rules: {
