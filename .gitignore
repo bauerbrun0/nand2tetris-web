@@ -1,3 +1,5 @@
+.zed/
+
 node_modules
 
 # esbuild generated js files
@@ -5,6 +7,9 @@ ui/static/js/*
 
 # tailwind generated css files
 ui/static/css/*
+
+# generated wasm files
+ui/static/wasm/*
 
 # templ generated _templ.go and _templ.txt files
 *_templ.go

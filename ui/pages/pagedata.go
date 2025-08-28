@@ -29,6 +29,13 @@ type UserInfo struct {
 	LinkedAccounts []Account
 }
 
+type SveltePage string
+
+var (
+	SveltePageNone              = SveltePage("none")
+	SveltePageHardwareSimulator = SveltePage("hardware-simulator")
+)
+
 type PageData struct {
 	IsAuthenticated bool            `json:"-"`
 	UserInfo        *UserInfo       `json:"-"`
@@ -36,6 +43,7 @@ type PageData struct {
 	InitialToasts   []Toast         `json:"initialToasts"`
 	Localizer       *i18n.Localizer `json:"-"`
 	CSRFToken       string          `json:"-"`
+	SveltePage      SveltePage      `json:"-"`
 }
 
 func (pd *PageData) T(key string) string {

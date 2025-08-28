@@ -24,5 +24,21 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "exclude": [
+    ".husky",
+    "build",
+    "cmd",
+    "db",
+    "development",
+    "internal",
+    "node_modules",
+    "ui/components",
+    "ui/css",
+    "ui/emails",
+    "ui/layout",
+    "ui/pages",
+    "ui/static",
+    "ui/wasm"
+  ]
 }

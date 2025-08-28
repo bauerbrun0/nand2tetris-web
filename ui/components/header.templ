@@ -8,7 +8,7 @@ import (
 templ Header(data pages.PageData) {
 	<div>
 		<div class="inner-container py-3">
-			<div class="flex justify-between relative">
+			<div class="relative flex justify-between">
 				@title()
 				if data.IsAuthenticated {
 					@profileButton(data)
@@ -18,15 +18,15 @@ templ Header(data pages.PageData) {
 				}
 			</div>
 		</div>
-		<hr class="h-px border-0 bg-divider dark:bg-divider-dark"/>
+		<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
 	</div>
 }
 
 templ title() {
 	<div>
-		<a href="/" class="flex space-x-3 items-center">
-			<img src="/static/images/logo.svg" alt="Logo" class="w-11 h-11"/>
-			<h1 class="font-medium hidden md:block">Nand2Tetris Web App</h1>
+		<a href="/" class="flex items-center space-x-3">
+			<img src="/static/images/logo.svg" alt="Logo" class="h-11 w-11"/>
+			<h1 class="hidden font-medium md:block">Nand2Tetris Web App</h1>
 		</a>
 	</div>
 }
@@ -36,20 +36,20 @@ templ profileButton(data pages.PageData) {
 		x-data
 		@click="$store.profileDropDown = !$store.profileDropDown"
 		aria-label="profile-button"
-		class="flex space-x-3 items-center rounded-full md:hover:dark:bg-silver-900 md:hover:bg-silver-100 md:pr-6 cursor-pointer"
+		class="md:hover:dark:bg-silver-900 md:hover:bg-silver-100 flex cursor-pointer items-center space-x-3 rounded-full md:pr-6"
 	>
-		<div class="w-10 h-10 bg-silver-50 rounded-full dark:bg-white flex items-center">
+		<div class="bg-silver-50 flex h-10 w-10 items-center rounded-full dark:bg-white">
 			@UserIcon("text-silver-900 w-6 h-6 mx-auto")
 		</div>
-		<div class="flex-col space-y-1 hidden md:flex">
-			<span class="text-sm font-medium text-left">{ data.UserInfo.Username }</span>
-			<span class="text-sm text-left">{ data.UserInfo.Email }</span>
+		<div class="hidden flex-col space-y-1 md:flex">
+			<span class="text-left text-sm font-medium">{ data.UserInfo.Username }</span>
+			<span class="text-left text-sm">{ data.UserInfo.Email }</span>
 		</div>
 	</button>
 }
 
 templ navigation() {
-	<div class="flex space-x-3 md:space-x-5 items-center">
+	<div class="flex items-center space-x-3 md:space-x-5">
 		@themeToggle()
 		<a href="/user/register">
 			<button
@@ -84,7 +84,7 @@ templ themeToggle() {
 	<template x-data x-if="$store.theme.current === 'dark'">
 		<button
 			@click="$store.theme.switchTheme('light')"
-			class="hover:cursor-pointer hover:text-primary-700"
+			class="hover:text-primary-700 hover:cursor-pointer"
 		>
 			@SunIcon("w-6 h-6")
 		</button>
@@ -92,7 +92,7 @@ templ themeToggle() {
 	<template x-data x-if="$store.theme.current === 'light'">
 		<button
 			@click="$store.theme.switchTheme('dark')"
-			class="hover:cursor-pointer hover:stroke-primary-700"
+			class="hover:stroke-primary-700 hover:cursor-pointer"
 		>
 			@MoonIcon("w-6 h-6 hover:text-primary-700 stroke-[1.5px]")
 		</button>

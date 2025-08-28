@@ -18,11 +18,11 @@ templ profileDropDown(data pages.PageData) {
 			bg-white dark:bg-silver-900
 		` }
 	>
-		<div class="flex md:hidden flex-col space-y-2">
+		<div class="flex flex-col space-y-2 md:hidden">
 			<span class="font-bold">{ data.UserInfo.Username }</span>
 			<span>{ data.UserInfo.Email }</span>
 		</div>
-		<hr class="md:hidden h-px border-0 bg-divider dark:bg-divider-dark my-2"/>
+		<hr class="bg-divider dark:bg-divider-dark my-2 h-px border-0 md:hidden"/>
 		<div class="flex flex-col space-y-2">
 			@themeToggleButton()
 			@profileSettingsLink()
@@ -35,7 +35,7 @@ templ themeToggleButton() {
 	<template x-data x-if="$store.theme.current === 'dark'">
 		<button
 			@click="$store.theme.switchTheme('light')"
-			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
+			class="items center hover:dark:bg-silver-800 hover:bg-silver-100 flex cursor-pointer space-x-3 rounded-md p-2"
 		>
 			@SunIcon("w-5 h-5")
 			<span>
@@ -46,7 +46,7 @@ templ themeToggleButton() {
 	<template x-data x-if="$store.theme.current === 'light'">
 		<button
 			@click="$store.theme.switchTheme('dark')"
-			class="flex items center space-x-3 p-2 rounded-md cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100"
+			class="items center hover:dark:bg-silver-800 hover:bg-silver-100 flex cursor-pointer space-x-3 rounded-md p-2"
 		>
 			@MoonIcon("w-5 h-5")
 			<span>
@@ -58,7 +58,7 @@ templ themeToggleButton() {
 
 templ profileSettingsLink() {
 	<a
-		class="hover:cursor-pointer hover:dark:bg-silver-800 hover:bg-silver-100 p-2 rounded-md flex items center space-x-3"
+		class="hover:dark:bg-silver-800 hover:bg-silver-100 items center flex space-x-3 rounded-md p-2 hover:cursor-pointer"
 		href="/user/settings"
 	>
 		@ToolIcon("w-5 h-5")
@@ -73,7 +73,7 @@ templ logoutForm(data pages.PageData) {
 		@CSRFTokenInput(data.CSRFToken)
 		<button
 			type="submit"
-			class="w-full text-left text-red-500 cursor-pointer hover:bg-red-100 hover:dark:bg-silver-800 p-2 rounded-md flex items center space-x-3"
+			class="hover:dark:bg-silver-800 items center flex w-full cursor-pointer space-x-3 rounded-md p-2 text-left text-red-500 hover:bg-red-100"
 		>
 			@LogOutIcon("w-5 h-5")
 			<span>

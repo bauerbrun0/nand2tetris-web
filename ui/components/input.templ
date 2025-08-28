@@ -31,17 +31,17 @@ templ Input(options InputOptions) {
 		}
 	}}
 	if options.Err == "" && options.Label != "" {
-		<label for={ options.Name } class="block mb-2 font-medium text-text-light dark:text-text-dark">{ options.Label }</label>
+		<label for={ options.Name } class="text-text-light dark:text-text-dark mb-2 block font-medium">{ options.Label }</label>
 	}
 	if options.Err != "" && options.Label != "" {
-		<label for={ options.Name } class="block mb-2 font-medium text-red-500">{ options.Label } - { options.Err }</label>
+		<label for={ options.Name } class="mb-2 block font-medium text-red-500">{ options.Label } - { options.Err }</label>
 	}
 	if options.Err != "" && options.Label == "" {
-		<label for={ options.Name } class="block mb-2 font-medium text-red-500">{ options.Err }</label>
+		<label for={ options.Name } class="mb-2 block font-medium text-red-500">{ options.Err }</label>
 	}
 	<div class="relative mb-6">
 		if options.Icon != nil {
-			<div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+			<div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3.5">
 				@options.Icon
 			</div>
 		}
