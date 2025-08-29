@@ -29,7 +29,8 @@
 
   onMount(() => {
     window.WASM = {} as typeof window.WASM;
-    window.WASM.setProgressWASM = (str) => {
+    window.WASM.HardwareSimulator = {} as typeof window.WASM.HardwareSimulator;
+    window.WASM.HardwareSimulator.setProgressWASM = (str) => {
       progressWASM.set(str);
     };
 
@@ -53,7 +54,7 @@
     class="rounded-lg bg-red-500 px-3 py-1 text-white"
     on:click={() => {
       startComputing(100, 10);
-      window.WASM.startComputing(100, 10);
+      window.WASM.HardwareSimulator.startComputing(100, 10);
     }}
   >
     Start JS & WASM
@@ -69,7 +70,7 @@
   <button
     class="rounded-lg bg-red-500 px-3 py-1 text-white"
     on:click={() => {
-      window.WASM.startComputing(100, 10);
+      window.WASM.HardwareSimulator.startComputing(100, 10);
     }}
   >
     Start WASM

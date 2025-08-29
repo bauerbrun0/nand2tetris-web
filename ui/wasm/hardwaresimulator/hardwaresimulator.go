@@ -12,7 +12,7 @@ import (
 
 func main() {
 	fmt.Println("Go Web Assembly")
-	js.Global().Get("WASM").Set("startComputing", startComputingWrapper())
+	js.Global().Get("WASM").Get("HardwareSimulator").Set("startComputing", startComputingWrapper())
 	<-make(chan struct{})
 }
 
@@ -27,7 +27,7 @@ func sqrt() {
 
 func startComputing(n int, delayNS int) {
 	start := time.Now()
-	setProgress := js.Global().Get("WASM").Get("setProgressWASM")
+	setProgress := js.Global().Get("WASM").Get("HardwareSimulator").Get("setProgressWASM")
 	setProgress.Invoke("STARTED")
 
 	for i := 1; i <= n; i++ {
