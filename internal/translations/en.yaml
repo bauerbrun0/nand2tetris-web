@@ -170,3 +170,6 @@
 "email_change_notification_email.subject": "Email updated"
 "email_change_notification_email.title": "Your email address has been changed"
 "email_change_email.message": "We sent you this email to notify you that your account's email address has been changed."
+
+# hardware_simulator_page
+"hardware_simulator_page.title": "Hardware Simulator"

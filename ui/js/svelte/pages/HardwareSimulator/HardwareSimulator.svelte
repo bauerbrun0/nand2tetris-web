@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { progressWASM, progressJS } from "./store.ts";
+  import { t } from "../../../utils/i18n/i18n.ts";
 
   function sqrt() {
     let sum = 0;
@@ -43,6 +44,7 @@
 </script>
 
 <div class="rounded-xl p-4 shadow-md">
+  <h1>{t("hardware_simulator_page.title")}</h1>
   <p class="mb-2 font-bold">WASM:</p>
   <p class="mb-4">proress: {$progressWASM}</p>
   <p class="mb-2 font-bold">JS</p>
