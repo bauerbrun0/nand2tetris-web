@@ -44,6 +44,7 @@ type PageData struct {
 	Localizer       *i18n.Localizer `json:"-"`
 	CSRFToken       string          `json:"-"`
 	SveltePage      SveltePage      `json:"-"`
+	ShowFooter      bool            `json:"-"`
 }
 
 func (pd *PageData) T(key string) string {

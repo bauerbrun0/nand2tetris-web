@@ -8,7 +8,7 @@ import (
 
 templ Page(data pages.PageData) {
 	@layouts.BaseLayout(data) {
-		<div class="inner-container flex min-h-full flex-col justify-center space-y-[50px] py-8 md:space-y-[60px] md:py-10">
+		<div class="inner-container flex flex-1 flex-col justify-center space-y-[50px] py-8 md:space-y-[60px] md:py-10">
 			<h1 class="w-full text-center text-xl font-bold md:text-5xl">{ ctxi18n.T(ctx, "landing_page.title_first_row") }<br/>{ ctxi18n.T(ctx, "landing_page.title_second_row") }</h1>
 			<p class="text:lg mx-auto max-w-[1000px] text-center md:text-xl">
 				{ ctxi18n.T(ctx, "landing_page.introduction_first_part") }

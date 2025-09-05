@@ -1,31 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { progressWASM, progressJS } from "./store.ts";
-  import { t } from "../../../utils/i18n/i18n.ts";
-
-  function sqrt() {
-    let sum = 0;
-    const n = 100_000_000;
-
-    for (let i = 1; i <= n; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      sum += Math.sqrt(i);
-    }
-  }
-
-  async function startComputing(n: number, delayNS: number) {
-    const start = performance.now(); // start timer
-    progressJS.set("STARTED");
-
-    for (let i = 1; i <= n; i++) {
-      sqrt();
-      const progress = "#".repeat(i);
-      progressJS.set(progress);
-      await new Promise((resolve) => setTimeout(resolve, delayNS / 1_000_000));
-    }
-    const elapsed = performance.now() - start;
-    progressJS.set(`Done! Runtime: ${elapsed.toFixed(2)} ms`);
-  }
+  import { progressWASM } from "./store.ts";
+  import Editor from "./components/Editor/Editor.svelte";
 
   onMount(() => {
     window.WASM = {} as typeof window.WASM;
@@ -44,35 +20,4 @@
   });
 </script>
 
-<div class="rounded-xl p-4 shadow-md">
-  <h1>{t("hardware_simulator_page.title")}</h1>
-  <p class="mb-2 font-bold">WASM:</p>
-  <p class="mb-4">proress: {$progressWASM}</p>
-  <p class="mb-2 font-bold">JS</p>
-  <p class="mb-2">progress: {$progressJS}</p>
-  <button
-    class="rounded-lg bg-red-500 px-3 py-1 text-white"
-    on:click={() => {
-      startComputing(100, 10);
-      window.WASM.HardwareSimulator.startComputing(100, 10);
-    }}
-  >
-    Start JS & WASM
-  </button>
-  <button
-    class="rounded-lg bg-red-500 px-3 py-1 text-white"
-    on:click={() => {
-      startComputing(100, 10);
-    }}
-  >
-    Start JS
-  </button>
-  <button
-    class="rounded-lg bg-red-500 px-3 py-1 text-white"
-    on:click={() => {
-      window.WASM.HardwareSimulator.startComputing(100, 10);
-    }}
-  >
-    Start WASM
-  </button>
-</div>
+<Editor />

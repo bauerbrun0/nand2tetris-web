@@ -10,6 +10,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --header-height: 69px;
   --max-container-width: 1750px;
   --max-container-width-small: 1200px;
 

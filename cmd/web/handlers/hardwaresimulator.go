@@ -10,5 +10,6 @@ import (
 func (h *Handlers) HardwareSimulator(w http.ResponseWriter, r *http.Request) {
 	data := h.NewPageData(r)
 	data.SveltePage = pages.SveltePageHardwareSimulator
+	data.ShowFooter = false
 	h.Render(r.Context(), w, r, layouts.BaseLayout(data))
 }
