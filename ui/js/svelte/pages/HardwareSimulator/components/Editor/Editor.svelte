@@ -92,7 +92,7 @@ CHIP And {
         language: "nand2tetris-hdl",
         value: initialValue,
         tabSize: 4,
-        class: "h-[calc(100dvh-var(--header-height))]",
+        // class: "h-[calc(100dvh-16px-var(--header-height))]",
       },
       matchBrackets(),
       highlightSelectionMatches(),
@@ -143,7 +143,7 @@ CHIP And {
   });
 </script>
 
-<div class="w-1/2">
+<div class="">
   <style id="editor-style"></style>
   <div id="editor"></div>
 </div>

@@ -1,0 +1,120 @@
+/* setting the root background */
+.lm_goldenlayout {
+  @apply bg-bg dark:bg-bg-dark dark:scheme-dark;
+}
+
+/* setting the panes background */
+.lm_content {
+  @apply rounded-b-lg bg-white dark:bg-[#1e1e1e];
+}
+
+/* when the panes are dragged, make the */
+/* preview of the pane rounded */
+.lm_dragProxy .lm_content {
+  @apply rounded-md;
+}
+
+/* the border of the drop area */
+.lm_dropTargetIndicator {
+  @apply border-primary rounded-md border;
+}
+
+/* the inner of the drop area */
+.lm_dropTargetIndicator .lm_inner {
+  @apply bg-primary opacity-15 dark:opacity-5;
+}
+
+/* the draggable splitter */
+.lm_splitter {
+  @apply bg-primary opacity-[0.001] transition-opacity duration-200 ease-in-out;
+}
+
+.lm_splitter:hover,
+.lm_splitter.lm_dragging {
+  @apply opacity-100;
+}
+
+/* the headers */
+.lm_header {
+  @apply bg-white-400 dark:bg-silver-900 h-[36px] rounded-t-lg p-0.5!;
+}
+
+/* the tabs inside the headers */
+/* height is 36px - the paddings (2 * 2px) */
+.lm_header .lm_tabs {
+  @apply h-[32px]!;
+}
+
+/* an individual tab inside the headers */
+.lm_header .lm_tab {
+  @apply text-text/50 dark:text-text-dark/50 relative m-0! flex h-[32px]! items-center p-0! px-4!;
+}
+
+.lm_header .lm_tab:hover {
+  @apply bg-white-700 dark:bg-bg-dark rounded-md;
+}
+
+/* after every tab, a separator */
+.lm_header .lm_tab::after {
+  @apply bg-divider dark:bg-divider-dark absolute top-[25%] right-0 h-[50%] w-[1px] content-[''];
+}
+
+/* no separator after the last tab */
+.lm_header .lm_tab:last-child::after {
+  @apply content-none;
+}
+
+/* the first letter of a tab - which is an emoji - should have different color */
+/* can't change the html of the tabs, so can't insert an image */
+.lm_title::first-letter {
+  @apply text-primary/50;
+}
+
+.lm_header .lm_tab.lm_active {
+  @apply text-text dark:text-text-dark;
+}
+
+.lm_header .lm_tab.lm_active .lm_title::first-letter {
+  @apply text-primary;
+}
+
+/* the controls inside the headers */
+/* (only the maximise button) */
+.lm_controls {
+  @apply h-[32px];
+}
+
+/* the maximise button */
+.lm_controls .lm_maximise {
+  @apply relative flex h-[32px]! w-[32px]! items-center text-center;
+}
+
+.lm_controls .lm_maximise:hover {
+  @apply bg-white-700 dark:bg-bg-dark rounded-md;
+}
+
+/* insert character onto the maximise button using ::after */
+.lm_controls .lm_maximise::after {
+  @apply text-text absolute top-1/2 left-1/2 inline-block text-xs content-["↔"];
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.dark .lm_controls .lm_maximise::after {
+  @apply text-text-dark;
+}
+
+/* if tab is maximised, replace the character of the button */
+.lm_maximised .lm_header .lm_controls .lm_maximise::after {
+  @apply top-3/4 content-["➖"];
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+/* hide the close buttons */
+/* disabling close using the js config disables dragging and causes other issues */
+.lm_close_tab {
+  @apply hidden!;
+}
+
+.lm_close {
+  @apply hidden!;
+}

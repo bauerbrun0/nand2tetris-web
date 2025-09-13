@@ -20,6 +20,11 @@ esbuild
     splitting: true,
     write: true,
     format: `esm`,
+    loader: {
+      ".png": "file",
+      ".jpg": "file",
+      ".svg": "file",
+    },
     plugins: [
       esbuildSvelte({
         preprocess: sveltePreprocess(),
