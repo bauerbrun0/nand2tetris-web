@@ -13,7 +13,7 @@
   // required by indentGuides()
   import "prism-code-editor/guides.css";
 
-  import { createEditor } from "prism-code-editor";
+  import { createEditor, type PrismEditor } from "prism-code-editor";
 
   // extensions
   import { matchBrackets } from "prism-code-editor/match-brackets";
@@ -38,6 +38,7 @@
   import { loadTheme } from "prism-code-editor/themes";
 
   import { onMount } from "svelte";
+  import { editorErrors } from "../../store";
 
   const initialValue = `// This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
@@ -56,6 +57,8 @@ CHIP And {
     Not(in = aNandB, out = out);
 }
 `;
+
+  let editor: PrismEditor;
 
   onMount(() => {
     const HDL_KEYWORDS = [
@@ -86,7 +89,7 @@ CHIP And {
       }
     };
 
-    const editor = createEditor(
+    editor = createEditor(
       "#editor",
       {
         language: "nand2tetris-hdl",
@@ -139,6 +142,24 @@ CHIP And {
       attributeFilter: ["class"],
     });
 
+    editorErrors.subscribe((errors) => {
+      const lines = editor.lines;
+      // clear every error
+      for (let i = 1; i <= lines.length; i++) {
+        const line = lines[i];
+        if (line) {
+          line.style.textDecoration = "";
+        }
+      }
+
+      errors.forEach((err) => {
+        const line = lines[err.line];
+        if (line) {
+          line.style.textDecoration = "red wavy underline";
+        }
+      });
+    });
+
     return () => observer.disconnect();
   });
 </script>
@@ -146,4 +167,15 @@ CHIP And {
 <div class="">
   <style id="editor-style"></style>
   <div id="editor"></div>
+  {#if $editorErrors.length != 0}
+    <div
+      class="h-[50px] overflow-auto rounded-lg border border-red-500 bg-red-500/10 p-2.5 dark:bg-red-500/20"
+    >
+      {#each $editorErrors as err (err.line)}
+        <div class="flex items-center">
+          Error at line {err.line}: {err.message}
+        </div>
+      {/each}
+    </div>
+  {/if}
 </div>

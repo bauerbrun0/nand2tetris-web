@@ -6,6 +6,8 @@
   import { GoldenLayout, ItemType } from "golden-layout";
   import "golden-layout/dist/css/goldenlayout-base.css";
 
+  // import { editorErrors } from "./store.ts";
+
   let layoutContainer: HTMLElement;
 
   onMount(() => {
@@ -73,7 +75,7 @@
       for (const entry of entries) {
         const newHeight = entry.contentRect.height;
         if (editor[0]) {
-          (editor[0] as HTMLElement).style.height = `${newHeight}px`;
+          (editor[0] as HTMLElement).style.height = `${newHeight - 50}px`;
         }
       }
     });
@@ -108,12 +110,11 @@
       },
     );
   });
+
+  // editorErrors.set([{ line: 10, message: "Some error here" }]);
 </script>
 
 <div
   bind:this={layoutContainer}
   class="my-[8px] flex h-[calc(100dvh-16px-var(--header-height))] flex-auto overflow-hidden"
 ></div>
-
-<style>
-</style>
