@@ -23,19 +23,24 @@ func New(input string) *Lexer {
 	return lexer
 }
 
-func (l *Lexer) GetTokens() ([]token.Token, error) {
+func (l *Lexer) Tokenize() (TokenStream, error) {
 	var tokens []token.Token
 
-	for tok := l.NextToken(); tok.TokenType != token.EOF; tok = l.NextToken() {
+	for {
+		tok := l.NextToken()
 		if tok.TokenType == token.ILLEGAL {
-			return nil, fmt.Errorf("illegal token %q at line %d, column %d", tok.Literal, tok.Line, tok.Column)
+			return NewTokenStream([]token.Token{}),
+				fmt.Errorf("illegal token %q at line %d, column %d", tok.Literal, tok.Line, tok.Column)
 		}
+
 		if tok.TokenType != token.LINE_COMMENT && tok.TokenType != token.BLOCK_COMMENT {
 			tokens = append(tokens, tok)
 		}
+
+		if tok.TokenType == token.EOF {
+			return NewTokenStream(tokens), nil
+		}
 	}
-	tokens = append(tokens, token.Token{TokenType: token.EOF, Literal: "", Line: l.line, Column: l.column})
-	return tokens, nil
 }
 
 func (l *Lexer) NextToken() token.Token {
