@@ -3,6 +3,7 @@ package lexer
 import (
 	"fmt"
 
+	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/errors"
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/token"
 )
 
@@ -29,8 +30,9 @@ func (l *Lexer) Tokenize() (TokenStream, error) {
 	for {
 		tok := l.NextToken()
 		if tok.TokenType == token.ILLEGAL {
+			message := fmt.Sprintf("illegal token '%s'", tok.Literal)
 			return NewTokenStream([]token.Token{}),
-				fmt.Errorf("illegal token %q at line %d, column %d", tok.Literal, tok.Line, tok.Column)
+				errors.NewLexingError(message, tok.Line, tok.Column)
 		}
 
 		if tok.TokenType != token.LINE_COMMENT && tok.TokenType != token.BLOCK_COMMENT {

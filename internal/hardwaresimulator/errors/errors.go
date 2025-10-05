@@ -2,6 +2,24 @@ package errors
 
 import "fmt"
 
+type LexingError struct {
+	Message string
+	Line    int
+	Column  int
+}
+
+func (e *LexingError) Error() string {
+	return fmt.Sprintf("Lexer error at line %d, column %d: %s", e.Line, e.Column, e.Message)
+}
+
+func NewLexingError(message string, line, column int) *LexingError {
+	return &LexingError{
+		Message: message,
+		Line:    line,
+		Column:  column,
+	}
+}
+
 type ParsingError struct {
 	Message string
 	Line    int

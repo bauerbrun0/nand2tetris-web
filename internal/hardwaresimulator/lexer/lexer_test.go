@@ -276,3 +276,18 @@ CHIP And16 {
 		})
 	}
 }
+
+func TestTokenize(t *testing.T) {
+	input := `$`
+
+	lexer := New(input)
+	_, err := lexer.Tokenize()
+
+	if err == nil {
+		t.Fatalf("Expected an error for illegal token, but got nil")
+	}
+
+	if err.Error() != "Lexer error at line 1, column 1: illegal token '$'" {
+		t.Fatalf("Unexpected error message: %s", err.Error())
+	}
+}
