@@ -48,7 +48,22 @@ type Signal struct {
 }
 
 type Range struct {
-	Start int
-	End   int
-	Loc   Loc
+	IsSpecified bool
+	Start       int
+	End         int
+	Loc         Loc
+}
+
+func (chd *ParsedChipDefinition) GetUsedChipNames() []string {
+	var usedChips []string
+	seen := make(map[string]bool)
+
+	for _, part := range chd.Parts {
+		if !seen[part.Name] {
+			usedChips = append(usedChips, part.Name)
+			seen[part.Name] = true
+		}
+	}
+
+	return usedChips
 }

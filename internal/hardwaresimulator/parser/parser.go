@@ -273,6 +273,7 @@ func (p *Parser) parsePartConnections(part *Part) error {
 			if err != nil {
 				return err
 			}
+			pinRange.IsSpecified = true
 			currentConnection.Pin.Range = pinRange
 
 			if !p.curTokenIs(token.RBRACKET) {
@@ -308,6 +309,7 @@ func (p *Parser) parsePartConnections(part *Part) error {
 			if err != nil {
 				return err
 			}
+			signalRange.IsSpecified = true
 			currentConnection.Signal.Range = signalRange
 
 			if !p.curTokenIs(token.RBRACKET) {

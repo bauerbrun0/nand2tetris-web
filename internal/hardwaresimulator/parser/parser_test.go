@@ -44,12 +44,12 @@ func TestParseChipDefinition(t *testing.T) {
 							{
 								Pin: Pin{
 									Name:  "a",
-									Range: Range{Start: 1, End: 2, Loc: Loc{Line: 6, Column: 12}},
+									Range: Range{Start: 1, End: 2, Loc: Loc{Line: 6, Column: 12}, IsSpecified: true},
 									Loc:   Loc{Line: 6, Column: 10},
 								},
 								Signal: Signal{
 									Name:  "a",
-									Range: Range{Start: 2, End: 2, Loc: Loc{Line: 6, Column: 20}},
+									Range: Range{Start: 2, End: 2, Loc: Loc{Line: 6, Column: 20}, IsSpecified: true},
 									Loc:   Loc{Line: 6, Column: 18},
 								},
 								Loc: Loc{Line: 6, Column: 10},
@@ -334,5 +334,6 @@ func locsMustEqual(t *testing.T, context string, got, expected Loc) {
 func rangesMustEqual(t *testing.T, context string, got, expected Range) {
 	assert.Equal(t, expected.Start, got.Start, context+" range start mismatch")
 	assert.Equal(t, expected.End, got.End, context+" range end mismatch")
+	assert.Equal(t, expected.IsSpecified, got.IsSpecified, context+" range IsSpecified mismatch")
 	locsMustEqual(t, context+" range", got.Loc, expected.Loc)
 }
