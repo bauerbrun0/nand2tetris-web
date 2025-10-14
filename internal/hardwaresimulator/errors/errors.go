@@ -75,3 +75,17 @@ func NewResolutionError(message string, line, column int, file string) *Resoluti
 		Column:  column,
 	}
 }
+
+type SimulationError struct {
+	Message string
+}
+
+func (e *SimulationError) Error() string {
+	return fmt.Sprintf("Simulation error: %s", e.Message)
+}
+
+func NewSimulationError(message string) *SimulationError {
+	return &SimulationError{
+		Message: message,
+	}
+}
