@@ -19,3 +19,16 @@ var BuiltInChips = map[string]Chip{
 		},
 	},
 }
+
+func IsSequentialBit(chipName string, signalName string, bitIndex int) bool {
+	if _, exists := BuiltInChips[chipName]; !exists {
+		return false
+	}
+
+	switch chipName {
+	case "DFF":
+		return signalName == "out" && bitIndex == 0
+	default:
+		return false
+	}
+}

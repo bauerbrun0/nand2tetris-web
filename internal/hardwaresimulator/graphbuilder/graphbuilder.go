@@ -4,12 +4,14 @@ import (
 	"slices"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/chips"
+	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/errors"
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/resolver"
 )
 
 type GraphBuilder struct {
 	chipDefinition  *resolver.ResolvedChipDefinition
 	chipDefinitions map[string]*resolver.ResolvedChipDefinition
+	graph           *Graph
 }
 
 func New(chipDefinitions map[string]*resolver.ResolvedChipDefinition) *GraphBuilder {
@@ -18,161 +20,274 @@ func New(chipDefinitions map[string]*resolver.ResolvedChipDefinition) *GraphBuil
 	}
 }
 
-func (gb *GraphBuilder) BuildGraph(chipName string, inputPins map[string]*Pin, outputPins map[string]*Pin) (*Graph, error) {
-	chipDefinition := gb.chipDefinitions[chipName]
-	gb.chipDefinition = chipDefinition
+func (gb *GraphBuilder) BuildGraph(chipName string) (*Graph, error) {
+	chd := gb.chipDefinitions[chipName]
+	gb.chipDefinition = chd
 
-	internalSignals := make(map[string]*InternalSignal)
-	for signalName, signal := range gb.chipDefinition.InternalSignals {
-		internalSignals[signalName] = &InternalSignal{
-			Signal: &Signal{Name: signalName, Values: make([]bool, signal.Width)},
+	inputPins := make(map[string]*Pin)
+	outputPins := make(map[string]*Pin)
+	internalPins := make(map[string]*InternalPin)
+
+	for inputName, input := range chd.Inputs {
+		inputPins[inputName] = &Pin{
+			Name: inputName,
+			Bits: createBitsArray(input.Width),
 		}
 	}
 
-	graph := &Graph{
-		Nodes:           []*Node{},
-		InputPins:       inputPins,
-		OutputPins:      outputPins,
-		InternalSignals: internalSignals,
-		Edges:           map[*Node][]*Node{},
+	for outputName, output := range chd.Outputs {
+		outputPins[outputName] = &Pin{
+			Name: outputName,
+			Bits: createBitsArray(output.Width),
+		}
 	}
 
-	for _, part := range gb.chipDefinition.Parts {
-		err := gb.buildNodeFromPart(graph, &part)
+	for internalName, internal := range chd.InternalSignals {
+		internalPins[internalName] = &InternalPin{
+			Name:           internalName,
+			Bits:           createBitsArray(internal.Width),
+			DependentNodes: make(map[*Node][]int),
+		}
+	}
+
+	gb.graph = &Graph{
+		Nodes:        []*Node{},
+		InputPins:    inputPins,
+		OutputPins:   outputPins,
+		InternalPins: internalPins,
+		Edges:        map[*Node][]*Node{},
+	}
+
+	for _, part := range chd.Parts {
+		err := gb.buildNodeFromPart(&part)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	for _, internalSignal := range graph.InternalSignals {
-		sourceNode := internalSignal.SourceNode
-		for _, dependentNode := range internalSignal.DependentNodes {
-			if !slices.Contains(graph.Edges[sourceNode], dependentNode) && internalSignal.Signal.IsSequential == false {
-				graph.Edges[sourceNode] = append(graph.Edges[sourceNode], dependentNode)
+	for _, internalPin := range gb.graph.InternalPins {
+		sourceNode := internalPin.SourceNode
+		for node, indexes := range internalPin.DependentNodes {
+			for i := range indexes {
+				if internalPin.Bits[i].IsSequential == false && !slices.Contains(gb.graph.Edges[sourceNode], node) {
+					gb.graph.Edges[sourceNode] = append(gb.graph.Edges[sourceNode], node)
+				}
 			}
 		}
 	}
 
-	nodesInOrder, err := graph.GetNodesInTopologicalOrder()
+	nodesInOrder, err := getNodesInTopologicalOrder(gb.graph)
 	if err != nil {
 		return nil, err
 	}
-	graph.Nodes = nodesInOrder
-	return graph, nil
+	gb.graph.Nodes = nodesInOrder
+
+	return gb.graph, nil
 }
 
-func (gb *GraphBuilder) buildNodeFromPart(graph *Graph, part *resolver.Part) error {
-	inputs := make(map[string]*Pin)
-	outputs := make(map[string]*Pin)
-	internalSignals := make(map[string]*InternalSignal)
+func (gb *GraphBuilder) BuildGraphWithExistingIOPins(chipName string, inputPins, outputPins map[string]*Pin) (*Graph, error) {
+	chd := gb.chipDefinitions[chipName]
+	gb.chipDefinition = chd
+
+	internalPins := make(map[string]*InternalPin)
+
+	for internalName, internal := range chd.InternalSignals {
+		internalPins[internalName] = &InternalPin{
+			Name:           internalName,
+			Bits:           createBitsArray(internal.Width),
+			DependentNodes: make(map[*Node][]int),
+		}
+	}
+
+	gb.graph = &Graph{
+		Nodes:        []*Node{},
+		InputPins:    inputPins,
+		OutputPins:   outputPins,
+		InternalPins: internalPins,
+		Edges:        map[*Node][]*Node{},
+	}
+
+	for _, part := range chd.Parts {
+		err := gb.buildNodeFromPart(&part)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, internalPin := range gb.graph.InternalPins {
+		sourceNode := internalPin.SourceNode
+		for node, indexes := range internalPin.DependentNodes {
+			for i := range indexes {
+				if internalPin.Bits[i].IsSequential == false && !slices.Contains(gb.graph.Edges[sourceNode], node) {
+					gb.graph.Edges[sourceNode] = append(gb.graph.Edges[sourceNode], node)
+				}
+			}
+		}
+	}
+
+	nodesInOrder, err := getNodesInTopologicalOrder(gb.graph)
+	if err != nil {
+		return nil, err
+	}
+	gb.graph.Nodes = nodesInOrder
+
+	return gb.graph, nil
+}
+
+func (gb *GraphBuilder) buildNodeFromPart(part *resolver.Part) error {
 	node := &Node{}
 
-	// first, find the chip definition for this part
-	// it can be a built-in chip or a user-defined chip
-	builtinChipIO, isBuiltinChip := chips.BuiltInChips[part.Name]
-	customChipDefinition, _ := gb.chipDefinitions[part.Name]
+	inputPins := make(map[string]*Pin)
+	outputPins := make(map[string]*Pin)
 
-	for _, inputConn := range part.InputConnections {
-		if _, ok := inputs[inputConn.Pin.Name]; !ok {
-			var width int
-			if isBuiltinChip {
-				width = builtinChipIO.Inputs[inputConn.Pin.Name].Width
-			} else {
-				width = customChipDefinition.Inputs[inputConn.Pin.Name].Width
-			}
+	builtinChipDef, isBuiltin := chips.BuiltInChips[part.Name]
+	customChipDef, _ := gb.chipDefinitions[part.Name]
 
-			newPin := &Pin{
-				Width:       width,
-				Connections: []Connection{},
+	// we initialize the input and output pins based on the chip definitions
+	// which can be either built-in or user-defined
+	// we fill every bit as false initially
+	if isBuiltin {
+		for inputName, input := range builtinChipDef.Inputs {
+			inputPins[inputName] = &Pin{
+				Name: inputName,
+				Bits: createBitsArray(input.Width),
 			}
-			inputs[inputConn.Pin.Name] = newPin
 		}
-
-		pin := inputs[inputConn.Pin.Name]
-		if signal, ok := graph.InternalSignals[inputConn.Signal.Name]; ok {
-			connection := Connection{
-				PinRange:    Range{Start: inputConn.Pin.Range.Start, End: inputConn.Pin.Range.End},
-				SignalRange: Range{Start: inputConn.Signal.Range.Start, End: inputConn.Signal.Range.End},
-				Signal:      signal.Signal,
+		for outputName, output := range builtinChipDef.Outputs {
+			bits := createBitsArray(output.Width)
+			for i, bit := range bits {
+				bit.IsSequential = chips.IsSequentialBit(part.Name, outputName, i)
 			}
-			signal.DependentNodes = append(signal.DependentNodes, node)
-			pin.Connections = append(pin.Connections, connection)
-			inputs[inputConn.Pin.Name] = pin
-		} else {
-			parentInput := graph.InputPins[inputConn.Signal.Name]
-			for _, conn := range parentInput.Connections {
-				connection := Connection{
-					PinRange:    Range{Start: inputConn.Pin.Range.Start, End: inputConn.Pin.Range.End},
-					SignalRange: Range{Start: inputConn.Signal.Range.Start, End: inputConn.Signal.Range.End},
-					Signal:      conn.Signal,
-				}
-				pin.Connections = append(pin.Connections, connection)
+			outputPins[outputName] = &Pin{
+				Name: outputName,
+				Bits: bits,
 			}
-			inputs[inputConn.Pin.Name] = pin
+		}
+	} else {
+		for inputName, input := range customChipDef.Inputs {
+			inputPins[inputName] = &Pin{
+				Name: inputName,
+				Bits: createBitsArray(input.Width),
+			}
+		}
+		for outputName, output := range customChipDef.Outputs {
+			outputPins[outputName] = &Pin{
+				Name: outputName,
+				Bits: createBitsArray(output.Width),
+			}
 		}
 	}
 
-	for _, outputConn := range part.OutputConnections {
-		if _, ok := outputs[outputConn.Pin.Name]; !ok {
-			var width int
-			if isBuiltinChip {
-				width = builtinChipIO.Outputs[outputConn.Pin.Name].Width
-			} else {
-				width = customChipDefinition.Outputs[outputConn.Pin.Name].Width
-			}
+	// now we have to connect the pins or rather modify the bits
+	// based on the connections defined in the connections section
+	// of the part. We use the Ranges to determine which bits to connect/change
 
-			newPin := &Pin{
-				Width:       width,
-				Connections: []Connection{},
+	for _, inputConnection := range part.InputConnections {
+		signalName := inputConnection.Signal.Name
+		// check if it is an input of the parent chip or an internal signal
+		if parentInputPin, ok := gb.graph.InputPins[signalName]; ok {
+			// get the needed bits from the parent input pin
+			neededBits := parentInputPin.Bits[inputConnection.Signal.Range.Start : inputConnection.Signal.Range.End+1]
+			// set the bits of the input pin of the node
+			for i, bit := range neededBits {
+				inputPins[inputConnection.Pin.Name].Bits[inputConnection.Pin.Range.Start+i] = bit
 			}
-			outputs[outputConn.Pin.Name] = newPin
-		}
-
-		pin := outputs[outputConn.Pin.Name]
-		if signal, ok := graph.InternalSignals[outputConn.Signal.Name]; ok {
-			if isBuiltinChip && part.Name == "DFF" {
-				signal.Signal.IsSequential = true
-			}
-			connection := Connection{
-				PinRange:    Range{Start: outputConn.Pin.Range.Start, End: outputConn.Pin.Range.End},
-				SignalRange: Range{Start: outputConn.Signal.Range.Start, End: outputConn.Signal.Range.End},
-				Signal:      signal.Signal,
-			}
-			signal.SourceNode = node
-			pin.Connections = append(pin.Connections, connection)
-			outputs[outputConn.Pin.Name] = pin
 		} else {
-			newSignal := &Signal{
-				Name:         outputConn.Signal.Name,
-				Values:       make([]bool, outputConn.Signal.Range.End-outputConn.Signal.Range.Start+1),
-				IsSequential: isBuiltinChip && part.Name == "DFF",
+			internalPin := gb.graph.InternalPins[signalName]
+			neededBits := internalPin.Bits[inputConnection.Signal.Range.Start : inputConnection.Signal.Range.End+1]
+			for i, bit := range neededBits {
+				inputPins[inputConnection.Pin.Name].Bits[inputConnection.Pin.Range.Start+i] = bit
 			}
-			connection := Connection{
-				PinRange:    Range{Start: outputConn.Pin.Range.Start, End: outputConn.Pin.Range.End},
-				SignalRange: Range{Start: outputConn.Signal.Range.Start, End: outputConn.Signal.Range.End},
-				Signal:      newSignal,
+			for i := inputConnection.Signal.Range.Start; i <= inputConnection.Signal.Range.End; i++ {
+				internalPin.DependentNodes[node] = append(internalPin.DependentNodes[node], i)
 			}
-
-			graph.OutputPins[outputConn.Signal.Name].Connections = append(graph.OutputPins[outputConn.Signal.Name].Connections, connection)
-			pin.Connections = append(pin.Connections, connection)
-			outputs[outputConn.Pin.Name] = pin
 		}
 	}
 
-	if !isBuiltinChip {
-		subGb := New(gb.chipDefinitions)
-		sg, err := subGb.BuildGraph(part.Name, inputs, outputs)
+	for _, outputConnection := range part.OutputConnections {
+		signalName := outputConnection.Signal.Name
+		if parentOutputPin, ok := gb.graph.OutputPins[signalName]; ok {
+			neededBits := outputPins[outputConnection.Pin.Name].Bits[outputConnection.Pin.Range.Start : outputConnection.Pin.Range.End+1]
+			for i, bit := range neededBits {
+				parentOutputPin.Bits[outputConnection.Signal.Range.Start+i] = bit
+			}
+		} else {
+			internalPin := gb.graph.InternalPins[signalName]
+			neededBits := outputPins[outputConnection.Pin.Name].Bits[outputConnection.Pin.Range.Start : outputConnection.Pin.Range.End+1]
+			internalPin.Bits = neededBits // we replace the bits here, because internal pins cannot be partially defined
+			internalPin.SourceNode = node
+		}
+	}
+
+	if !isBuiltin {
+		subGraphBuilder := New(gb.chipDefinitions)
+		subGraph, err := subGraphBuilder.BuildGraphWithExistingIOPins(part.Name, inputPins, outputPins)
 		if err != nil {
 			return err
 		}
-		node.Subgraph = sg
+		node.SubGraph = subGraph
 	}
 
-	node.Type = part.Name
-	node.Inputs = inputs
-	node.Outputs = outputs
-	node.InternalSignals = internalSignals
+	node.ChipName = part.Name
+	node.InputPins = inputPins
+	node.OutputPins = outputPins
 
-	graph.Nodes = append(graph.Nodes, node)
+	gb.graph.Nodes = append(gb.graph.Nodes, node)
 	return nil
+}
+
+func createBitsArray(width int) []*Bit {
+	bits := make([]*Bit, width)
+	for i := range bits {
+		bits[i] = &Bit{}
+	}
+	return bits
+}
+
+func getNodesInTopologicalOrder(g *Graph) ([]*Node, error) {
+	indegrees := make(map[*Node]int)
+	for _, dependentNodes := range g.Edges {
+		for _, dependentNode := range dependentNodes {
+			if _, exists := indegrees[dependentNode]; !exists {
+				indegrees[dependentNode] = 1
+			} else {
+				indegrees[dependentNode]++
+			}
+		}
+	}
+	for _, node := range g.Nodes {
+		if _, exists := indegrees[node]; !exists {
+			indegrees[node] = 0
+		}
+	}
+
+	queue := []*Node{}
+	// start with nodes that have no dependencies
+	for node, indegree := range indegrees {
+		if indegree == 0 {
+			queue = append(queue, node)
+		}
+	}
+	// the final topological order
+	order := []*Node{}
+
+	for len(queue) > 0 {
+		// pop from queue
+		node := queue[0]
+		queue = queue[1:]
+
+		order = append(order, node)
+		// get the nodes that depend on this node
+		for _, dependentNode := range g.Edges[node] {
+			indegrees[dependentNode]--
+			if indegrees[dependentNode] == 0 {
+				queue = append(queue, dependentNode)
+			}
+		}
+	}
+
+	if len(order) != len(g.Nodes) {
+		return nil, errors.NewSimulationError("Graph has cycles, cannot determine topological order")
+	}
+	return order, nil
 }

@@ -57,35 +57,9 @@ func TestBuildGraph(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			chd, chds := mustLexParseAndResolve(t, tt.hdls, tt.chipFileName)
 			chds[chd.Name] = chd
+
 			gb := New(chds)
-
-			inputPins := make(map[string]*Pin)
-			outputPins := make(map[string]*Pin)
-
-			for inputName, input := range chd.Inputs {
-				inputPins[inputName] = &Pin{
-					Width: input.Width,
-					Connections: []Connection{
-						{
-							PinRange:    Range{Start: 0, End: input.Width - 1},
-							SignalRange: Range{Start: 0, End: input.Width - 1},
-							Signal: &Signal{
-								Name:   inputName,
-								Values: make([]bool, input.Width),
-							},
-						},
-					},
-				}
-			}
-
-			for outputName, output := range chd.Outputs {
-				outputPins[outputName] = &Pin{
-					Width:       output.Width,
-					Connections: []Connection{},
-				}
-			}
-
-			graph, err := gb.BuildGraph(chd.Name, inputPins, outputPins)
+			graph, err := gb.BuildGraph(tt.chipFileName)
 
 			if tt.expectedError != "" {
 				if err == nil {
