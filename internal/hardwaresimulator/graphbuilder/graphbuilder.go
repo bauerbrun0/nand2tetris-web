@@ -204,6 +204,15 @@ func (gb *GraphBuilder) buildNodeFromPart(part *resolver.Part) error {
 		}
 	}
 
+	if !isBuiltin {
+		subGraphBuilder := New(gb.chipDefinitions)
+		subGraph, err := subGraphBuilder.BuildGraphWithExistingIOPins(part.Name, inputPins, outputPins)
+		if err != nil {
+			return err
+		}
+		node.SubGraph = subGraph
+	}
+
 	for _, outputConnection := range part.OutputConnections {
 		signalName := outputConnection.Signal.Name
 		if parentOutputPin, ok := gb.graph.OutputPins[signalName]; ok {
@@ -217,15 +226,6 @@ func (gb *GraphBuilder) buildNodeFromPart(part *resolver.Part) error {
 			internalPin.Bits = neededBits // we replace the bits here, because internal pins cannot be partially defined
 			internalPin.SourceNode = node
 		}
-	}
-
-	if !isBuiltin {
-		subGraphBuilder := New(gb.chipDefinitions)
-		subGraph, err := subGraphBuilder.BuildGraphWithExistingIOPins(part.Name, inputPins, outputPins)
-		if err != nil {
-			return err
-		}
-		node.SubGraph = subGraph
 	}
 
 	node.ChipName = part.Name

@@ -14,6 +14,9 @@ type Node struct {
 	InputPins  map[string]*Pin
 	OutputPins map[string]*Pin
 
+	// for sequential chips (eg. DFF) to keep track of the state
+	State map[string][]bool
+
 	SubGraph *Graph // nil if built-in chip
 }
 
