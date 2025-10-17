@@ -290,7 +290,9 @@ func (p *Parser) parsePartConnections(part *Part) error {
 
 		p.ts.Next()
 
-		if !p.curTokenIs(token.IDENTIFIER) {
+		isBooleanConstant := p.curTokenIs(token.TRUE) || p.curTokenIs(token.FALSE)
+
+		if !p.curTokenIs(token.IDENTIFIER) && !p.curTokenIs(token.TRUE) && !p.curTokenIs(token.FALSE) {
 			message := fmt.Sprintf("expected signal name, got [%s] => %s", p.ts.Current().TokenType, p.ts.Current().Literal)
 			return newError(message, p.ts.Current().Line, p.ts.Current().Column)
 		}
@@ -301,6 +303,14 @@ func (p *Parser) parsePartConnections(part *Part) error {
 			Loc:   getLoc(p.ts.Current()),
 		}
 		p.ts.Next()
+
+		if p.curTokenIs(token.LBRACKET) && isBooleanConstant {
+			message := fmt.Sprintf(
+				"unexpected range for boolean constant, got [%s] => %s",
+				p.ts.Current().TokenType, p.ts.Current().Literal,
+			)
+			return newError(message, p.ts.Current().Line, p.ts.Current().Column)
+		}
 
 		if p.curTokenIs(token.LBRACKET) {
 			p.ts.Next()

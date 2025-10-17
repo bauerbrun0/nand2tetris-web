@@ -34,19 +34,19 @@ func TestEvaluate(t *testing.T) {
 				e := New(g)
 				// first: in = 0 -> out = 1
 				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate()
+				e.Evaluate(false)
 				out := g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "expected out to be true")
 
 				// second: in = 1 -> out = 0
 				g.InputPins["in"].Bits[0].Value = true
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "expected out to be false")
 
 				// third: in = 0 -> out = 1 (again)
 				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "expected out to be true")
 			},
@@ -90,7 +90,7 @@ func TestEvaluate(t *testing.T) {
 				for _, bit := range g.InputPins["in"].Bits {
 					bit.Value = false
 				}
-				e.Evaluate()
+				e.Evaluate(false)
 				out := make([]bool, 16)
 				for i, bit := range g.OutputPins["out"].Bits {
 					out[i] = bit.Value
@@ -102,7 +102,7 @@ func TestEvaluate(t *testing.T) {
 				for _, bit := range g.InputPins["in"].Bits {
 					bit.Value = true
 				}
-				e.Evaluate()
+				e.Evaluate(false)
 				for i, bit := range g.OutputPins["out"].Bits {
 					out[i] = bit.Value
 				}
@@ -116,7 +116,7 @@ func TestEvaluate(t *testing.T) {
 				for _, bit := range g.InputPins["in"].Bits {
 					bit.Value = false
 				}
-				e.Evaluate()
+				e.Evaluate(false)
 				for i, bit := range g.OutputPins["out"].Bits {
 					out[i] = bit.Value
 				}
@@ -146,19 +146,19 @@ func TestEvaluate(t *testing.T) {
 				e := New(g)
 				// first: in = 0 -> out = 0
 				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate()
+				e.Evaluate(false)
 				out := g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "expected: in = false -> out = false")
 
 				// second: in = 1 -> out = 1
 				g.InputPins["in"].Bits[0].Value = true
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "expected in = true -> out = true")
 
 				// third: in = 0 -> out = 0 (again)
 				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "expected: in = false -> out = false")
 			},
@@ -178,37 +178,34 @@ func TestEvaluate(t *testing.T) {
 			afterGraphBuild: func(t *testing.T, g *graphbuilder.Graph) {
 				e := New(g)
 				// set the input to true
-				g.InputPins["in"].Bits[0].Value = true
+				e.SetInputs(map[string][]bool{"in": {true}})
 
-				e.Evaluate()
+				e.Evaluate(false)
 				out := g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "after first evaluate, expected out to be false")
 
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "after second evaluate, expected out to still be false")
 
-				e.Step()
-				e.Evaluate()
+				e.Evaluate(true)  // tick
+				e.Evaluate(false) // tock
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "after step and evaluate, expected out to be true")
 
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "after another evaluate, expected out to still be true")
 
 				// set the input to false
-				g.InputPins["in"].Bits[0].Value = false
+				e.SetInputs(map[string][]bool{"in": {false}})
 
-				e.Evaluate()
+				e.Evaluate(false)
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.True(t, out, "after setting input to false and evaluate, expected out to still be true")
 
-				e.Step()
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "after step, expected out to still be true")
-
-				e.Evaluate()
+				e.Evaluate(true)  // tick
+				e.Evaluate(false) // tock
 				out = g.OutputPins["out"].Bits[0].Value
 				assert.False(t, out, "after evaluate, expected out to be false")
 			},

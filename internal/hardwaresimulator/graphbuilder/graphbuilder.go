@@ -1,6 +1,7 @@
 package graphbuilder
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/chips"
@@ -81,6 +82,44 @@ func (gb *GraphBuilder) BuildGraph(chipName string) (*Graph, error) {
 		return nil, err
 	}
 	gb.graph.Nodes = nodesInOrder
+	g := gb.graph
+	fmt.Println("Input pin pointers")
+	for name, pin := range g.InputPins {
+		fmt.Printf("\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+	}
+
+	fmt.Println("Output pin pointers")
+	for name, pin := range g.OutputPins {
+		fmt.Printf("\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+	}
+
+	if len(g.InternalPins) > 0 {
+		fmt.Println("Internal pin pointers")
+	}
+	for name, pin := range g.InternalPins {
+		fmt.Printf("\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+	}
+
+	for _, node := range gb.graph.Nodes {
+		fmt.Printf("Node [%s]:\n", node.ChipName)
+		fmt.Println("\tInput pin pointers")
+		for name, pin := range node.InputPins {
+			fmt.Printf("\t\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+		}
+
+		fmt.Println("\tOutput pin pointers")
+		for name, pin := range node.OutputPins {
+			fmt.Printf("\t\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+		}
+
+		if node.SubGraph == nil {
+			continue
+		}
+		fmt.Println("\tInternal pin pointers")
+		for name, pin := range node.SubGraph.InternalPins {
+			fmt.Printf("\t\tpin [%s] bit pointer: %p\n", name, pin.Bits[0])
+		}
+	}
 
 	return gb.graph, nil
 }
@@ -184,8 +223,21 @@ func (gb *GraphBuilder) buildNodeFromPart(part *resolver.Part) error {
 
 	for _, inputConnection := range part.InputConnections {
 		signalName := inputConnection.Signal.Name
-		// check if it is an input of the parent chip or an internal signal
-		if parentInputPin, ok := gb.graph.InputPins[signalName]; ok {
+		isBooleanConstant := signalName == "true" || signalName == "false"
+		if isBooleanConstant {
+			// create the constant bits
+			bits := make([]*Bit, inputConnection.Signal.Range.End-inputConnection.Signal.Range.Start+1)
+			value := signalName == "true"
+			for i := range bits {
+				bits[i] = &Bit{
+					Value: value,
+				}
+			}
+			// set the bits
+			for i, bit := range bits {
+				inputPins[inputConnection.Pin.Name].Bits[inputConnection.Pin.Range.Start+i] = bit
+			}
+		} else if parentInputPin, ok := gb.graph.InputPins[signalName]; ok {
 			// get the needed bits from the parent input pin
 			neededBits := parentInputPin.Bits[inputConnection.Signal.Range.Start : inputConnection.Signal.Range.End+1]
 			// set the bits of the input pin of the node

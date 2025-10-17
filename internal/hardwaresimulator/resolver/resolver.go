@@ -57,6 +57,10 @@ func New(chd *parser.ParsedChipDefinition, chipFileName string, hdls map[string]
 	}
 }
 
+func (r *Resolver) SetResolvedUsedChipDefs(defs map[string]*ResolvedChipDefinition) {
+	r.resolvedUsedChipDefs = defs
+}
+
 func (r *Resolver) Resolve(resolvedChipNames []string, resolvingChipNames []string) (
 	*ResolvedChipDefinition,
 	map[string]*ResolvedChipDefinition,
@@ -219,6 +223,7 @@ func (r *Resolver) resolveUsedChips(resolvedChipNames []string, resolvingChipNam
 		}
 
 		r2 := New(chd, chipName, r.hdls)
+		r2.SetResolvedUsedChipDefs(r.resolvedUsedChipDefs)
 		resolvedChipDef, resolvedUsedChipDefs, err := r2.Resolve(resolvedChipNames, resolvingChipNames)
 		if err != nil {
 			return err
@@ -434,10 +439,10 @@ func (r *Resolver) resolveOutputConnectionSignal(resolvedConn *Connection, conn 
 		}
 		signal.Range = rng
 	} else {
-		signal.Range = Range{Start: 0, End: conn.PartIO.Width - 1}
+		signal.Range = Range{Start: resolvedConn.Pin.Range.Start, End: resolvedConn.Pin.Range.End}
 		if _, exists := r.resolvedChipDef.InternalSignals[signal.Name]; !exists {
 			r.resolvedChipDef.InternalSignals[signal.Name] = InternalSignal{
-				Width: conn.PartIO.Width,
+				Width: signal.Range.End - signal.Range.Start + 1,
 			}
 		} else {
 			return r.newResolutionError(
@@ -506,11 +511,12 @@ func (r *Resolver) resolveInputConnectionSignal(resolvedConn *Connection, conn c
 
 	internalSignal, isInternalSignal := r.resolvedChipDef.InternalSignals[signal.Name]
 	inputIO, isChipInput := r.resolvedChipDef.Inputs[signal.Name]
+	isBooleanConstant := conn.Signal.Name == "false" || conn.Signal.Name == "true"
 
 	_ = internalSignal
 	_ = inputIO
 
-	if !isInternalSignal && !isChipInput {
+	if !isInternalSignal && !isChipInput && !isBooleanConstant {
 		return r.newResolutionError(
 			fmt.Sprintf("Signal '%s' is neither an internal signal nor a chip input", conn.Signal.Name),
 			conn.Signal.Loc.Line, conn.Signal.Loc.Column,
@@ -530,7 +536,12 @@ func (r *Resolver) resolveInputConnectionSignal(resolvedConn *Connection, conn c
 			resolvedConn.Signal = signal
 			return nil
 		}
-		rng := Range{Start: 0, End: inputIO.Width - 1}
+		var rng Range
+		if isBooleanConstant {
+			rng = Range{Start: 0, End: resolvedConn.Pin.Range.End - resolvedConn.Pin.Range.Start}
+		} else {
+			rng = Range{Start: 0, End: inputIO.Width - 1}
+		}
 		if resolvedConn.Pin.Range.End-resolvedConn.Pin.Range.Start != rng.End-rng.Start {
 			return r.newResolutionError(
 				fmt.Sprintf("Signal '%s' width does not match pin '%s' width", conn.Signal.Name, resolvedConn.Pin.Name),
