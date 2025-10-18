@@ -1,4 +1,4 @@
-package hardwaresimulator
+package simulator
 
 import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/errors"
@@ -11,7 +11,7 @@ import (
 
 type HardwareSimulator struct {
 	hdls      map[string]string
-	evaluator *evaluator.Evaluator
+	Evaluator *evaluator.Evaluator
 }
 
 func New() *HardwareSimulator {
@@ -23,11 +23,6 @@ func (hs *HardwareSimulator) SetChipHDLs(hdls map[string]string) {
 }
 
 func (hs *HardwareSimulator) Process(chipName string) (map[string]int, map[string]int, error) {
-	// first, get the HDL for the chip
-	// then, lex and parse it
-	// then, get the used chips names and check if
-	// 	first, whether they are built-in chips
-	//  second, whether we have their HDL (custom chips)
 	hdl, ok := hs.hdls[chipName]
 	if !ok {
 		return nil, nil, errors.NewChipNotFoundError(chipName)
@@ -68,22 +63,23 @@ func (hs *HardwareSimulator) Process(chipName string) (map[string]int, map[strin
 	}
 
 	e := evaluator.New(g)
-	hs.evaluator = e
+	hs.Evaluator = e
 
 	return inputs, outputs, nil
 }
 
 func (hs *HardwareSimulator) Evaluate(inputs map[string][]bool) (map[string][]bool, map[string][]bool) {
-	hs.evaluator.SetInputs(inputs)
-	hs.evaluator.Evaluate(false)
-	outputs, internalPins := hs.evaluator.GetOutputsAndInternalPins()
+	hs.Evaluator.SetInputs(inputs)
+	hs.Evaluator.Evaluate()
+	outputs, internalPins := hs.Evaluator.GetOutputsAndInternalPins()
 	return outputs, internalPins
 }
 
 func (hs *HardwareSimulator) Tick(inputs map[string][]bool) (map[string][]bool, map[string][]bool) {
-	hs.evaluator.SetInputs(inputs)
-	hs.evaluator.Evaluate(true)
-	outputs, internalPins := hs.evaluator.GetOutputsAndInternalPins()
+	hs.Evaluator.SetInputs(inputs)
+	hs.Evaluator.Evaluate()
+	hs.Evaluator.Commit()
+	outputs, internalPins := hs.Evaluator.GetOutputsAndInternalPins()
 	return outputs, internalPins
 }
 

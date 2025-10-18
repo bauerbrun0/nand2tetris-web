@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/graphbuilder"
 )
 
@@ -17,7 +19,7 @@ func New(graph *graphbuilder.Graph) *Evaluator {
 func (e *Evaluator) SetInputs(inputs map[string][]bool) {
 	for inputName, input := range e.Graph.InputPins {
 		for i, bit := range input.Bits {
-			bit.Value = inputs[inputName][i]
+			bit.Bit.Value = inputs[inputName][i]
 		}
 	}
 }
@@ -27,7 +29,7 @@ func (e *Evaluator) GetOutputsAndInternalPins() (map[string][]bool, map[string][
 	for outputName, output := range e.Graph.OutputPins {
 		bits := make([]bool, len(output.Bits))
 		for i, bit := range output.Bits {
-			bits[i] = bit.Value
+			bits[i] = bit.Bit.Value
 		}
 		outputs[outputName] = bits
 	}
@@ -36,7 +38,7 @@ func (e *Evaluator) GetOutputsAndInternalPins() (map[string][]bool, map[string][
 	for internalName, internal := range e.Graph.InternalPins {
 		bits := make([]bool, len(internal.Bits))
 		for i, bit := range internal.Bits {
-			bits[i] = bit.Value
+			bits[i] = bit.Bit.Value
 		}
 		internals[internalName] = bits
 	}
@@ -44,19 +46,75 @@ func (e *Evaluator) GetOutputsAndInternalPins() (map[string][]bool, map[string][
 	return outputs, internals
 }
 
-func (e *Evaluator) Evaluate(isTick bool) {
+func (e *Evaluator) Evaluate() {
 	for _, node := range e.Graph.Nodes {
-		e.evaluateNode(node, isTick)
+		e.evaluateNode(node)
+	}
+	// second loop is a hack until proper evaluation order is implemented
+	// this intrduces performance issues for large graphs
+	for _, node := range e.Graph.Nodes {
+		e.evaluateNode(node)
+	}
+
+}
+
+func (e *Evaluator) Commit() {
+	for _, node := range e.Graph.Nodes {
+		e.commitNode(node)
 	}
 }
 
-func (e *Evaluator) evaluateNode(node *graphbuilder.Node, isTick bool) {
+func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 	switch node.ChipName {
 	case "Nand":
-		a := node.InputPins["a"].Bits[0].Value
-		b := node.InputPins["b"].Bits[0].Value
+		a := node.InputPins["a"].Bits[0].Bit.Value
+		b := node.InputPins["b"].Bits[0].Bit.Value
 		v := !(a && b)
-		node.OutputPins["out"].Bits[0].Value = v
+		node.OutputPins["out"].Bits[0].Bit.Value = v
+	case "DFF":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = []bool{false} // initial state
+		}
+
+		// DFF logic: output the current state
+		node.OutputPins["out"].Bits[0].Bit.Value = node.State["out"][0]
+	case "RAM64":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		// initialize state if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 64 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// output the value at the given address
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State[outKey][i]
+		}
+	default:
+		// custom chip with subgraph
+		if node.SubGraph == nil {
+			// should never be nil here
+			return
+		}
+
+		subEvaluator := New(node.SubGraph)
+		subEvaluator.Evaluate()
+	}
+}
+
+func (e *Evaluator) commitNode(node *graphbuilder.Node) {
+	switch node.ChipName {
 	case "DFF":
 		// create state maps if not exist
 		if node.State == nil {
@@ -64,15 +122,41 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node, isTick bool) {
 			node.State["out"] = []bool{false} // initial state
 		}
 
-		// DFF logic: output the current state
-		node.OutputPins["out"].Bits[0].Value = node.State["out"][0]
-		if isTick {
-			node.State["out"][0] = node.InputPins["in"].Bits[0].Value
+		// DFF logic: store the input value into state
+		node.State["out"][0] = node.InputPins["in"].Bits[0].Bit.Value
+	case "RAM64":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		// create state maps if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 64 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// store the input value into the addressed memory location
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.State[outKey][i] = node.InputPins["in"].Bits[i].Bit.Value
 		}
 	default:
 		// custom chip with subgraph
-		for _, n := range node.SubGraph.Nodes {
-			e.evaluateNode(n, isTick)
+		if node.SubGraph == nil {
+			return
 		}
+		subEvaluator := New(node.SubGraph)
+		subEvaluator.Commit()
 	}
 }

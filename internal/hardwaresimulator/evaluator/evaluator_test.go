@@ -7,6 +7,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/lexer"
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/parser"
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/resolver"
+	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,22 +34,24 @@ func TestEvaluate(t *testing.T) {
 			afterGraphBuild: func(t *testing.T, g *graphbuilder.Graph) {
 				e := New(g)
 				// first: in = 0 -> out = 1
-				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate(false)
-				out := g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "expected out to be true")
+				e.SetInputs(map[string][]bool{"in": {false}})
+				e.Evaluate()
+				outputs, _ := e.GetOutputsAndInternalPins()
+				expected := map[string][]bool{"out": {true}}
+				assert.Equal(t, expected, outputs, "expected out to be true when in is false")
 
 				// second: in = 1 -> out = 0
-				g.InputPins["in"].Bits[0].Value = true
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "expected out to be false")
+				e.SetInputs(map[string][]bool{"in": {true}})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				expected = map[string][]bool{"out": {false}}
+				assert.Equal(t, expected, outputs, "expected out to be false when in is true")
 
 				// third: in = 0 -> out = 1 (again)
-				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "expected out to be true")
+				e.SetInputs(map[string][]bool{"in": {false}})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "expected out to be true when in is false")
 			},
 		},
 		{
@@ -87,41 +90,22 @@ func TestEvaluate(t *testing.T) {
 			afterGraphBuild: func(t *testing.T, g *graphbuilder.Graph) {
 				e := New(g)
 				// first: in[16] = 0 -> out[16] = 0
-				for _, bit := range g.InputPins["in"].Bits {
-					bit.Value = false
-				}
-				e.Evaluate(false)
-				out := make([]bool, 16)
-				for i, bit := range g.OutputPins["out"].Bits {
-					out[i] = bit.Value
-				}
-				expected := make([]bool, 16) // all false
-				assert.Equal(t, expected, out, "expected: in = 0000000000000000 -> out = 0000000000000000")
+				e.SetInputs(map[string][]bool{"in": make([]bool, 16)}) // all false
+				e.Evaluate()
+				outputs, _ := e.GetOutputsAndInternalPins()
+				assert.Equal(t, make([]bool, 16), outputs["out"], "expected: in = 0000000000000000 -> out = 0000000000000000")
 
 				// second: in[16] = 1 -> out[16] = 1
-				for _, bit := range g.InputPins["in"].Bits {
-					bit.Value = true
-				}
-				e.Evaluate(false)
-				for i, bit := range g.OutputPins["out"].Bits {
-					out[i] = bit.Value
-				}
-				expected = make([]bool, 16)
-				for i := range expected {
-					expected[i] = true
-				}
-				assert.Equal(t, expected, out, "expected: in = 1111111111111111 -> out = 1111111111111111")
+				e.SetInputs(map[string][]bool{"in": testutils.RepeatBool(true, 16)})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, testutils.RepeatBool(true, 16), outputs["out"], "expected: in = 1111111111111111 -> out = 1111111111111111")
 
 				// third: in[16] = 0 -> out[16] = 0 (again)
-				for _, bit := range g.InputPins["in"].Bits {
-					bit.Value = false
-				}
-				e.Evaluate(false)
-				for i, bit := range g.OutputPins["out"].Bits {
-					out[i] = bit.Value
-				}
-				expected = make([]bool, 16) // all false
-				assert.Equal(t, expected, out, "expected: in = 0000000000000000 -> out = 0000000000000000")
+				e.SetInputs(map[string][]bool{"in": make([]bool, 16)})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, make([]bool, 16), outputs["out"], "expected: in = 0000000000000000 -> out = 0000000000000000")
 			},
 		},
 		{
@@ -145,22 +129,22 @@ func TestEvaluate(t *testing.T) {
 			afterGraphBuild: func(t *testing.T, g *graphbuilder.Graph) {
 				e := New(g)
 				// first: in = 0 -> out = 0
-				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate(false)
-				out := g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "expected: in = false -> out = false")
+				e.SetInputs(map[string][]bool{"in": {false}})
+				e.Evaluate()
+				outputs, _ := e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "expected: in = false -> out = false")
 
 				// second: in = 1 -> out = 1
-				g.InputPins["in"].Bits[0].Value = true
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "expected in = true -> out = true")
+				e.SetInputs(map[string][]bool{"in": {true}})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "expected: in = true -> out = true")
 
 				// third: in = 0 -> out = 0 (again)
-				g.InputPins["in"].Bits[0].Value = false
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "expected: in = false -> out = false")
+				e.SetInputs(map[string][]bool{"in": {false}})
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "expected: in = false -> out = false")
 			},
 		},
 		{
@@ -180,34 +164,34 @@ func TestEvaluate(t *testing.T) {
 				// set the input to true
 				e.SetInputs(map[string][]bool{"in": {true}})
 
-				e.Evaluate(false)
-				out := g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "after first evaluate, expected out to be false")
+				e.Evaluate()
+				outputs, _ := e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "after first evaluate, expected out to be false")
 
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "after second evaluate, expected out to still be false")
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "after second evaluate, expected out to still be false")
 
-				e.Evaluate(true)  // tick
-				e.Evaluate(false) // tock
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "after step and evaluate, expected out to be true")
+				e.Commit()
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "after tick-tock, expected out to be true")
 
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "after another evaluate, expected out to still be true")
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "after another evaluate, expected out to still be true")
 
 				// set the input to false
 				e.SetInputs(map[string][]bool{"in": {false}})
 
-				e.Evaluate(false)
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.True(t, out, "after setting input to false and evaluate, expected out to still be true")
+				e.Evaluate()
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "after setting input to false and evaluate, expected out to still be true")
 
-				e.Evaluate(true)  // tick
-				e.Evaluate(false) // tock
-				out = g.OutputPins["out"].Bits[0].Value
-				assert.False(t, out, "after evaluate, expected out to be false")
+				e.Commit()   // tick
+				e.Evaluate() // tock
+				outputs, _ = e.GetOutputsAndInternalPins()
+				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "after tick-tock with input false, expected out to be false again")
 			},
 		},
 	}
