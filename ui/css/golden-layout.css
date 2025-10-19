@@ -95,7 +95,7 @@
 
 /* insert character onto the maximise button using ::after */
 .lm_controls .lm_maximise::after {
-  @apply text-text absolute top-1/2 left-1/2 inline-block text-xs content-["↔"];
+  @apply text-text absolute top-1/2 left-1/2 inline-block content-["↔"];
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
@@ -105,7 +105,7 @@
 
 /* if tab is maximised, replace the character of the button */
 .lm_maximised .lm_header .lm_controls .lm_maximise::after {
-  @apply top-3/4 content-["➖"];
+  @apply top-3/4 text-base content-["➖"];
   transform: translate(-50%, -50%) rotate(0deg);
 }
 

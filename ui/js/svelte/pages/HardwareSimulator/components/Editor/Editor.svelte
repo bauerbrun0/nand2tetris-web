@@ -38,37 +38,12 @@
   import { loadTheme } from "prism-code-editor/themes";
 
   import { onMount } from "svelte";
-  import { editorErrors } from "../../store";
-
-  const initialValue = `// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/1/And.hdl
-/**
-* And gate:
-* if (a and b) out = 1, else out = 0
-*/
-CHIP And {
-    IN a, b;
-    OUT out;
-
-    PARTS:
-    Nand(a = a, b = b, out = aNandB);
-    Not(in = aNandB, out = out);
-}
-`;
+  import { editorErrors, hdl } from "../../store";
 
   let editor: PrismEditor;
 
   onMount(() => {
-    const HDL_KEYWORDS = [
-      "CHIP",
-      "IN",
-      "OUT",
-      "PARTS:",
-      "BUILTIN",
-      "CLOCKED",
-    ] as const;
+    const HDL_KEYWORDS = ["CHIP", "IN", "OUT", "PARTS:"] as const;
 
     const options: Completion[] = HDL_KEYWORDS.map((label) => ({
       label,
@@ -93,9 +68,12 @@ CHIP And {
       "#editor",
       {
         language: "nand2tetris-hdl",
-        value: initialValue,
+        value: $hdl,
         tabSize: 4,
         // class: "h-[calc(100dvh-16px-var(--header-height))]",
+        onUpdate: (newValue) => {
+          hdl.set(newValue);
+        },
       },
       matchBrackets(),
       highlightSelectionMatches(),
@@ -158,6 +136,10 @@ CHIP And {
           line.style.textDecoration = "red wavy underline";
         }
       });
+    });
+
+    hdl.subscribe((value) => {
+      editor.setOptions({ value });
     });
 
     return () => observer.disconnect();

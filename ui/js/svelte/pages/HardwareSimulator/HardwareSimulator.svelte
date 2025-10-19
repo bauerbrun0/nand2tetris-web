@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount, mount } from "svelte";
   import { progressWASM } from "./store.ts";
-  import Editor from "./components/Editor/Editor.svelte";
-  import TaskDescription from "./components/TaskDescription/TaskDescription.svelte";
   import { GoldenLayout, ItemType } from "golden-layout";
   import "golden-layout/dist/css/goldenlayout-base.css";
+  import Editor from "./components/Editor/Editor.svelte";
+  import Simulator from "./components/Simulator/Simulator.svelte";
+  import ProjectChips from "./components/ProjectChips/ProjectChips.svelte";
+  import TopBar from "./components/TopBar.svelte";
 
   // import { editorErrors } from "./store.ts";
 
@@ -30,8 +32,11 @@
     layout.registerComponentFactoryFunction("editor", (container) => {
       mount(Editor, { target: container.element });
     });
-    layout.registerComponentFactoryFunction("task", (container) => {
-      mount(TaskDescription, { target: container.element });
+    layout.registerComponentFactoryFunction("simulator", (container) => {
+      mount(Simulator, { target: container.element });
+    });
+    layout.registerComponentFactoryFunction("project-chips", (container) => {
+      mount(ProjectChips, { target: container.element });
     });
 
     layout.loadLayout({
@@ -46,21 +51,20 @@
         content: [
           {
             type: ItemType.component,
+            componentType: "project-chips",
+            title: "📁 Chips",
+            width: 20,
+          },
+          {
+            type: ItemType.component,
             componentType: "editor",
             title: "💻 Editor",
-            width: 70,
+            width: 45,
           },
           {
             type: ItemType.component,
-            componentType: "task",
-            title: "📄 Task",
-            // width: 50,
-          },
-          {
-            type: ItemType.component,
-            componentType: "task",
-            title: "📄 Task",
-            // width: 50,
+            componentType: "simulator",
+            title: "⚙️ Simulator",
           },
         ],
       },
@@ -114,7 +118,8 @@
   // editorErrors.set([{ line: 10, message: "Some error here" }]);
 </script>
 
+<TopBar />
 <div
   bind:this={layoutContainer}
-  class="my-[8px] flex h-[calc(100dvh-16px-var(--header-height))] flex-auto overflow-hidden"
+  class="mb-[8px] flex h-[calc(100dvh-16px-var(--header-height)-40px)] flex-auto overflow-hidden"
 ></div>
