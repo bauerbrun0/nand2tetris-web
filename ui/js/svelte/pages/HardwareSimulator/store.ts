@@ -1,5 +1,5 @@
 import { writable, get, type Writable } from "svelte/store";
-import type { EditorError } from "./types";
+import type { HardwareSimulatorError } from "./types";
 
 export const progressWASM = writable("READY");
 export const progressJS = writable("READY");
@@ -69,7 +69,9 @@ export const hdl: Writable<string> = (() => {
   };
 })();
 
-export const editorError = writable<EditorError | null>(null);
+export const hardwareSimulatorError = writable<HardwareSimulatorError | null>(
+  null,
+);
 currentHdlFileName.subscribe(() => {
-  editorError.set(null);
+  hardwareSimulatorError.set(null);
 });

@@ -1,4 +1,4 @@
-export type EditorError = {
+export type HardwareSimulatorError = {
   line?: number;
   column?: number;
   message: string;

@@ -2,7 +2,7 @@
   import "prism-code-editor/layout.css";
   import { createEditor } from "prism-code-editor";
   import { onMount } from "svelte";
-  import { editorError, hdl } from "../../store";
+  import { hardwareSimulatorError, hdl } from "../../store";
   import ErrorBox from "./ErrorBox.svelte";
   import {
     changeEditorTheme,
@@ -31,7 +31,7 @@
     changeEditorTheme(isDark, "editor-style");
     const themeChangeObserver = startThemeChangeObserver("editor-style");
 
-    editorError.subscribe((error) => {
+    hardwareSimulatorError.subscribe((error) => {
       highlightError(editor, error);
     });
 
@@ -46,14 +46,14 @@
 <div class="relative h-full">
   <div
     class={`
-    ${$editorError ? "h-[calc(100%-50px)] max-h-[calc(100%-50px)]" : "h-full max-h-full"}
+    ${$hardwareSimulatorError ? "h-[calc(100%-50px)] max-h-[calc(100%-50px)]" : "h-full max-h-full"}
     overflow-auto
     `}
   >
     <style id="editor-style"></style>
     <div id="editor"></div>
   </div>
-  {#if $editorError}
-    <ErrorBox errorMessage={$editorError.message} />
+  {#if $hardwareSimulatorError}
+    <ErrorBox errorMessage={$hardwareSimulatorError.message} />
   {/if}
 </div>

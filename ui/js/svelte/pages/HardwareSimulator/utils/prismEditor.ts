@@ -32,7 +32,7 @@ import "prism-code-editor/autocomplete-icons.css";
 import "prism-code-editor/copy-button.css";
 import "prism-code-editor/guides.css";
 
-import type { EditorError } from "../types";
+import type { HardwareSimulatorError } from "../types";
 
 const HDL_KEYWORDS = ["CHIP", "IN", "OUT", "PARTS:"] as const;
 
@@ -101,7 +101,10 @@ export function startThemeChangeObserver(styleTagId: string): MutationObserver {
   return observer;
 }
 
-export function highlightError(editor: PrismEditor, error: EditorError | null) {
+export function highlightError(
+  editor: PrismEditor,
+  error: HardwareSimulatorError | null,
+) {
   clearErrorHighlight(editor);
 
   if (!error || !error.line) {
