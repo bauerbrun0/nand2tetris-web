@@ -1,125 +1,50 @@
 <script lang="ts">
-  import { onMount, mount } from "svelte";
-  import { progressWASM } from "./store.ts";
-  import { GoldenLayout, ItemType } from "golden-layout";
+  import { onMount } from "svelte";
+  import { GoldenLayout } from "golden-layout";
   import "golden-layout/dist/css/goldenlayout-base.css";
+  import TopBar from "./components/TopBar/TopBar.svelte";
+  import ProjectChips from "./components/ProjectChips/ProjectChips.svelte";
   import Editor from "./components/Editor/Editor.svelte";
   import Simulator from "./components/Simulator/Simulator.svelte";
-  import ProjectChips from "./components/ProjectChips/ProjectChips.svelte";
-  import TopBar from "./components/TopBar.svelte";
-
-  // import { editorErrors } from "./store.ts";
+  import { loadHardwareSimulator } from "./utils/hardwareSimulator.ts";
+  import {
+    registerComponent,
+    disableTooltips,
+    getLayoutConfig,
+  } from "./utils/goldenLayout.ts";
+  import { t } from "../../../utils/i18n/i18n.ts";
 
   let layoutContainer: HTMLElement;
 
   onMount(() => {
-    window.WASM = {} as typeof window.WASM;
-    window.WASM.HardwareSimulator = {} as typeof window.WASM.HardwareSimulator;
-    window.WASM.HardwareSimulator.setProgressWASM = (str) => {
-      progressWASM.set(str);
-    };
-
-    const go = new Go();
-    WebAssembly.instantiateStreaming(
-      fetch("/static/wasm/hardware_simulator.wasm"),
-      go.importObject,
-    ).then((result) => {
-      go.run(result.instance);
-    });
+    loadHardwareSimulator();
 
     const layout = new GoldenLayout(layoutContainer);
+    registerComponent(layout, "editor", Editor);
+    registerComponent(layout, "simulator", Simulator);
+    registerComponent(layout, "project-chips", ProjectChips);
 
-    layout.registerComponentFactoryFunction("editor", (container) => {
-      mount(Editor, { target: container.element });
+    const layoutConfig = getLayoutConfig({
+      editorTitle: t("hardware_simulator_page.editor_window_title"),
+      simulatorTitle: t("hardware_simulator_page.simulator_window_title"),
+      projectChipsTitle: t(
+        "hardware_simulator_page.project_chips_window_title",
+      ),
     });
-    layout.registerComponentFactoryFunction("simulator", (container) => {
-      mount(Simulator, { target: container.element });
-    });
-    layout.registerComponentFactoryFunction("project-chips", (container) => {
-      mount(ProjectChips, { target: container.element });
-    });
+    layout.loadLayout(layoutConfig);
 
-    layout.loadLayout({
-      settings: {
-        showPopoutIcon: false,
-      },
-      dimensions: {
-        headerHeight: 36,
-      },
-      root: {
-        type: ItemType.row,
-        content: [
-          {
-            type: ItemType.component,
-            componentType: "project-chips",
-            title: "📁 Chips",
-            width: 20,
-          },
-          {
-            type: ItemType.component,
-            componentType: "editor",
-            title: "💻 Editor",
-            width: 45,
-          },
-          {
-            type: ItemType.component,
-            componentType: "simulator",
-            title: "⚙️ Simulator",
-          },
-        ],
-      },
-    });
+    disableTooltips();
 
-    // change the editor's height if the pane's height changes
-    const editorContent = document.querySelector(
-      "#svelte-app > div > div > div > div:nth-child(1) > section.lm_items > div > div",
-    );
-    const editor = document.getElementsByClassName("prism-code-editor");
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const newHeight = entry.contentRect.height;
-        if (editor[0]) {
-          (editor[0] as HTMLElement).style.height = `${newHeight - 50}px`;
-        }
-      }
-    });
-    resizeObserver.observe(editorContent as HTMLElement);
-
-    // remove all title attributes to disable tooltips
-    document.querySelectorAll(".lm_tab").forEach((tab) => {
-      tab.removeAttribute("title");
-    });
-
-    // start an observer to dynamically disable tooltips on new
-    // lm_tabs
-    const mutationObserver = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const el = node as HTMLElement;
-
-            // check if added node is an .lm_tab
-            if (el.matches(".lm_tab[title]")) {
-              el.removeAttribute("title");
-            }
-          }
-        });
-      }
-    });
-    mutationObserver.observe(
-      document.querySelector(".lm_goldenlayout") as HTMLElement,
-      {
-        childList: true,
-        subtree: true,
-      },
-    );
+    return () => {
+      layout.destroy();
+    };
   });
-
-  // editorErrors.set([{ line: 10, message: "Some error here" }]);
 </script>
 
-<TopBar />
-<div
-  bind:this={layoutContainer}
-  class="mb-[8px] flex h-[calc(100dvh-16px-var(--header-height)-40px)] flex-auto overflow-hidden"
-></div>
+<div>
+  <TopBar />
+  <div
+    bind:this={layoutContainer}
+    class="mb-[8px] flex h-[calc(100dvh-16px-var(--header-height)-40px)] flex-auto overflow-hidden"
+  ></div>
+</div>

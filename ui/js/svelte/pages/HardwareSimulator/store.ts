@@ -1,5 +1,5 @@
 import { writable, get, type Writable } from "svelte/store";
-import type { EditorError } from "../../../types/index.ts";
+import type { EditorError } from "./types";
 
 export const progressWASM = writable("READY");
 export const progressJS = writable("READY");
@@ -69,4 +69,7 @@ export const hdl: Writable<string> = (() => {
   };
 })();
 
-export const editorErrors = writable<EditorError[]>([]);
+export const editorError = writable<EditorError | null>(null);
+currentHdlFileName.subscribe(() => {
+  editorError.set(null);
+});

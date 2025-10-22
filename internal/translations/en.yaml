@@ -175,3 +175,8 @@
 "hardware_simulator_page.title": "Hardware Simulator"
 "hardware_simulator_page.back_to_projects": "Back to Projects"
 "hardware_simulator_page.add_new_chip": "Add Chip"
+"hardware_simulator_page.delete_chip": "Delete"
+"hardware_simulator_page.rename_chip": "Rename"
+"hardware_simulator_page.project_chips_window_title": "📁 Chips"
+"hardware_simulator_page.editor_window_title": "💻 Editor"
+"hardware_simulator_page.simulator_window_title": "⚙️ Simulator"

@@ -1,4 +1,5 @@
 export type EditorError = {
-  line: number;
+  line?: number;
+  column?: number;
   message: string;
 };
