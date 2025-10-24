@@ -3,7 +3,7 @@
   import { t } from "../../../../../../utils/i18n/i18n.ts";
   import {
     simulationRunning,
-    automaticSimulationRunning,
+    simulationLoopRunning,
     cycleCount,
     cycleStage,
     advanceCycle,
@@ -12,24 +12,24 @@
   const clockCount = $derived.by(() => {
     const count = $cycleCount;
     const stage = $cycleStage;
-    const result: string = count + (stage === "tock" ? "+" : "");
+    const result: string = count + (stage === "tock" ? "+" : "\u2007");
     return result;
   });
 
   function handleClick() {
     simulationRunning.set(true);
-    advanceCycle();
     if ($cycleStage === "tick") {
       window.WASM.HardwareSimulator.tick();
     } else {
       window.WASM.HardwareSimulator.tock();
     }
+    advanceCycle();
     simulationRunning.set(false);
   }
 </script>
 
 <button
-  disabled={$simulationRunning || $automaticSimulationRunning}
+  disabled={$simulationRunning || $simulationLoopRunning}
   onclick={handleClick}
   class={`
     dark:bg-silver-900 dark:hover:bg-silver-800 bg-white-700 hover:bg-white-900 disabled:dark:hover:bg-silver-900 disabled:hover:bg-white-700

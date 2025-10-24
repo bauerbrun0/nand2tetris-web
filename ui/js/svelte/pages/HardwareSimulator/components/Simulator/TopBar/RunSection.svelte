@@ -3,19 +3,14 @@
   import PauseIcon from "../../../../../components/icons/Pause.svelte";
   import HertzDropdown from "./HertzDropdown.svelte";
   import { t } from "../../../../../../utils/i18n/i18n.ts";
-  import {
-    automaticSimulationRunning,
-    simulationRunning,
-  } from "../../../store.ts";
+  import { simulationLoopRunning, simulationRunning } from "../../../store.ts";
 
-  function handleRunClick(e: Event) {
-    e.preventDefault();
-    automaticSimulationRunning.set(true);
+  function handleRunClick() {
+    window.WASM.HardwareSimulator.startSimulationLoop();
   }
 
-  function handlePauseClick(e: Event) {
-    e.preventDefault();
-    automaticSimulationRunning.set(false);
+  function handlePauseClick() {
+    window.WASM.HardwareSimulator.stopSimulationLoop();
   }
 </script>
 
@@ -23,7 +18,7 @@
   class="dark:bg-silver-900 bg-white-700 flex h-[44px] items-center gap-1 rounded-md p-2"
 >
   <HertzDropdown />
-  {#if !$automaticSimulationRunning}
+  {#if !$simulationLoopRunning}
     <button
       disabled={$simulationRunning}
       onclick={handleRunClick}

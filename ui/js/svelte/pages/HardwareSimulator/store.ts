@@ -83,7 +83,7 @@ currentHdlFileName.subscribe(() => {
 
 export const simulationSpeed = writable<SimulationSpeed>(simulationSpeeds[0]);
 
-export const automaticSimulationRunning = writable(false);
+export const simulationLoopRunning = writable(false);
 
 export const simulationRunning = writable(false);
 
@@ -91,20 +91,20 @@ export const inputPins = writable<Pin[]>([]);
 export const outputPins = writable<Pin[]>([]);
 export const internalPins = writable<Pin[]>([]);
 
-export const cycleCount = writable<number>(0);
-export const cycleStage = writable<"tick" | "tock">("tock");
+export const cycleCount = writable<number>(1);
+export const cycleStage = writable<"tick" | "tock">("tick");
 
 export function advanceCycle() {
   const currentStage = get(cycleStage);
   if (currentStage === "tock") {
     cycleStage.set("tick");
+    cycleCount.update((n) => n + 1);
   } else {
     cycleStage.set("tock");
-    cycleCount.update((n) => n + 1);
   }
 }
 
 export function resetCycle() {
-  cycleCount.set(0);
-  cycleStage.set("tock");
+  cycleCount.set(1);
+  cycleStage.set("tick");
 }

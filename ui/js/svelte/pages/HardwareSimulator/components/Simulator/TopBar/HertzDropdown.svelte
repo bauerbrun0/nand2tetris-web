@@ -1,6 +1,10 @@
 <script lang="ts">
   import { simulationSpeeds } from "../../../utils/simulation";
-  import { simulationSpeed } from "../../../store";
+  import {
+    simulationLoopRunning,
+    simulationRunning,
+    simulationSpeed,
+  } from "../../../store";
   import { Dropdown } from "flowbite";
   import { onMount } from "svelte";
 
@@ -13,10 +17,12 @@
 </script>
 
 <button
+  disabled={$simulationLoopRunning || $simulationRunning}
   bind:this={triggerElement}
   class={`
-    dark:bg-silver-800 dark:hover:bg-silver-700 hover:bg-white-400 inline-flex h-[32px] cursor-pointer
-    items-center rounded-lg bg-white px-4 py-1 text-center text-sm font-medium whitespace-nowrap
+    dark:bg-silver-800 dark:hover:bg-silver-700 hover:bg-white-400 disabled:dark:hover:bg-silver-800 inline-flex h-[32px]
+    cursor-pointer items-center rounded-lg bg-white px-4 py-1 text-center text-sm font-medium whitespace-nowrap
+    disabled:cursor-not-allowed disabled:hover:bg-white
   `}
   type="button"
   >{$simulationSpeed.text}<svg

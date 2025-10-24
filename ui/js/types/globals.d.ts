@@ -14,6 +14,10 @@ declare global {
         setOutputPins: (pins: Pin[]) => void;
         setInternalPins: (pins: Pin[]) => void;
         getInputPins: () => Pin[];
+        getSimulationDelayMs: () => number;
+        setSimulationLoopRunning: (running: boolean) => void;
+        advanceCycle: () => void;
+        getCycleStage: () => "tick" | "tock";
 
         // exported Go functions (called *from JS*)
         startComputing: (n: number, delayNS: number) => void;
@@ -21,6 +25,8 @@ declare global {
         evaluate: () => void;
         tick: () => void;
         tock: () => void;
+        startSimulationLoop: () => void;
+        stopSimulationLoop: () => void;
       };
     };
   }

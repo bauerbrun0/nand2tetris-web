@@ -3,19 +3,95 @@
 package main
 
 import (
+	"context"
 	"syscall/js"
+	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/simulator"
 )
 
+var jsFuncs map[string]js.Value
+
 var hardwareSimulator *simulator.HardwareSimulator
+var cancelSimulationLoop context.CancelFunc
 
 func main() {
-	js.Global().Get("WASM").Get("HardwareSimulator").Set("processHdls", processHdlsWrapper())
-	js.Global().Get("WASM").Get("HardwareSimulator").Set("evaluate", evaluateWrapper())
-	js.Global().Get("WASM").Get("HardwareSimulator").Set("tick", tickWrapper())
-	js.Global().Get("WASM").Get("HardwareSimulator").Set("tock", tockWrapper())
+	hardwareSimulatorJsObject := js.Global().Get("WASM").Get("HardwareSimulator")
+
+	// exporting go functions to javascript
+	hardwareSimulatorJsObject.Set("processHdls", processHdlsWrapper())
+	hardwareSimulatorJsObject.Set("evaluate", evaluateWrapper())
+	hardwareSimulatorJsObject.Set("tick", tickWrapper())
+	hardwareSimulatorJsObject.Set("tock", tockWrapper())
+	hardwareSimulatorJsObject.Set("startSimulationLoop", startSimulationLoopWrapper())
+	hardwareSimulatorJsObject.Set("stopSimulationLoop", stopSimulationLoopWrapper())
+
+	// getting js functions from javascript
+	jsFuncs = make(map[string]js.Value)
+
+	jsFuncs["getInputPins"] = hardwareSimulatorJsObject.Get("getInputPins")
+	jsFuncs["setInputPins"] = hardwareSimulatorJsObject.Get("setInputPins")
+	jsFuncs["setOutputPins"] = hardwareSimulatorJsObject.Get("setOutputPins")
+	jsFuncs["setInternalPins"] = hardwareSimulatorJsObject.Get("setInternalPins")
 	<-make(chan struct{})
+}
+
+func startSimulationLoop() {
+	if cancelSimulationLoop != nil {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelSimulationLoop = cancel
+
+	js.Global().Get("WASM").Get("HardwareSimulator").Get("setSimulationLoopRunning").Invoke(js.ValueOf(true))
+	delayMs := js.Global().Get("WASM").Get("HardwareSimulator").Get("getSimulationDelayMs").Invoke().Int()
+	advanceCycle := js.Global().Get("WASM").Get("HardwareSimulator").Get("advanceCycle")
+	startingCycleStage := js.Global().Get("WASM").Get("HardwareSimulator").Get("getCycleStage").Invoke().String()
+
+	timer := time.NewTimer(0) // actual duration will be set in waitOrCancel
+
+	defer func() { cancelSimulationLoop = nil }() // clear cancel function when done, allowing to start again
+
+	if startingCycleStage == "tock" {
+		tock()
+		advanceCycle.Invoke()
+		if !waitOrCancel(ctx, timer, delayMs) {
+			return
+		}
+	}
+
+	for {
+		tick()
+		advanceCycle.Invoke()
+		if !waitOrCancel(ctx, timer, delayMs) {
+			return
+		}
+
+		tock()
+		advanceCycle.Invoke()
+		if !waitOrCancel(ctx, timer, delayMs) {
+			return
+		}
+	}
+}
+
+func waitOrCancel(ctx context.Context, timer *time.Timer, delayMs int) bool {
+	timer.Reset(time.Duration(delayMs) * time.Millisecond)
+
+	select {
+	case <-timer.C:
+		return true
+	case <-ctx.Done():
+		return false
+	}
+}
+
+func stopSimulationLoop() {
+	if cancelSimulationLoop != nil {
+		cancelSimulationLoop()
+		js.Global().Get("WASM").Get("HardwareSimulator").Get("setSimulationLoopRunning").Invoke(js.ValueOf(false))
+	}
 }
 
 func tick() {
@@ -147,9 +223,30 @@ func tockWrapper() js.Func {
 	return tockFunc
 }
 
+func stopSimulationLoopWrapper() js.Func {
+	stopSimulationLoopFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 0 {
+			return "Invalid no of arguments passed"
+		}
+		go stopSimulationLoop()
+		return nil
+	})
+	return stopSimulationLoopFunc
+}
+
+func startSimulationLoopWrapper() js.Func {
+	startSimulationLoopFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 0 {
+			return "Invalid no of arguments passed"
+		}
+		go startSimulationLoop()
+		return nil
+	})
+	return startSimulationLoopFunc
+}
+
 func getInputPins() map[string][]bool {
-	getInputPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("getInputPins")
-	inputPinsJS := getInputPins.Invoke()
+	inputPinsJS := jsFuncs["getInputPins"].Invoke()
 	inputs := make(map[string][]bool)
 	length := inputPinsJS.Length()
 	for i := 0; i < length; i++ {
@@ -167,9 +264,6 @@ func getInputPins() map[string][]bool {
 }
 
 func setOutputAndInternalPins(outputPins map[string][]bool, internalPins map[string][]bool) {
-	setOutputPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("setOutputPins")
-	setInternalPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("setInternalPins")
-
 	outputPinsJS := js.Global().Get("Array").New()
 	for outputName, outputBits := range outputPins {
 		obj := js.Global().Get("Object").New()
@@ -183,7 +277,7 @@ func setOutputAndInternalPins(outputPins map[string][]bool, internalPins map[str
 
 		outputPinsJS.Call("push", obj)
 	}
-	setOutputPins.Invoke(outputPinsJS)
+	jsFuncs["setOutputPins"].Invoke(outputPinsJS)
 
 	internalPinsJS := js.Global().Get("Array").New()
 	for internalName, internalBits := range internalPins {
@@ -199,7 +293,7 @@ func setOutputAndInternalPins(outputPins map[string][]bool, internalPins map[str
 
 		internalPinsJS.Call("push", obj)
 	}
-	setInternalPins.Invoke(internalPinsJS)
+	jsFuncs["setInternalPins"].Invoke(internalPinsJS)
 }
 
 func JSValueToMap(v js.Value) map[string]string {

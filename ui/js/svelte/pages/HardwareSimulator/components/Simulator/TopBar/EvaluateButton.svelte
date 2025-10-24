@@ -1,10 +1,7 @@
 <script>
   import CalculatorIcon from "../../../../../components/icons/Calculator.svelte";
   import { t } from "../../../../../../utils/i18n/i18n.ts";
-  import {
-    simulationRunning,
-    automaticSimulationRunning,
-  } from "../../../store.ts";
+  import { simulationRunning, simulationLoopRunning } from "../../../store.ts";
 
   async function evaluate() {
     simulationRunning.set(true);
@@ -14,7 +11,7 @@
 </script>
 
 <button
-  disabled={$simulationRunning || $automaticSimulationRunning}
+  disabled={$simulationRunning || $simulationLoopRunning}
   onclick={evaluate}
   class={`
     dark:bg-silver-900 dark:hover:bg-silver-800 bg-white-700 hover:bg-white-900

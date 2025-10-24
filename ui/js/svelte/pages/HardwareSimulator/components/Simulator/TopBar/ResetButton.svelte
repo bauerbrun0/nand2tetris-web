@@ -3,7 +3,7 @@
   import { t } from "../../../../../../utils/i18n/i18n.ts";
   import {
     simulationRunning,
-    automaticSimulationRunning,
+    simulationLoopRunning,
     resetCycle,
   } from "../../../store.ts";
 
@@ -16,7 +16,7 @@
 </script>
 
 <button
-  disabled={$simulationRunning || $automaticSimulationRunning}
+  disabled={$simulationRunning || $simulationLoopRunning}
   onclick={reset}
   class={`
     dark:bg-silver-900 dark:hover:bg-silver-800 bg-white-700 hover:bg-white-900

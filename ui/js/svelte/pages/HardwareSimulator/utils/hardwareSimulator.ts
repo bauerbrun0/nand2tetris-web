@@ -6,6 +6,10 @@ import {
   inputPins,
   outputPins,
   internalPins,
+  simulationSpeed,
+  simulationLoopRunning,
+  advanceCycle,
+  cycleStage,
 } from "../store";
 import type { Pin } from "../types";
 
@@ -32,6 +36,20 @@ export async function loadHardwareSimulator() {
   };
   window.WASM.HardwareSimulator.getInputPins = (): Pin[] => {
     return get(inputPins);
+  };
+  window.WASM.HardwareSimulator.getSimulationDelayMs = (): number => {
+    return get(simulationSpeed).delayMs;
+  };
+  window.WASM.HardwareSimulator.setSimulationLoopRunning = (
+    value: boolean,
+  ): void => {
+    simulationLoopRunning.set(value);
+  };
+  window.WASM.HardwareSimulator.advanceCycle = (): void => {
+    advanceCycle();
+  };
+  window.WASM.HardwareSimulator.getCycleStage = (): "tick" | "tock" => {
+    return get(cycleStage);
   };
 
   const go = new Go();
