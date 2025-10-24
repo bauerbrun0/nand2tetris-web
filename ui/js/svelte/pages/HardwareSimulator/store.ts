@@ -1,5 +1,5 @@
 import { writable, get, type Writable } from "svelte/store";
-import type { HardwareSimulatorError, SimulationSpeed } from "./types";
+import type { HardwareSimulatorError, Pin, SimulationSpeed } from "./types";
 import { simulationSpeeds } from "./utils/simulation";
 
 export const progressWASM = writable("READY");
@@ -82,3 +82,7 @@ export const simulationSpeed = writable<SimulationSpeed>(simulationSpeeds[0]);
 export const automaticSimulationRunning = writable(false);
 
 export const simulationRunning = writable(false);
+
+export const inputPins = writable<Pin[]>([]);
+export const outputPins = writable<Pin[]>([]);
+export const internalPins = writable<Pin[]>([]);

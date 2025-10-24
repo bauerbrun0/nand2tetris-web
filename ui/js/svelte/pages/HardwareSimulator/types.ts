@@ -8,3 +8,8 @@ export type SimulationSpeed = {
   text: string;
   delayMs: number;
 };
+
+export type Pin = {
+  name: string;
+  bits: boolean[];
+};

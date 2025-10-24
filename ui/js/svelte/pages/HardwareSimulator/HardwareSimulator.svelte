@@ -13,11 +13,27 @@
     getLayoutConfig,
   } from "./utils/goldenLayout.ts";
   import { t } from "../../../utils/i18n/i18n.ts";
+  import {
+    hardwareSimulatorError,
+    hdl,
+    inputPins,
+    internalPins,
+    outputPins,
+  } from "./store.ts";
 
   let layoutContainer: HTMLElement;
 
   onMount(() => {
-    loadHardwareSimulator();
+    loadHardwareSimulator().then(() => {
+      hdl.subscribe((_hdl) => {
+        hardwareSimulatorError.set(null);
+        window.WASM.HardwareSimulator.processHdls();
+      });
+
+      inputPins.subscribe(console.log);
+      outputPins.subscribe(console.log);
+      internalPins.subscribe(console.log);
+    });
 
     const layout = new GoldenLayout(layoutContainer);
     registerComponent(layout, "editor", Editor);
