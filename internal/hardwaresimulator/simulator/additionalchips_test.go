@@ -106,7 +106,7 @@ func TestAdditionalChipsSimulation(t *testing.T) {
 			t.Parallel()
 			hs := New()
 			hs.SetChipHDLs(tt.hdls)
-			inputs, outputs, err := hs.Process(tt.chipFileName)
+			inputs, outputs, _, err := hs.Process(tt.chipFileName)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
