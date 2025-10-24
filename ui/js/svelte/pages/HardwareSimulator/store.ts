@@ -2,9 +2,6 @@ import { writable, get, type Writable } from "svelte/store";
 import type { HardwareSimulatorError, Pin, SimulationSpeed } from "./types";
 import { simulationSpeeds } from "./utils/simulation";
 
-export const progressWASM = writable("READY");
-export const progressJS = writable("READY");
-
 export const currentProjectName = writable<string>("First Project");
 
 export const hdls = writable<Record<string, string>>({
@@ -22,6 +19,13 @@ export const hdls = writable<Record<string, string>>({
     PARTS:
     Nand(a = a, b = b, out = aNandB);
     NotChip(in = aNandB, out = out);
+}`,
+  DFFChip: `CHIP DFFChip {
+  IN in;
+  OUT out;
+
+  PARTS:
+  DFF(in = in, out = out);
 }`,
 });
 
@@ -86,3 +90,21 @@ export const simulationRunning = writable(false);
 export const inputPins = writable<Pin[]>([]);
 export const outputPins = writable<Pin[]>([]);
 export const internalPins = writable<Pin[]>([]);
+
+export const cycleCount = writable<number>(0);
+export const cycleStage = writable<"tick" | "tock">("tock");
+
+export function advanceCycle() {
+  const currentStage = get(cycleStage);
+  if (currentStage === "tock") {
+    cycleStage.set("tick");
+  } else {
+    cycleStage.set("tock");
+    cycleCount.update((n) => n + 1);
+  }
+}
+
+export function resetCycle() {
+  cycleCount.set(0);
+  cycleStage.set("tock");
+}

@@ -2,7 +2,6 @@ import { get } from "svelte/store";
 import {
   currentHdlFileName,
   hdls,
-  progressWASM,
   hardwareSimulatorError,
   inputPins,
   outputPins,
@@ -13,9 +12,6 @@ import type { Pin } from "../types";
 export async function loadHardwareSimulator() {
   window.WASM = {} as typeof window.WASM;
   window.WASM.HardwareSimulator = {} as typeof window.WASM.HardwareSimulator;
-  window.WASM.HardwareSimulator.setProgressWASM = (str) => {
-    progressWASM.set(str);
-  };
   window.WASM.HardwareSimulator.getHdls = () => {
     return get(hdls);
   };
@@ -33,6 +29,9 @@ export async function loadHardwareSimulator() {
   };
   window.WASM.HardwareSimulator.setInternalPins = (pins: Pin[]) => {
     internalPins.set(pins);
+  };
+  window.WASM.HardwareSimulator.getInputPins = (): Pin[] => {
+    return get(inputPins);
   };
 
   const go = new Go();

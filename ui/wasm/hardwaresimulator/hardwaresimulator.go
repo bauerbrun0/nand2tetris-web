@@ -3,11 +3,7 @@
 package main
 
 import (
-	"fmt"
-	"math"
-	"strings"
 	"syscall/js"
-	"time"
 
 	"github.com/bauerbrun0/nand2tetris-web/internal/hardwaresimulator/simulator"
 )
@@ -15,19 +11,29 @@ import (
 var hardwareSimulator *simulator.HardwareSimulator
 
 func main() {
-	fmt.Println("Go Web Assembly")
-	js.Global().Get("WASM").Get("HardwareSimulator").Set("startComputing", startComputingWrapper())
 	js.Global().Get("WASM").Get("HardwareSimulator").Set("processHdls", processHdlsWrapper())
+	js.Global().Get("WASM").Get("HardwareSimulator").Set("evaluate", evaluateWrapper())
+	js.Global().Get("WASM").Get("HardwareSimulator").Set("tick", tickWrapper())
+	js.Global().Get("WASM").Get("HardwareSimulator").Set("tock", tockWrapper())
 	<-make(chan struct{})
 }
 
-func sqrt() {
-	sum := 0.0
-	n := 100_000_000
+func tick() {
+	inputs := getInputPins()
+	outputPins, internalPins := hardwareSimulator.Tick(inputs)
+	setOutputAndInternalPins(outputPins, internalPins)
+}
 
-	for i := 1; i <= n; i++ {
-		sum += math.Sqrt(float64(i))
-	}
+func tock() {
+	inputs := getInputPins()
+	outputPins, internalPins := hardwareSimulator.Tock(inputs)
+	setOutputAndInternalPins(outputPins, internalPins)
+}
+
+func evaluate() {
+	inputs := getInputPins()
+	outputPins, internalPins := hardwareSimulator.Evaluate(inputs)
+	setOutputAndInternalPins(outputPins, internalPins)
 }
 
 func processHdls() {
@@ -97,35 +103,6 @@ func processHdls() {
 
 }
 
-func startComputing(n int, delayNS int) {
-	start := time.Now()
-	setProgress := js.Global().Get("WASM").Get("HardwareSimulator").Get("setProgressWASM")
-	setProgress.Invoke("STARTED")
-
-	for i := 1; i <= n; i++ {
-		sqrt()
-		progress := strings.Repeat("#", i)
-		setProgress.Invoke(progress)
-		time.Sleep(time.Duration(delayNS) * time.Nanosecond)
-	}
-
-	elapsed := time.Since(start).Milliseconds()
-	setProgress.Invoke(fmt.Sprintf("Done! Runtime: %d ms", elapsed))
-}
-
-func startComputingWrapper() js.Func {
-	jsonFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
-		if len(args) != 2 {
-			return "Invalid no of arguments passed"
-		}
-		n := args[0].Int()
-		delayNS := args[1].Int()
-		go startComputing(n, delayNS)
-		return nil
-	})
-	return jsonFunc
-}
-
 func processHdlsWrapper() js.Func {
 	processHdlsFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
 		if len(args) != 0 {
@@ -135,6 +112,94 @@ func processHdlsWrapper() js.Func {
 		return nil
 	})
 	return processHdlsFunc
+}
+
+func evaluateWrapper() js.Func {
+	evaluateFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 0 {
+			return "Invalid no of arguments passed"
+		}
+		go evaluate()
+		return nil
+	})
+	return evaluateFunc
+}
+
+func tickWrapper() js.Func {
+	tickFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 0 {
+			return "Invalid no of arguments passed"
+		}
+		go tick()
+		return nil
+	})
+	return tickFunc
+}
+
+func tockWrapper() js.Func {
+	tockFunc := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 0 {
+			return "Invalid no of arguments passed"
+		}
+		go tock()
+		return nil
+	})
+	return tockFunc
+}
+
+func getInputPins() map[string][]bool {
+	getInputPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("getInputPins")
+	inputPinsJS := getInputPins.Invoke()
+	inputs := make(map[string][]bool)
+	length := inputPinsJS.Length()
+	for i := 0; i < length; i++ {
+		pinObj := inputPinsJS.Index(i)
+		pinName := pinObj.Get("name").String()
+		bitsJS := pinObj.Get("bits")
+		bitsLength := bitsJS.Length()
+		bits := make([]bool, bitsLength)
+		for j := 0; j < bitsLength; j++ {
+			bits[j] = bitsJS.Index(j).Bool()
+		}
+		inputs[pinName] = bits
+	}
+	return inputs
+}
+
+func setOutputAndInternalPins(outputPins map[string][]bool, internalPins map[string][]bool) {
+	setOutputPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("setOutputPins")
+	setInternalPins := js.Global().Get("WASM").Get("HardwareSimulator").Get("setInternalPins")
+
+	outputPinsJS := js.Global().Get("Array").New()
+	for outputName, outputBits := range outputPins {
+		obj := js.Global().Get("Object").New()
+		obj.Set("name", outputName)
+
+		goSlice := make([]any, len(outputBits))
+		for i, bit := range outputBits {
+			goSlice[i] = bit
+		}
+		obj.Set("bits", goSlice)
+
+		outputPinsJS.Call("push", obj)
+	}
+	setOutputPins.Invoke(outputPinsJS)
+
+	internalPinsJS := js.Global().Get("Array").New()
+	for internalName, internalBits := range internalPins {
+		obj := js.Global().Get("Object").New()
+		obj.Set("name", internalName)
+
+		goSlice := make([]any, len(internalBits))
+		for i, bit := range internalBits {
+			goSlice[i] = bit
+		}
+
+		obj.Set("bits", goSlice)
+
+		internalPinsJS.Call("push", obj)
+	}
+	setInternalPins.Invoke(internalPinsJS)
 }
 
 func JSValueToMap(v js.Value) map[string]string {

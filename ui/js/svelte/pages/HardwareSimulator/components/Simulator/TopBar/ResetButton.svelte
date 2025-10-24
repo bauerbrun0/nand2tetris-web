@@ -4,12 +4,20 @@
   import {
     simulationRunning,
     automaticSimulationRunning,
+    resetCycle,
   } from "../../../store.ts";
+
+  function reset() {
+    simulationRunning.set(true);
+    window.WASM.HardwareSimulator.processHdls();
+    resetCycle();
+    simulationRunning.set(false);
+  }
 </script>
 
 <button
   disabled={$simulationRunning || $automaticSimulationRunning}
-  onclick={() => console.log("reset clicked")}
+  onclick={reset}
   class={`
     dark:bg-silver-900 dark:hover:bg-silver-800 bg-white-700 hover:bg-white-900
     disabled:dark:hover:bg-silver-900 disabled:hover:bg-white-700 flex h-[44px] cursor-pointer items-center gap-2
