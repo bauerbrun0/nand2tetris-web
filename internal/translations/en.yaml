@@ -180,3 +180,8 @@
 "hardware_simulator_page.project_chips_window_title": "📁 Chips"
 "hardware_simulator_page.editor_window_title": "💻 Editor"
 "hardware_simulator_page.simulator_window_title": "⚙️ Simulator"
+"hardware_simulator_page.evaluate": "Evaluate"
+"hardware_simulator_page.clock": "Clock"
+"hardware_simulator_page.run": "Run"
+"hardware_simulator_page.pause": "Pause"
+"hardware_simulator_page.reset": "Reset"

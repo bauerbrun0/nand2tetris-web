@@ -1,5 +1,6 @@
 import { writable, get, type Writable } from "svelte/store";
-import type { HardwareSimulatorError } from "./types";
+import type { HardwareSimulatorError, SimulationSpeed } from "./types";
+import { simulationSpeeds } from "./utils/simulation";
 
 export const progressWASM = writable("READY");
 export const progressJS = writable("READY");
@@ -75,3 +76,9 @@ export const hardwareSimulatorError = writable<HardwareSimulatorError | null>(
 currentHdlFileName.subscribe(() => {
   hardwareSimulatorError.set(null);
 });
+
+export const simulationSpeed = writable<SimulationSpeed>(simulationSpeeds[0]);
+
+export const automaticSimulationRunning = writable(false);
+
+export const simulationRunning = writable(false);

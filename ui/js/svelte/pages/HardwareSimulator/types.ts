@@ -3,3 +3,8 @@ export type HardwareSimulatorError = {
   column?: number;
   message: string;
 };
+
+export type SimulationSpeed = {
+  text: string;
+  delayMs: number;
+};
