@@ -75,6 +75,13 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	mux.Handle("GET /hardware-simulator", protectedChain.ThenFunc(h.HardwareSimulator))
 
+	mux.Handle("GET /api/projects", protectedChain.ThenFunc(h.Project.HandleGetProjects))
+	mux.Handle("GET /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleGetProject))
+	mux.Handle("GET /api/projects/by-slug/{slug}", protectedChain.ThenFunc(h.Project.HandleGetProjectBySlug))
+	mux.Handle("DELETE /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleDeleteProject))
+	mux.Handle("PATCH /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleUpdateProject))
+	mux.Handle("POST /api/projects", protectedChain.ThenFunc(h.Project.HandleCreateProject))
+
 	commonChain := alice.New(m.RecoverPanic, m.LogRequest, m.CommonHeaders)
 
 	return commonChain.Then(mux)

@@ -30,4 +30,18 @@ type DBQueries interface {
 	GetEmailVerificationRequestByCode(ctx context.Context, code string) (EmailVerificationRequest, error)
 	InvalidateEmailVerificationRequest(ctx context.Context, arg InvalidateEmailVerificationRequestParams) error
 	InvalidateEmailVerificationRequestsOfUser(ctx context.Context, arg InvalidateEmailVerificationRequestsOfUserParams) error
+
+	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	DeleteProject(ctx context.Context, arg DeleteProjectParams) (Project, error)
+	GetPaginatedProjects(ctx context.Context, arg GetPaginatedProjectsParams) ([]Project, error)
+	GetProject(ctx context.Context, arg GetProjectParams) (Project, error)
+	GetProjectBySlug(ctx context.Context, arg GetProjectBySlugParams) (Project, error)
+	GetProjectsCount(ctx context.Context, userID int32) (int64, error)
+	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+
+	CreateChip(ctx context.Context, arg CreateChipParams) (Chip, error)
+	DeleteChip(ctx context.Context, id int32) (Chip, error)
+	GetChipsByProject(ctx context.Context, projectID int32) ([]Chip, error)
+	IsChipOwnedByUser(ctx context.Context, arg IsChipOwnedByUserParams) (bool, error)
+	UpdateChip(ctx context.Context, arg UpdateChipParams) (Chip, error)
 }

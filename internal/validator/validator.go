@@ -61,3 +61,10 @@ func (v *Validator) CheckFieldTag(field any, tag, key, message string) {
 		v.AddFieldError(key, message)
 	}
 }
+
+func (v *Validator) GetFirstFieldError() string {
+	for _, msg := range v.FieldErrors {
+		return msg
+	}
+	return ""
+}
