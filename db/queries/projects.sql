@@ -40,3 +40,9 @@ OFFSET sqlc.arg(pageoffset)::integer;
 -- name: GetProjectsCount :one
 SELECT COUNT(*) AS count FROM projects
 WHERE user_id = $1;
+
+-- name: IsProjectOwnedByUser :one
+SELECT EXISTS (
+    SELECT 1 FROM projects
+    WHERE id = $1 AND user_id = $2
+) AS exists;

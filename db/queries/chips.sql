@@ -5,13 +5,11 @@ INSERT INTO chips (
     $1, $2
 ) RETURNING *;
 
--- name: IsChipOwnedByUser :one
-SELECT EXISTS (
-    SELECT 1
-    FROM chips c
-    JOIN projects p ON c.project_id = p.id
-    WHERE c.id = $1 AND p.user_id = $2
-) AS exists;
+-- name: GetChip :one
+SELECT
+    id, project_id, name, hdl, created, updated
+FROM chips
+WHERE id = $1 AND project_id = $2;
 
 -- name: GetChipsByProject :many
 SELECT

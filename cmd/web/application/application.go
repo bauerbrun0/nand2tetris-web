@@ -34,5 +34,6 @@ type Application struct {
 	GithubOauthService services.OAuthService
 	GoogleOauthService services.OAuthService
 	ProjectService     services.ProjectService
+	ChipService        services.ChipService
 	Bundle             *i18n.Bundle
 }

@@ -38,10 +38,11 @@ type DBQueries interface {
 	GetProjectBySlug(ctx context.Context, arg GetProjectBySlugParams) (Project, error)
 	GetProjectsCount(ctx context.Context, userID int32) (int64, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	IsProjectOwnedByUser(ctx context.Context, arg IsProjectOwnedByUserParams) (bool, error)
 
 	CreateChip(ctx context.Context, arg CreateChipParams) (Chip, error)
 	DeleteChip(ctx context.Context, id int32) (Chip, error)
 	GetChipsByProject(ctx context.Context, projectID int32) ([]Chip, error)
-	IsChipOwnedByUser(ctx context.Context, arg IsChipOwnedByUserParams) (bool, error)
 	UpdateChip(ctx context.Context, arg UpdateChipParams) (Chip, error)
+	GetChip(ctx context.Context, arg GetChipParams) (Chip, error)
 }

@@ -77,10 +77,15 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	mux.Handle("GET /api/projects", protectedChain.ThenFunc(h.Project.HandleGetProjects))
 	mux.Handle("GET /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleGetProject))
-	mux.Handle("GET /api/projects/by-slug/{slug}", protectedChain.ThenFunc(h.Project.HandleGetProjectBySlug))
+	mux.Handle("GET /api/projects/{slug}/by-slug", protectedChain.ThenFunc(h.Project.HandleGetProjectBySlug))
 	mux.Handle("DELETE /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleDeleteProject))
 	mux.Handle("PATCH /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleUpdateProject))
 	mux.Handle("POST /api/projects", protectedChain.ThenFunc(h.Project.HandleCreateProject))
+
+	mux.Handle("POST /api/projects/{projectId}/chips", protectedChain.ThenFunc(h.Chip.HandleCreateChip))
+	mux.Handle("GET /api/projects/{projectId}/chips", protectedChain.ThenFunc(h.Chip.HandleGetChips))
+	mux.Handle("DELETE /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleDeleteChip))
+	mux.Handle("PATCH  /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleUpdateChip))
 
 	commonChain := alice.New(m.RecoverPanic, m.LogRequest, m.CommonHeaders)
 
