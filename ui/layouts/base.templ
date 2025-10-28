@@ -32,6 +32,8 @@ templ head(sveltePage pages.SveltePage) {
 				<link rel="stylesheet" href="/static/js/main-hardware-simulator.css"/>
 				<script defer src="/static/js/wasm_exec.js"></script>
 				<script type="module" defer src="/static/js/main-hardware-simulator.js"></script>
+			case pages.SveltePageProjects:
+				<script type="module" defer src="/static/js/main-projects.js"></script>
 		}
 	</head>
 }

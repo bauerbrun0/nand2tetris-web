@@ -23,6 +23,7 @@ func (h *Handlers) HandleCreateProject(w http.ResponseWriter, r *http.Request) {
 
 	v.CheckFieldTag(createProjectRequest.Title, "required", "title", "title is required")
 	v.CheckFieldTag(createProjectRequest.Title, "max=100", "title", "title must not be more than 100 characters long")
+	v.CheckFieldTag(createProjectRequest.Title, "min=2", "title", "title must be at least 2 characters long")
 	v.CheckFieldTag(createProjectRequest.Description, "max=500", "description", "description must not be more than 500 characters long")
 	if !v.Valid() {
 		h.Application.WriteJSONBadRequestError(w, r, v.GetFirstFieldError())

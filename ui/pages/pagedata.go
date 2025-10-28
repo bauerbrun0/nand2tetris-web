@@ -34,6 +34,7 @@ type SveltePage string
 var (
 	SveltePageNone              = SveltePage("none")
 	SveltePageHardwareSimulator = SveltePage("hardware-simulator")
+	SveltePageProjects          = SveltePage("projects")
 )
 
 type PageData struct {

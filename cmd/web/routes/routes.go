@@ -87,6 +87,8 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 	mux.Handle("DELETE /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleDeleteChip))
 	mux.Handle("PATCH  /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleUpdateChip))
 
+	mux.Handle("GET /projects", protectedChain.ThenFunc(h.Projects))
+
 	commonChain := alice.New(m.RecoverPanic, m.LogRequest, m.CommonHeaders)
 
 	return commonChain.Then(mux)

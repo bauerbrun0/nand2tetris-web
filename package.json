@@ -37,6 +37,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@tanstack/svelte-query": "^6.0.3",
     "alpinejs": "^3.14.9",
     "flowbite": "^3.1.2",
     "golden-layout": "^2.6.0",

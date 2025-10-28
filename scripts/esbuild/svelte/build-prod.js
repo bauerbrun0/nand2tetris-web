@@ -10,6 +10,7 @@ esbuild
   .build({
     entryPoints: {
       "main-hardware-simulator": "./ui/js/entries/main-hardware-simulator.ts",
+      "main-projects": "./ui/js/entries/main-projects.ts",
     },
     bundle: true,
     outdir: `./ui/static/js/`,
