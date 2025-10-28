@@ -73,7 +73,7 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 	mux.Handle("GET /user/oauth/google/callback/link", protectedChain.ThenFunc(h.User.UserLinkGoogleCallback))
 	mux.Handle("GET /user/oauth/github/callback/link", protectedChain.ThenFunc(h.User.UserLinkGithubCallback))
 
-	mux.Handle("GET /hardware-simulator", protectedChain.ThenFunc(h.HardwareSimulator))
+	mux.Handle("GET /projects/{projectSlug}", protectedChain.ThenFunc(h.HardwareSimulator))
 
 	mux.Handle("GET /api/projects", protectedChain.ThenFunc(h.Project.HandleGetProjects))
 	mux.Handle("GET /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleGetProject))
