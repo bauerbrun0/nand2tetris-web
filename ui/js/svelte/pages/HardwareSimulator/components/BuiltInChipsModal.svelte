@@ -21,6 +21,11 @@
       description: "And gate",
     },
     {
+      name: "Or",
+      hdl: "Or(a = ,b = ,out = );",
+      description: "Or gate",
+    },
+    {
       name: "Nand",
       hdl: "Nand(a = ,b = ,out = );",
       description: "Nand gate",
