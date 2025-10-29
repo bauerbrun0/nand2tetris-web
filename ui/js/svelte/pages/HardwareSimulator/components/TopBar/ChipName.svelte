@@ -3,5 +3,6 @@
 </script>
 
 <h1 class="ml-4 font-bold">
-  {$currentProjectName} / {$currentHdlFileName}.hdl
+  {$currentProjectName}
+  {$currentHdlFileName ? ` / ${$currentHdlFileName}.hdl` : ""}
 </h1>

@@ -2,49 +2,33 @@ import { writable, get, type Writable } from "svelte/store";
 import type { HardwareSimulatorError, Pin, SimulationSpeed } from "./types";
 import { simulationSpeeds } from "./utils/simulation";
 
-export const currentProjectName = writable<string>("First Project");
+export const currentProjectName = writable<string>("");
 
-export const hdls = writable<Record<string, string>>({
-  NotChip: `CHIP NotChip {
-    IN in;
-    OUT out;
+export const hdls = writable<Record<string, string>>({});
 
-    PARTS:
-    Nand(a = in, b = in, out = out);
-}`,
-  AndChip: `CHIP AndChip {
-    IN a, b;
-    OUT out;
-
-    PARTS:
-    Nand(a = a, b = b, out = aNandB);
-    NotChip(in = aNandB, out = out);
-}`,
-  DFFChip: `CHIP DFFChip {
-  IN in;
-  OUT out;
-
-  PARTS:
-  DFF(in = in, out = out);
-}`,
-});
-
-const initialCurrentHdlFileName = Object.keys(get(hdls)).sort()[0] || "";
-export const currentHdlFileName = writable<string>(initialCurrentHdlFileName);
+export const currentHdlFileName = writable<string | null>(null);
 
 // Create a writable store that syncs with hdls + currentHdlFileName
-export const hdl: Writable<string> = (() => {
-  const { subscribe, set } = writable("");
+export const hdl: Writable<string | null> = (() => {
+  const { subscribe, set } = writable<string | null>("");
 
   // Keep hdl updated when hdls or currentHdlFileName changes
-  const unsubscribeHdls = hdls.subscribe(($hdls) => {
+  const unsubscribeHdls = hdls.subscribe((hdls) => {
     const currentName = get(currentHdlFileName);
-    set($hdls[currentName] || "");
+    if (currentName === null) {
+      set(null);
+      return;
+    }
+    set(hdls[currentName] || "");
   });
 
-  const unsubscribeCurrent = currentHdlFileName.subscribe(($name) => {
+  const unsubscribeCurrent = currentHdlFileName.subscribe((name) => {
     const currentHdls = get(hdls);
-    set(currentHdls[$name] || "");
+    if (name === null) {
+      set(null);
+      return;
+    }
+    set(currentHdls[name] || "");
   });
 
   return {
@@ -53,6 +37,14 @@ export const hdl: Writable<string> = (() => {
     // When hdl changes, update hdls[currentHdlFileName]
     set(newValue: string) {
       const name = get(currentHdlFileName);
+      if (name === null) {
+        return;
+      }
+
+      if (get(hdls)[name] === undefined) {
+        return;
+      }
+
       hdls.update(($hdls) => ({
         ...$hdls,
         [name]: newValue,
@@ -62,6 +54,9 @@ export const hdl: Writable<string> = (() => {
 
     update(fn: (value: string) => string) {
       const currentValue = get(hdl);
+      if (currentValue === null) {
+        return;
+      }
       const newValue = fn(currentValue);
       hdl.set(newValue);
     },
@@ -77,9 +72,6 @@ export const hdl: Writable<string> = (() => {
 export const hardwareSimulatorError = writable<HardwareSimulatorError | null>(
   null,
 );
-currentHdlFileName.subscribe(() => {
-  hardwareSimulatorError.set(null);
-});
 
 export const simulationSpeed = writable<SimulationSpeed>(simulationSpeeds[0]);
 
@@ -108,3 +100,8 @@ export function resetCycle() {
   cycleCount.set(1);
   cycleStage.set("tick");
 }
+
+export const newChipNameInputFocused = writable<boolean>(false);
+export const newChipNameInputOpen = writable<boolean>(false);
+
+export const rightClickedChipName = writable<string | null>(null);

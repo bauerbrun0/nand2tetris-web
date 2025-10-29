@@ -17,7 +17,7 @@
       "#editor",
       {
         language: "nand2tetris-hdl",
-        value: $hdl,
+        value: $hdl || "",
         tabSize: 4,
         onUpdate: (newValue) => {
           hdl.set(newValue);
@@ -36,6 +36,9 @@
     });
 
     hdl.subscribe((value) => {
+      if (value === null) {
+        return;
+      }
       editor.setOptions({ value });
     });
 
@@ -46,12 +49,12 @@
 <div class="relative h-full">
   <div
     class={`
-    ${$hardwareSimulatorError ? "h-[calc(100%-50px)] max-h-[calc(100%-50px)]" : "h-full max-h-full"}
-    overflow-auto
-    `}
+        ${$hardwareSimulatorError ? "h-[calc(100%-50px)] max-h-[calc(100%-50px)]" : "h-full max-h-full"}
+        overflow-auto
+      `}
   >
     <style id="editor-style"></style>
-    <div id="editor"></div>
+    <div class:hidden={$hdl === null} id="editor"></div>
   </div>
   {#if $hardwareSimulatorError}
     <ErrorBox errorMessage={$hardwareSimulatorError.message} />

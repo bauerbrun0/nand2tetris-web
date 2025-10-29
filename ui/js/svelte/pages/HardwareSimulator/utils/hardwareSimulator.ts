@@ -20,7 +20,7 @@ export async function loadHardwareSimulator() {
     return get(hdls);
   };
   window.WASM.HardwareSimulator.getCurrentHdlFileName = () => {
-    return get(currentHdlFileName);
+    return get(currentHdlFileName) || "";
   };
   window.WASM.HardwareSimulator.setHardwareSimulatorError = (error: string) => {
     hardwareSimulatorError.set({ message: error });

@@ -119,12 +119,13 @@ func (s *chipService) GetChips(projectId int32, userId int32) ([]apidata.Chip, e
 		return nil, err
 	}
 
-	var result []apidata.Chip
+	result := make([]apidata.Chip, 0, len(chips))
 
 	for _, chip := range chips {
 		result = append(result, apidata.Chip{
 			ID:        chip.ID,
 			ProjectID: chip.ProjectID,
+			Hdl:       chip.Hdl.String,
 			Name:      chip.Name,
 			Created:   chip.Created.Time,
 			Updated:   chip.Updated.Time,

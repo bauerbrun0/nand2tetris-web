@@ -1,14 +1,14 @@
 <script lang="ts">
   import PlusIcon from "../../../../components/icons/Plus.svelte";
   import { t } from "../../../../../utils/i18n/i18n";
-  import { currentProjectName } from "../../store";
+  import { currentProjectName, newChipNameInputOpen } from "../../store";
 </script>
 
 <div class="flex items-center justify-between px-4 py-1">
   <span>{$currentProjectName}</span>
   <button
     onclick={() => {
-      console.log("Add new chip clicked");
+      newChipNameInputOpen.set(true);
     }}
     data-tooltip-target="tooltip-add-chip"
     data-tooltip-placement="bottom"

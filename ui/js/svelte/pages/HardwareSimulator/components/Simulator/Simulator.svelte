@@ -3,6 +3,7 @@
     hardwareSimulatorError,
     internalPins,
     outputPins,
+    hdl,
   } from "../../store";
   import InputPins from "./InputPins/InputPins.svelte";
   import OutputPins from "./OutputPins/OutputPins.svelte";
@@ -10,8 +11,10 @@
   import TopBar from "./TopBar/TopBar.svelte";
 </script>
 
-<div class="h-full w-full overflow-auto p-2">
-  {#if !$hardwareSimulatorError}
+<div class="h-full w-full overflow-auto p-3">
+  {#if $hdl === null}
+    <div>Try creating a chip to get started!</div>
+  {:else if !$hardwareSimulatorError}
     <TopBar />
     <InputPins />
     <OutputPins pins={$outputPins} title="Output pins" />

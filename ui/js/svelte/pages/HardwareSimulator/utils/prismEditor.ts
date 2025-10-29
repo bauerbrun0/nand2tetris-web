@@ -15,7 +15,7 @@ import type {
 } from "prism-code-editor/autocomplete";
 
 // extensions
-import { defaultCommands, editHistory } from "prism-code-editor/commands";
+import { defaultCommands } from "prism-code-editor/commands";
 import { cursorPosition } from "prism-code-editor/cursor";
 import { indentGuides } from "prism-code-editor/guides";
 import { highlightBracketPairs } from "prism-code-editor/highlight-brackets";
@@ -63,7 +63,6 @@ export const extensions: EditorExtension[] = [
   matchTags(),
   highlightBracketPairs(),
   cursorPosition(),
-  editHistory(),
   indentGuides(),
   autoComplete({
     filter: fuzzyFilter,
