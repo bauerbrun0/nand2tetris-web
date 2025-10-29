@@ -26,6 +26,11 @@
       description: "Or gate",
     },
     {
+      name: "Not",
+      hdl: "Not(in = ,out = );",
+      description: "Not gate",
+    },
+    {
       name: "Nand",
       hdl: "Nand(a = ,b = ,out = );",
       description: "Nand gate",

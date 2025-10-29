@@ -28,6 +28,14 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 1},
 		},
 	},
+	"Not": {
+		Inputs: map[string]IO{
+			"in": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 1},
+		},
+	},
 	"DFF": {
 		Inputs: map[string]IO{
 			"in": {Width: 1},
