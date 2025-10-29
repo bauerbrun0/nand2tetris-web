@@ -14,7 +14,7 @@
       title="HDL code is saved"
     >
       <CloudIcon classes="h-4 w-4" />
-      <span class="text-sm">Synced</span>
+      <span class="hidden text-sm md:block">Synced</span>
     </div>
   {:else if chipSyncStatus === "unsynced"}
     <div
@@ -22,7 +22,7 @@
       title="HDL code is not saved"
     >
       <CloudOffIcon classes="h-4 w-4" />
-      <span class="text-sm">Unsynced</span>
+      <span class="hidden text-sm md:block">Unsynced</span>
     </div>
   {:else if chipSyncStatus === "syncing"}
     <div
@@ -30,7 +30,7 @@
       title="Saving HDL code..."
     >
       <CloudUploadIcon classes="h-4 w-4 animate-pulse" />
-      <span class="text-sm">Syncing</span>
+      <span class="hidden text-sm md:block">Syncing</span>
     </div>
   {/if}
 </div>

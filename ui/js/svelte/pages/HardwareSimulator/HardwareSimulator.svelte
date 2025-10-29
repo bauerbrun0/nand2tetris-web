@@ -7,6 +7,7 @@
   import Editor from "./components/Editor/Editor.svelte";
   import Simulator from "./components/Simulator/Simulator.svelte";
   import RenameChipModal from "./components/RenameChipModal.svelte";
+  import BuiltInChipsModal from "./components/BuiltInChipsModal.svelte";
   import { loadHardwareSimulator } from "./utils/hardwareSimulator.ts";
   import {
     registerComponent,
@@ -265,4 +266,5 @@
     {deleteChip}
     chip={rightClickedChip}
   />
+  <BuiltInChipsModal id="built-in-chips-modal" />
 </div>
