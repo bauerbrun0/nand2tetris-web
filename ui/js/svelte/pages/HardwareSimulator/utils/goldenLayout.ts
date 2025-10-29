@@ -20,11 +20,36 @@ function getDefaultRootItemConfig({
   projectChipsTitle,
   editorTitle,
   simulatorTitle,
+  windowWidth,
 }: {
   projectChipsTitle: string;
   editorTitle: string;
   simulatorTitle: string;
+  windowWidth?: number;
 }): RootItemConfig {
+  if (windowWidth && windowWidth < 900) {
+    return {
+      type: ItemType.stack,
+      content: [
+        {
+          type: ItemType.component,
+          componentType: "project-chips",
+          title: projectChipsTitle,
+        },
+        {
+          type: ItemType.component,
+          componentType: "editor",
+          title: editorTitle,
+        },
+        {
+          type: ItemType.component,
+          componentType: "simulator",
+          title: simulatorTitle,
+        },
+      ],
+    };
+  }
+
   return {
     type: ItemType.row,
     content: [
@@ -53,6 +78,7 @@ export function getLayoutConfig(options: {
   projectChipsTitle: string;
   editorTitle: string;
   simulatorTitle: string;
+  windowWidth?: number;
 }): LayoutConfig {
   return {
     settings: {

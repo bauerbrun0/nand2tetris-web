@@ -239,6 +239,7 @@
       projectChipsTitle: t(
         "hardware_simulator_page.project_chips_window_title",
       ),
+      windowWidth: window.innerWidth,
     });
     layout.loadLayout(layoutConfig);
 
