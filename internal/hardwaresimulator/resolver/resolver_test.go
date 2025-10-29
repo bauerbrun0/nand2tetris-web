@@ -215,9 +215,9 @@ func TestResolve(t *testing.T) {
 		},
 		{
 			name:         "Circular dependency",
-			chipFileName: "And",
+			chipFileName: "CustomAnd",
 			hdls: map[string]string{
-				"And": `CHIP And {
+				"CustomAnd": `CHIP CustomAnd {
     IN a, b;
     OUT out;
 
@@ -230,10 +230,10 @@ func TestResolve(t *testing.T) {
     OUT out;
 
     PARTS:
-    And(a=in, b=in, out=out);
+    CustomAnd(a=in, b=in, out=out);
 }`,
 			},
-			expectedError: "Resolution error: Circular dependency detected: [And CustomNot And]",
+			expectedError: "Resolution error: Circular dependency detected: [CustomAnd CustomNot CustomAnd]",
 		},
 		{
 			name:         "Non-existent pin in a part",

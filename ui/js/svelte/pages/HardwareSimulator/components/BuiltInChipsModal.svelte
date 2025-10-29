@@ -16,6 +16,11 @@
 
   const builtInChips: BuiltInChip[] = [
     {
+      name: "And",
+      hdl: "And(a = ,b = ,out = );",
+      description: "And gate",
+    },
+    {
       name: "Nand",
       hdl: "Nand(a = ,b = ,out = );",
       description: "Nand gate",
