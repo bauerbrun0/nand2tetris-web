@@ -31,6 +31,11 @@
       description: "Not gate",
     },
     {
+      name: "Xor",
+      hdl: "Xor(a = ,b = ,out = );",
+      description: "Xor gate",
+    },
+    {
       name: "Nand",
       hdl: "Nand(a = ,b = ,out = );",
       description: "Nand gate",

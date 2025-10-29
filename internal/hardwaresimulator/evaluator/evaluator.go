@@ -85,6 +85,11 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		in := node.InputPins["in"].Bits[0].Bit.Value
 		v := !in
 		node.OutputPins["out"].Bits[0].Bit.Value = v
+	case "Xor":
+		a := node.InputPins["a"].Bits[0].Bit.Value
+		b := node.InputPins["b"].Bits[0].Bit.Value
+		v := (a || b) && !(a && b)
+		node.OutputPins["out"].Bits[0].Bit.Value = v
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)
