@@ -90,6 +90,17 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		b := node.InputPins["b"].Bits[0].Bit.Value
 		v := (a || b) && !(a && b)
 		node.OutputPins["out"].Bits[0].Bit.Value = v
+	case "Mux":
+		a := node.InputPins["a"].Bits[0].Bit.Value
+		b := node.InputPins["b"].Bits[0].Bit.Value
+		sel := node.InputPins["sel"].Bits[0].Bit.Value
+		var v bool
+		if sel {
+			v = b
+		} else {
+			v = a
+		}
+		node.OutputPins["out"].Bits[0].Bit.Value = v
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)

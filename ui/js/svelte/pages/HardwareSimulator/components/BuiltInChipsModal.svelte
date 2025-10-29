@@ -41,6 +41,11 @@
       description: "Nand gate",
     },
     {
+      name: "Mux",
+      hdl: "Mux(a = ,b = ,sel = ,out = );",
+      description: "Selects between two inputs",
+    },
+    {
       name: "DFF",
       hdl: "DFF(in = ,out = );",
       description: "Data flip-flop gate",
