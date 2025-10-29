@@ -17,13 +17,18 @@
   const builtInChips: BuiltInChip[] = [
     {
       name: "Nand",
-      hdl: "Nand(a = , b = , out = );",
+      hdl: "Nand(a = ,b = ,out = );",
       description: "Nand gate",
     },
     {
       name: "DFF",
-      hdl: "DFF(in = , out = );",
+      hdl: "DFF(in = ,out = );",
       description: "Data flip-flop gate",
+    },
+    {
+      name: "RAM64",
+      hdl: "RAM64(in = ,load = ,address = ,out = );",
+      description: "64-word RAM",
     },
   ];
 </script>
