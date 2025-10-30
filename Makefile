@@ -127,10 +127,10 @@ db/sqlc:
 	go tool sqlc generate
 
 # migrate db
-db/migrate:
+db/dev/migrate:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" up
 
-db/migrate/down:
+db/dev/migrate/down:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" down
 
 

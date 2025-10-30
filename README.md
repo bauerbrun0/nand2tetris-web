@@ -36,10 +36,11 @@ Start docker compose:
 $ docker compose -f development/docker-compose.yaml up -d
 ```
 
-Run migrations:
+Run migrations on the development database:
 
 ```bash
-$ make db/migrate
+$ make db/dev/migrate
+$ make db/dev/migrate/down
 ```
 
 Generate mock files for testing:
@@ -58,4 +59,10 @@ To attach to the postgres container:
 
 ```bash
 $ docker exec -it development-db sh
+```
+
+Run migrations on the production database:
+
+```bash
+$ ./build/bin/web -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
 ```

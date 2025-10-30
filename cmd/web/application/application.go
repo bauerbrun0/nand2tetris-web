@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Port               int
+	Migrate            bool
 	Env                string
 	Dsn                string
 	BaseUrl            string

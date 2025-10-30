@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/gob"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -23,7 +25,11 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
@@ -45,6 +51,7 @@ func main() {
 
 	var cfg application.Config
 	flag.IntVar(&cfg.Port, "port", port, "HTTP server port")
+	flag.BoolVar(&cfg.Migrate, "migrate", false, "Run database migrations")
 	flag.StringVar(&cfg.Env, "env", os.Getenv("ENV"), "Environment (development|production )")
 	flag.StringVar(&cfg.Dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
 	flag.StringVar(&cfg.BaseUrl, "base-url", os.Getenv("BASE_URL"), "The base URL of the application")
@@ -64,6 +71,36 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
+
+	// Run database migrations if the migrate flag is set
+	if cfg.Migrate {
+		driver, err := postgres.WithInstance(sql.OpenDB(stdlib.GetPoolConnector(pool)), &postgres.Config{})
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		migrator, err := migrate.NewWithDatabaseInstance("file://./db/migrations", "postgres", driver)
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		err = migrator.Up()
+
+		if err != nil && errors.Is(err, migrate.ErrNoChange) {
+			logger.Info("No database migrations to run")
+			os.Exit(0)
+		}
+
+		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		logger.Info("Database migrations ran successfully")
+		os.Exit(0)
+	}
 
 	gob.Register([]pages.Toast{})
 	gob.Register(userhandlers.Action(""))
