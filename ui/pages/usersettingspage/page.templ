@@ -72,7 +72,7 @@ const (
 
 templ Page(data UserSettingsPageData) {
 	@layouts.BaseLayout(data.PageData) {
-		<div class="inner-container-small min-h-full py-6">
+		<div class="inner-container-small flex-1 py-6">
 			<h1 class="text-xl font-bold md:text-2xl">
 				{ ctxi18n.T(ctx, "text.settings") }
 			</h1>

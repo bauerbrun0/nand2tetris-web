@@ -16,7 +16,7 @@ func TestUserLogoutPost(t *testing.T) {
 	defer ts.Close()
 
 	ts.MustLogIn(t, testutils.LoginParams{})
-	result := ts.Get(t, "/")
+	result := ts.Get(t, "/projects")
 	assert.Equal(t, http.StatusOK, result.Status)
 	csrfToken := testutils.ExtractCSRFToken(t, result.Body)
 

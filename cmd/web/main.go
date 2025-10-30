@@ -104,6 +104,9 @@ func main() {
 	githubOauthService := services.NewGitHubOAuthService(cfg.GithubClientId, cfg.GithubClientSecret, cfg.BaseUrl, logger)
 	googleOauthService := services.NewGoogleOAuthService(cfg.GoogleClientId, cfg.GoogleClientSecret, cfg.BaseUrl, logger)
 
+	projectService := services.NewProjectService(logger, ctx, queries, txStarter)
+	chipService := services.NewChipService(logger, ctx, queries, txStarter)
+
 	app := &application.Application{
 		Logger:             logger,
 		Config:             cfg,
@@ -113,6 +116,8 @@ func main() {
 		UserService:        userService,
 		GithubOauthService: githubOauthService,
 		GoogleOauthService: googleOauthService,
+		ProjectService:     projectService,
+		ChipService:        chipService,
 		Bundle:             bundle,
 	}
 

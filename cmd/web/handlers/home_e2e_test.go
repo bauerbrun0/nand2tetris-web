@@ -19,10 +19,10 @@ func TestHome(t *testing.T) {
 		assert.Equal(t, http.StatusOK, result.Status)
 		assert.Contains(t, result.Body, "Login")
 	})
-	t.Run("Can visit the page authenticated", func(t *testing.T) {
+	t.Run("Authenticated user gets redirected", func(t *testing.T) {
 		ts.MustLogIn(t, testutils.LoginParams{})
 		result := ts.Get(t, "/")
-		assert.Equal(t, http.StatusOK, result.Status)
-		assert.Contains(t, result.Body, "walter.white@example.com")
+		assert.Equal(t, http.StatusSeeOther, result.Status)
+		assert.Equal(t, "/projects", result.RedirectUrl.Path)
 	})
 }

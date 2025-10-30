@@ -29,8 +29,11 @@ templ head(sveltePage pages.SveltePage) {
 			case pages.SveltePageNone:
 				<script defer src="/static/js/main.js"></script>
 			case pages.SveltePageHardwareSimulator:
+				<link rel="stylesheet" href="/static/js/main-hardware-simulator.css"/>
 				<script defer src="/static/js/wasm_exec.js"></script>
-				<script defer src="/static/js/main-hardware-simulator.js"></script>
+				<script type="module" defer src="/static/js/main-hardware-simulator.js"></script>
+			case pages.SveltePageProjects:
+				<script type="module" defer src="/static/js/main-projects.js"></script>
 		}
 	</head>
 }
@@ -40,7 +43,7 @@ templ BaseLayout(data pages.PageData) {
 	<html class="">
 		@head(data.SveltePage)
 		<body
-			class="bg-bg dark:bg-bg-dark text-text dark:text-text-dark grid min-h-[calc(100dvh)] grid-rows-[auto_1fr_auto]"
+			class="bg-bg dark:bg-bg-dark text-text dark:text-text-dark flex min-h-[calc(100dvh)] flex-col"
 			x-data={ templ.JSONString(data) }
 			x-init="initialToasts.forEach(t => showToast(t))"
 		>
@@ -48,9 +51,11 @@ templ BaseLayout(data pages.PageData) {
 			if data.SveltePage == pages.SveltePageNone {
 				{ children... }
 			} else {
-				<div id="svelte-app"></div>
+				<div id="svelte-app" class="inner-container flex-1"></div>
 			}
-			@components.Footer(data)
+			if data.ShowFooter {
+				@components.Footer(data)
+			}
 		</body>
 	</html>
 }

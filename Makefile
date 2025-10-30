@@ -14,10 +14,12 @@ dev/templ:
 # run air to detect any go or yaml (translation files)
 # file changes to re-build and re-run the server.
 # also build files in ui/wasm (make build/wasm),
-# since they may import other .go sources
+# since they may import other .go sources,
+# and convert translation files to json and write
+# it to ui/js/translations/ (make build/convert-translations)
 dev/server:
 	go tool github.com/air-verse/air \
-	--build.cmd "go build -o tmp/bin/web ./cmd/web && make build/wasm" \
+	--build.cmd "go build -o tmp/bin/web ./cmd/web && make build/wasm && make build/convert-translations" \
 	--build.bin "tmp/bin/web" \
 	--build.delay "100" \
 	--build.exclude_dir "node_modules,ui/wasm" \
@@ -107,9 +109,12 @@ build/wasm:
 build/web:
 	go build -o build/bin/web ./cmd/web
 
+build/convert-translations:
+	go run ./scripts/converttranslations.go
+
 # build for production
 build/prod:
-	make build/templ build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec wasm/build build/tailwind db/sqlc build/web
+	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec wasm/build build/tailwind db/sqlc build/web
 
 
 ##########

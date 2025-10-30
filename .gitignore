@@ -35,3 +35,6 @@ build/
 
 # tls directory
 tls/
+
+# json translation files which are converted from the internal/translations/ yaml files
+ui/js/translations/

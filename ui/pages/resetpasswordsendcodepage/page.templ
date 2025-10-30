@@ -16,7 +16,7 @@ type ResetPasswordSendCodePageData struct {
 
 templ Page(data ResetPasswordSendCodePageData) {
 	@layouts.BaseLayout(data.PageData) {
-		<div class="inner-container flex min-h-full items-center justify-center">
+		<div class="inner-container flex flex-1 items-center justify-center">
 			<div class="bg-white-500 dark:bg-silver-900 my-10 w-full max-w-sm rounded-lg p-4 sm:p-6 md:my-15 md:p-8">
 				@form(data)
 			</div>

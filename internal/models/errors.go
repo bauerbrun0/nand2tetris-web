@@ -6,6 +6,8 @@ var (
 	ErrDuplicateEmail    = errors.New("db: duplicate email")
 	ErrDuplicateUsername = errors.New("db: duplicate username")
 	ErrUserDoesNotExist  = errors.New("db: user does not exist")
+	ErrProjectTitleTaken = errors.New("db: project title taken")
+	ErrChipNameTaken     = errors.New("db: chip name taken")
 )
 
 const (

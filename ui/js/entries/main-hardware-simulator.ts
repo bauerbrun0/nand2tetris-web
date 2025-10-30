@@ -1,9 +1,9 @@
 import { init } from "./init.ts";
-import HardwareSimulator from "../svelte/pages/HardwareSimulator/HardwareSimulator.svelte";
+import HardwareSimulatorEntry from "../svelte/pages/HardwareSimulator/HardwareSimulatorEntry.svelte";
 import { mount } from "svelte";
 
 init();
 
-mount(HardwareSimulator, {
+mount(HardwareSimulatorEntry, {
   target: document.getElementById("svelte-app") as HTMLElement,
 });

@@ -34,6 +34,7 @@ type SveltePage string
 var (
 	SveltePageNone              = SveltePage("none")
 	SveltePageHardwareSimulator = SveltePage("hardware-simulator")
+	SveltePageProjects          = SveltePage("projects")
 )
 
 type PageData struct {
@@ -44,6 +45,7 @@ type PageData struct {
 	Localizer       *i18n.Localizer `json:"-"`
 	CSRFToken       string          `json:"-"`
 	SveltePage      SveltePage      `json:"-"`
+	ShowFooter      bool            `json:"-"`
 }
 
 func (pd *PageData) T(key string) string {

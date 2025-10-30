@@ -170,3 +170,18 @@
 "email_change_notification_email.subject": "Email updated"
 "email_change_notification_email.title": "Your email address has been changed"
 "email_change_email.message": "We sent you this email to notify you that your account's email address has been changed."
+
+# hardware_simulator_page
+"hardware_simulator_page.title": "Hardware Simulator"
+"hardware_simulator_page.back_to_projects": "Back to Projects"
+"hardware_simulator_page.add_new_chip": "Add Chip"
+"hardware_simulator_page.delete_chip": "Delete"
+"hardware_simulator_page.rename_chip": "Rename"
+"hardware_simulator_page.project_chips_window_title": "📁 Chips"
+"hardware_simulator_page.editor_window_title": "💻 Editor"
+"hardware_simulator_page.simulator_window_title": "⚙️ Simulator"
+"hardware_simulator_page.evaluate": "Evaluate"
+"hardware_simulator_page.clock": "Clock"
+"hardware_simulator_page.run": "Run"
+"hardware_simulator_page.pause": "Pause"
+"hardware_simulator_page.reset": "Reset"
