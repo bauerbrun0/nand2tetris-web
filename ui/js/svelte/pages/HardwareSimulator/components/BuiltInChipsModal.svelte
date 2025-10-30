@@ -101,6 +101,11 @@
       description: "Adds up three bits",
     },
     {
+      name: "Inc16",
+      hdl: "Inc16(in = ,out = );",
+      description: "Sets out to in + 1",
+    },
+    {
       name: "Add16",
       hdl: "Add16(a = ,b = ,out = );",
       description: "Adds up two 16-bit two's complement values",
@@ -119,6 +124,16 @@
       name: "Bit",
       hdl: "Bit(in = ,load = ,out = );",
       description: "1-bit register",
+    },
+    {
+      name: "Register",
+      hdl: "Register(in = ,load = ,out = );",
+      description: "16-bit register",
+    },
+    {
+      name: "PC",
+      hdl: "PC(in = ,load = ,inc = ,reset = ,out = );",
+      description: "Program Counter",
     },
     {
       name: "RAM8",

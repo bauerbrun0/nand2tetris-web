@@ -301,6 +301,16 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		carry := (a && b) || (c && (a != b))
 		node.OutputPins["sum"].Bits[0].Bit.Value = sum
 		node.OutputPins["carry"].Bits[0].Bit.Value = carry
+	case "Inc16":
+		inBits := node.InputPins["in"].Bits
+		carry := true
+		for i := 0; i < 16; i++ {
+			in := inBits[i].Bit.Value
+
+			sum := (in != carry)
+			carry = in && carry
+			node.OutputPins["out"].Bits[i].Bit.Value = sum
+		}
 	case "Add16":
 		aBits := node.InputPins["a"].Bits
 		bBits := node.InputPins["b"].Bits
@@ -330,6 +340,26 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		}
 
 		node.OutputPins["out"].Bits[0].Bit.Value = node.State["out"][0]
+	case "Register":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = make([]bool, 16) // initial state
+		}
+
+		// output the current state
+		for i := 0; i < 16; i++ {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State["out"][i]
+		}
+	case "PC":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = make([]bool, 16) // initial state
+		}
+
+		// output the current state
+		for i := 0; i < 16; i++ {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State["out"][i]
+		}
 	case "RAM8":
 		addressBits := node.InputPins["address"].Bits
 		address := 0
@@ -475,6 +505,52 @@ func (e *Evaluator) commitNode(node *graphbuilder.Node) {
 		}
 
 		node.State["out"][0] = node.InputPins["in"].Bits[0].Bit.Value
+	case "Register":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = make([]bool, 16) // initial state
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		for i := 0; i < 16; i++ {
+			node.State["out"][i] = node.InputPins["in"].Bits[i].Bit.Value
+		}
+	case "PC":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = make([]bool, 16) // initial state
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		inc := node.InputPins["inc"].Bits[0].Bit.Value
+		reset := node.InputPins["reset"].Bits[0].Bit.Value
+
+		if reset {
+			for i := 0; i < 16; i++ {
+				node.State["out"][i] = false
+			}
+			return
+		}
+		if load {
+			for i := 0; i < 16; i++ {
+				node.State["out"][i] = node.InputPins["in"].Bits[i].Bit.Value
+			}
+			return
+		}
+		if inc {
+			carry := true
+			for i := 0; i < 16; i++ {
+				in := node.State["out"][i]
+				sum := (in != carry)
+				carry = in && carry
+				node.State["out"][i] = sum
+			}
+			return
+		}
 	case "RAM8":
 		addressBits := node.InputPins["address"].Bits
 		address := 0

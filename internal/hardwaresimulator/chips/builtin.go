@@ -212,6 +212,34 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 1},
 		},
 	},
+	"Register": {
+		Inputs: map[string]IO{
+			"in":   {Width: 16},
+			"load": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"Inc16": {
+		Inputs: map[string]IO{
+			"in": {Width: 16},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"PC": {
+		Inputs: map[string]IO{
+			"in":    {Width: 16},
+			"load":  {Width: 1},
+			"inc":   {Width: 1},
+			"reset": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
 	"RAM8": {
 		Inputs: map[string]IO{
 			"in":      {Width: 16},
