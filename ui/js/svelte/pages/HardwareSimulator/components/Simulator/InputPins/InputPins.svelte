@@ -6,7 +6,7 @@
 <div class="p-2">
   <h2 class="my-2">Input pins</h2>
   <div class="ml-2 flex flex-col gap-3">
-    {#each $inputPins as input (input.name)}
+    {#each $inputPins.sort( (a, b) => a.name.localeCompare(b.name), ) as input (input.name)}
       <InputPin pin={input} />
     {/each}
   </div>

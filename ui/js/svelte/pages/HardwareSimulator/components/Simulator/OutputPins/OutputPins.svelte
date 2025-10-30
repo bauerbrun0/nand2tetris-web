@@ -9,7 +9,7 @@
 <div class="p-2">
   <h2 class="my-2">{title}</h2>
   <div class="ml-2 flex flex-col gap-3">
-    {#each pins as output (output.name)}
+    {#each pins.sort( (a, b) => a.name.localeCompare(b.name), ) as output (output.name)}
       <OutputPin pin={output} />
     {/each}
   </div>
