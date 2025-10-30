@@ -203,6 +203,87 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 			result = result || in
 		}
 		node.OutputPins["out"].Bits[0].Bit.Value = result
+	case "Mux16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+		sel := node.InputPins["sel"].Bits[0].Bit.Value
+
+		for i := 0; i < 16; i++ {
+			var v bool
+			if sel {
+				v = bBits[i].Bit.Value
+			} else {
+				v = aBits[i].Bit.Value
+			}
+			node.OutputPins["out"].Bits[i].Bit.Value = v
+		}
+	case "Mux4Way16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+		cBits := node.InputPins["c"].Bits
+		dBits := node.InputPins["d"].Bits
+		selBits := node.InputPins["sel"].Bits
+		address := 0
+		for i, bit := range selBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		for i := 0; i < 16; i++ {
+			var v bool
+			switch address {
+			case 0:
+				v = aBits[i].Bit.Value
+			case 1:
+				v = bBits[i].Bit.Value
+			case 2:
+				v = cBits[i].Bit.Value
+			case 3:
+				v = dBits[i].Bit.Value
+			}
+			node.OutputPins["out"].Bits[i].Bit.Value = v
+		}
+	case "Mux8Way16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+		cBits := node.InputPins["c"].Bits
+		dBits := node.InputPins["d"].Bits
+		eBits := node.InputPins["e"].Bits
+		fBits := node.InputPins["f"].Bits
+		gBits := node.InputPins["g"].Bits
+		hBits := node.InputPins["h"].Bits
+		selBits := node.InputPins["sel"].Bits
+
+		address := 0
+		for i, bit := range selBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		for i := 0; i < 16; i++ {
+			var v bool
+			switch address {
+			case 0:
+				v = aBits[i].Bit.Value
+			case 1:
+				v = bBits[i].Bit.Value
+			case 2:
+				v = cBits[i].Bit.Value
+			case 3:
+				v = dBits[i].Bit.Value
+			case 4:
+				v = eBits[i].Bit.Value
+			case 5:
+				v = fBits[i].Bit.Value
+			case 6:
+				v = gBits[i].Bit.Value
+			case 7:
+				v = hBits[i].Bit.Value
+			}
+			node.OutputPins["out"].Bits[i].Bit.Value = v
+		}
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)

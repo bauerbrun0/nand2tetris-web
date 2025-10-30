@@ -76,6 +76,21 @@
       description: "8-way Or",
     },
     {
+      name: "Mux16",
+      hdl: "Mux16(a = ,b = ,sel = ,out = );",
+      description: "Selects between two 16-bit inputs",
+    },
+    {
+      name: "Mux4Way16",
+      hdl: "Mux4Way16(a = ,b = ,c = ,d = ,sel = ,out = );",
+      description: "Selects between four 16-bit inputs",
+    },
+    {
+      name: "Mux8Way16",
+      hdl: "Mux8Way16(a = ,b = ,c = ,d = ,e = ,f = ,g = ,h = ,sel = ,out = );",
+      description: "Selects between eight 16-bit inputs",
+    },
+    {
       name: "Not16",
       hdl: "Not16(in = ,out = );",
       description: "16-bit Not",
