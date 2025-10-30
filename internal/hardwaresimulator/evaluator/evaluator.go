@@ -111,6 +111,68 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 			node.OutputPins["a"].Bits[0].Bit.Value = in
 			node.OutputPins["b"].Bits[0].Bit.Value = false
 		}
+	case "DMux4Way":
+		in := node.InputPins["in"].Bits[0].Bit.Value
+		sel := node.InputPins["sel"].Bits
+		address := 0
+		for i, bit := range sel {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		node.OutputPins["a"].Bits[0].Bit.Value = false
+		node.OutputPins["b"].Bits[0].Bit.Value = false
+		node.OutputPins["c"].Bits[0].Bit.Value = false
+		node.OutputPins["d"].Bits[0].Bit.Value = false
+
+		switch address {
+		case 0:
+			node.OutputPins["a"].Bits[0].Bit.Value = in
+		case 1:
+			node.OutputPins["b"].Bits[0].Bit.Value = in
+		case 2:
+			node.OutputPins["c"].Bits[0].Bit.Value = in
+		case 3:
+			node.OutputPins["d"].Bits[0].Bit.Value = in
+		}
+	case "DMux8Way":
+		in := node.InputPins["in"].Bits[0].Bit.Value
+		sel := node.InputPins["sel"].Bits
+		address := 0
+		for i, bit := range sel {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		node.OutputPins["a"].Bits[0].Bit.Value = false
+		node.OutputPins["b"].Bits[0].Bit.Value = false
+		node.OutputPins["c"].Bits[0].Bit.Value = false
+		node.OutputPins["d"].Bits[0].Bit.Value = false
+		node.OutputPins["e"].Bits[0].Bit.Value = false
+		node.OutputPins["f"].Bits[0].Bit.Value = false
+		node.OutputPins["g"].Bits[0].Bit.Value = false
+		node.OutputPins["h"].Bits[0].Bit.Value = false
+
+		switch address {
+		case 0:
+			node.OutputPins["a"].Bits[0].Bit.Value = in
+		case 1:
+			node.OutputPins["b"].Bits[0].Bit.Value = in
+		case 2:
+			node.OutputPins["c"].Bits[0].Bit.Value = in
+		case 3:
+			node.OutputPins["d"].Bits[0].Bit.Value = in
+		case 4:
+			node.OutputPins["e"].Bits[0].Bit.Value = in
+		case 5:
+			node.OutputPins["f"].Bits[0].Bit.Value = in
+		case 6:
+			node.OutputPins["g"].Bits[0].Bit.Value = in
+		case 7:
+			node.OutputPins["h"].Bits[0].Bit.Value = in
+		}
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)

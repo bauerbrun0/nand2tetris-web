@@ -65,6 +65,34 @@ var BuiltInChips = map[string]Chip{
 			"b": {Width: 1},
 		},
 	},
+	"DMux4Way": {
+		Inputs: map[string]IO{
+			"in":  {Width: 1},
+			"sel": {Width: 2},
+		},
+		Outputs: map[string]IO{
+			"a": {Width: 1},
+			"b": {Width: 1},
+			"c": {Width: 1},
+			"d": {Width: 1},
+		},
+	},
+	"DMux8Way": {
+		Inputs: map[string]IO{
+			"in":  {Width: 1},
+			"sel": {Width: 3},
+		},
+		Outputs: map[string]IO{
+			"a": {Width: 1},
+			"b": {Width: 1},
+			"c": {Width: 1},
+			"d": {Width: 1},
+			"e": {Width: 1},
+			"f": {Width: 1},
+			"g": {Width: 1},
+			"h": {Width: 1},
+		},
+	},
 	"DFF": {
 		Inputs: map[string]IO{
 			"in": {Width: 1},

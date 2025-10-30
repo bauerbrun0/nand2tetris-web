@@ -51,6 +51,16 @@
       description: "Routes the input to one of two outputs",
     },
     {
+      name: "DMux4Way",
+      hdl: "DMux4Way(in = ,sel = ,a = ,b = ,c = ,d = );",
+      description: "Routes the input to one of four outputs",
+    },
+    {
+      name: "DMux8Way",
+      hdl: "DMux8Way(in = ,sel = ,a = ,b = ,c = ,d = ,e = ,f = ,g = ,h = );",
+      description: "Routes the input to one of eight outputs",
+    },
+    {
       name: "DFF",
       hdl: "DFF(in = ,out = );",
       description: "Data flip-flop gate",
