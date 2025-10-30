@@ -16,6 +16,16 @@
 
   const builtInChips: BuiltInChip[] = [
     {
+      name: "Nand",
+      hdl: "Nand(a = ,b = ,out = );",
+      description: "Nand gate",
+    },
+    {
+      name: "Not",
+      hdl: "Not(in = ,out = );",
+      description: "Not gate",
+    },
+    {
       name: "And",
       hdl: "And(a = ,b = ,out = );",
       description: "And gate",
@@ -26,19 +36,9 @@
       description: "Or gate",
     },
     {
-      name: "Not",
-      hdl: "Not(in = ,out = );",
-      description: "Not gate",
-    },
-    {
       name: "Xor",
       hdl: "Xor(a = ,b = ,out = );",
       description: "Xor gate",
-    },
-    {
-      name: "Nand",
-      hdl: "Nand(a = ,b = ,out = );",
-      description: "Nand gate",
     },
     {
       name: "Mux",
@@ -51,14 +51,9 @@
       description: "Routes the input to one of two outputs",
     },
     {
-      name: "DMux4Way",
-      hdl: "DMux4Way(in = ,sel = ,a = ,b = ,c = ,d = );",
-      description: "Routes the input to one of four outputs",
-    },
-    {
-      name: "DMux8Way",
-      hdl: "DMux8Way(in = ,sel = ,a = ,b = ,c = ,d = ,e = ,f = ,g = ,h = );",
-      description: "Routes the input to one of eight outputs",
+      name: "Not16",
+      hdl: "Not16(in = ,out = );",
+      description: "16-bit Not",
     },
     {
       name: "And16",
@@ -71,14 +66,14 @@
       description: "16-bit Or",
     },
     {
-      name: "Or8Way",
-      hdl: "Or8Way(in = ,out = );",
-      description: "8-way Or",
-    },
-    {
       name: "Mux16",
       hdl: "Mux16(a = ,b = ,sel = ,out = );",
       description: "Selects between two 16-bit inputs",
+    },
+    {
+      name: "Or8Way",
+      hdl: "Or8Way(in = ,out = );",
+      description: "8-way Or",
     },
     {
       name: "Mux4Way16",
@@ -91,6 +86,16 @@
       description: "Selects between eight 16-bit inputs",
     },
     {
+      name: "DMux4Way",
+      hdl: "DMux4Way(in = ,sel = ,a = ,b = ,c = ,d = );",
+      description: "Routes the input to one of four outputs",
+    },
+    {
+      name: "DMux8Way",
+      hdl: "DMux8Way(in = ,sel = ,a = ,b = ,c = ,d = ,e = ,f = ,g = ,h = );",
+      description: "Routes the input to one of eight outputs",
+    },
+    {
       name: "HalfAdder",
       hdl: "HalfAdder(a = ,b = ,sum = ,carry = );",
       description: "Adds up two bits",
@@ -101,19 +106,14 @@
       description: "Adds up three bits",
     },
     {
-      name: "Inc16",
-      hdl: "Inc16(in = ,out = );",
-      description: "Sets out to in + 1",
-    },
-    {
       name: "Add16",
       hdl: "Add16(a = ,b = ,out = );",
       description: "Adds up two 16-bit two's complement values",
     },
     {
-      name: "Not16",
-      hdl: "Not16(in = ,out = );",
-      description: "16-bit Not",
+      name: "Inc16",
+      hdl: "Inc16(in = ,out = );",
+      description: "Sets out to in + 1",
     },
     {
       name: "DFF",
@@ -129,11 +129,6 @@
       name: "Register",
       hdl: "Register(in = ,load = ,out = );",
       description: "16-bit register",
-    },
-    {
-      name: "PC",
-      hdl: "PC(in = ,load = ,inc = ,reset = ,out = );",
-      description: "Program Counter",
     },
     {
       name: "RAM8",
