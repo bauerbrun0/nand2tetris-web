@@ -212,11 +212,51 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 1},
 		},
 	},
+	"RAM8": {
+		Inputs: map[string]IO{
+			"in":      {Width: 16},
+			"load":    {Width: 1},
+			"address": {Width: 3},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
 	"RAM64": {
 		Inputs: map[string]IO{
 			"in":      {Width: 16},
 			"load":    {Width: 1},
 			"address": {Width: 6},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"RAM512": {
+		Inputs: map[string]IO{
+			"in":      {Width: 16},
+			"load":    {Width: 1},
+			"address": {Width: 9},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"RAM4K": {
+		Inputs: map[string]IO{
+			"in":      {Width: 16},
+			"load":    {Width: 1},
+			"address": {Width: 12},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"RAM16K": {
+		Inputs: map[string]IO{
+			"in":      {Width: 16},
+			"load":    {Width: 1},
+			"address": {Width: 14},
 		},
 		Outputs: map[string]IO{
 			"out": {Width: 16},

@@ -330,6 +330,28 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		}
 
 		node.OutputPins["out"].Bits[0].Bit.Value = node.State["out"][0]
+	case "RAM8":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		// initialize state if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 8 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// output the value at the given address
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State[outKey][i]
+		}
 	case "RAM64":
 		addressBits := node.InputPins["address"].Bits
 		address := 0
@@ -343,6 +365,72 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		if node.State == nil {
 			node.State = make(map[string][]bool)
 			for i := range 64 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// output the value at the given address
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State[outKey][i]
+		}
+	case "RAM512":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		// initialize state if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 512 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// output the value at the given address
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State[outKey][i]
+		}
+	case "RAM4K":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		// initialize state if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 4096 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// output the value at the given address
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.OutputPins["out"].Bits[i].Bit.Value = node.State[outKey][i]
+		}
+	case "RAM16K":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		// initialize state if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 16384 {
 				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
 			}
 		}
@@ -387,6 +475,33 @@ func (e *Evaluator) commitNode(node *graphbuilder.Node) {
 		}
 
 		node.State["out"][0] = node.InputPins["in"].Bits[0].Bit.Value
+	case "RAM8":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		// create state maps if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 8 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// store the input value into the addressed memory location
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.State[outKey][i] = node.InputPins["in"].Bits[i].Bit.Value
+		}
 	case "RAM64":
 		addressBits := node.InputPins["address"].Bits
 		address := 0
@@ -405,6 +520,87 @@ func (e *Evaluator) commitNode(node *graphbuilder.Node) {
 		if node.State == nil {
 			node.State = make(map[string][]bool)
 			for i := range 64 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// store the input value into the addressed memory location
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.State[outKey][i] = node.InputPins["in"].Bits[i].Bit.Value
+		}
+	case "RAM512":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		// create state maps if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 512 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// store the input value into the addressed memory location
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.State[outKey][i] = node.InputPins["in"].Bits[i].Bit.Value
+		}
+	case "RAM4K":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		// create state maps if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 4096 {
+				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
+			}
+		}
+
+		// store the input value into the addressed memory location
+		outKey := fmt.Sprintf("out_%d", address)
+		for i := range 16 {
+			node.State[outKey][i] = node.InputPins["in"].Bits[i].Bit.Value
+		}
+	case "RAM16K":
+		addressBits := node.InputPins["address"].Bits
+		address := 0
+		for i, bit := range addressBits {
+			if bit.Bit.Value {
+				address |= (1 << i)
+			}
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
+		// create state maps if not exist
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			for i := range 16384 {
 				node.State[fmt.Sprintf("out_%d", i)] = make([]bool, 16)
 			}
 		}

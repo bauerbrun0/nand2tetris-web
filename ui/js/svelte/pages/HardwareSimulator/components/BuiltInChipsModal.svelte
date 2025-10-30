@@ -121,9 +121,39 @@
       description: "1-bit register",
     },
     {
+      name: "RAM8",
+      hdl: "RAM8(in = ,load = ,address = ,out = );",
+      description: "8-word RAM",
+    },
+    {
       name: "RAM64",
       hdl: "RAM64(in = ,load = ,address = ,out = );",
       description: "64-word RAM",
+    },
+    {
+      name: "RAM512",
+      hdl: "RAM512(in = ,load = ,address = ,out = );",
+      description: "512-word RAM",
+    },
+    {
+      name: "RAM4K",
+      hdl: "RAM4K(in = ,load = ,address = ,out = );",
+      description: "4K RAM",
+    },
+    {
+      name: "RAM16K",
+      hdl: "RAM16K(in = ,load = ,address = ,out = );",
+      description: "16K RAM",
+    },
+    {
+      name: "RAM16K",
+      hdl: "RAM16K(in = ,load = ,address = ,out = );",
+      description: "16K-word RAM",
+    },
+    {
+      name: "PC",
+      hdl: "PC(in = ,load = ,inc = ,reset = ,out = );",
+      description: "Program Counter",
     },
   ];
 </script>
