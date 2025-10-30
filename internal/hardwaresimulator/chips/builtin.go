@@ -93,6 +93,32 @@ var BuiltInChips = map[string]Chip{
 			"h": {Width: 1},
 		},
 	},
+	"And16": {
+		Inputs: map[string]IO{
+			"a": {Width: 16},
+			"b": {Width: 16},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"Or16": {
+		Inputs: map[string]IO{
+			"a": {Width: 16},
+			"b": {Width: 16},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
+	"Not16": {
+		Inputs: map[string]IO{
+			"in": {Width: 16},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
 	"DFF": {
 		Inputs: map[string]IO{
 			"in": {Width: 1},

@@ -61,6 +61,21 @@
       description: "Routes the input to one of eight outputs",
     },
     {
+      name: "And16",
+      hdl: "And16(a = ,b = ,out = );",
+      description: "16-bit And",
+    },
+    {
+      name: "Or16",
+      hdl: "Or16(a = ,b = ,out = );",
+      description: "16-bit Or",
+    },
+    {
+      name: "Not16",
+      hdl: "Not16(in = ,out = );",
+      description: "16-bit Not",
+    },
+    {
       name: "DFF",
       hdl: "DFF(in = ,out = );",
       description: "Data flip-flop gate",

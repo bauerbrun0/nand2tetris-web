@@ -173,6 +173,28 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 		case 7:
 			node.OutputPins["h"].Bits[0].Bit.Value = in
 		}
+	case "And16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+		for i := 0; i < 16; i++ {
+			a := aBits[i].Bit.Value
+			b := bBits[i].Bit.Value
+			node.OutputPins["out"].Bits[i].Bit.Value = a && b
+		}
+	case "Or16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+		for i := 0; i < 16; i++ {
+			a := aBits[i].Bit.Value
+			b := bBits[i].Bit.Value
+			node.OutputPins["out"].Bits[i].Bit.Value = a || b
+		}
+	case "Not16":
+		inBits := node.InputPins["in"].Bits
+		for i := 0; i < 16; i++ {
+			in := inBits[i].Bit.Value
+			node.OutputPins["out"].Bits[i].Bit.Value = !in
+		}
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)
