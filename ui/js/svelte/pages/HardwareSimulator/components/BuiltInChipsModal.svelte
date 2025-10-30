@@ -71,6 +71,11 @@
       description: "16-bit Or",
     },
     {
+      name: "Or8Way",
+      hdl: "Or8Way(in = ,out = );",
+      description: "8-way Or",
+    },
+    {
       name: "Not16",
       hdl: "Not16(in = ,out = );",
       description: "16-bit Not",

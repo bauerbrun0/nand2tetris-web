@@ -195,6 +195,14 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 			in := inBits[i].Bit.Value
 			node.OutputPins["out"].Bits[i].Bit.Value = !in
 		}
+	case "Or8Way":
+		inBits := node.InputPins["in"].Bits
+		result := false
+		for i := 0; i < 8; i++ {
+			in := inBits[i].Bit.Value
+			result = result || in
+		}
+		node.OutputPins["out"].Bits[0].Bit.Value = result
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)

@@ -119,6 +119,14 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 16},
 		},
 	},
+	"Or8Way": {
+		Inputs: map[string]IO{
+			"in": {Width: 8},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 1},
+		},
+	},
 	"DFF": {
 		Inputs: map[string]IO{
 			"in": {Width: 1},
