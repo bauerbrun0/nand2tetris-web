@@ -284,6 +284,37 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 			}
 			node.OutputPins["out"].Bits[i].Bit.Value = v
 		}
+	case "HalfAdder":
+		a := node.InputPins["a"].Bits[0].Bit.Value
+		b := node.InputPins["b"].Bits[0].Bit.Value
+
+		sum := a != b
+		carry := a && b
+		node.OutputPins["sum"].Bits[0].Bit.Value = sum
+		node.OutputPins["carry"].Bits[0].Bit.Value = carry
+	case "FullAdder":
+		a := node.InputPins["a"].Bits[0].Bit.Value
+		b := node.InputPins["b"].Bits[0].Bit.Value
+		c := node.InputPins["c"].Bits[0].Bit.Value
+
+		sum := (a != b) != c
+		carry := (a && b) || (c && (a != b))
+		node.OutputPins["sum"].Bits[0].Bit.Value = sum
+		node.OutputPins["carry"].Bits[0].Bit.Value = carry
+	case "Add16":
+		aBits := node.InputPins["a"].Bits
+		bBits := node.InputPins["b"].Bits
+
+		carry := false
+		for i := 0; i < 16; i++ {
+			a := aBits[i].Bit.Value
+			b := bBits[i].Bit.Value
+
+			sum := (a != b) != carry
+			carry = (a && b) || (carry && (a != b))
+
+			node.OutputPins["out"].Bits[i].Bit.Value = sum
+		}
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)

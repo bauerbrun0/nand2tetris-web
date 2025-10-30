@@ -91,6 +91,21 @@
       description: "Selects between eight 16-bit inputs",
     },
     {
+      name: "HalfAdder",
+      hdl: "HalfAdder(a = ,b = ,sum = ,carry = );",
+      description: "Adds up two bits",
+    },
+    {
+      name: "FullAdder",
+      hdl: "FullAdder(a = ,b = ,c = ,sum = ,carry = );",
+      description: "Adds up three bits",
+    },
+    {
+      name: "Add16",
+      hdl: "Add16(a = ,b = ,out = );",
+      description: "Adds up two 16-bit two's complement values",
+    },
+    {
       name: "Not16",
       hdl: "Not16(in = ,out = );",
       description: "16-bit Not",

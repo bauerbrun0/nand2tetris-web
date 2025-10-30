@@ -165,6 +165,36 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 16},
 		},
 	},
+	"HalfAdder": {
+		Inputs: map[string]IO{
+			"a": {Width: 1},
+			"b": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"sum":   {Width: 1},
+			"carry": {Width: 1},
+		},
+	},
+	"FullAdder": {
+		Inputs: map[string]IO{
+			"a": {Width: 1},
+			"b": {Width: 1},
+			"c": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"sum":   {Width: 1},
+			"carry": {Width: 1},
+		},
+	},
+	"Add16": {
+		Inputs: map[string]IO{
+			"a": {Width: 16},
+			"b": {Width: 16},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 16},
+		},
+	},
 	"DFF": {
 		Inputs: map[string]IO{
 			"in": {Width: 1},
