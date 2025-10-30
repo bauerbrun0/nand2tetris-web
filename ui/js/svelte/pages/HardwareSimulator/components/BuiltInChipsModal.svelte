@@ -46,6 +46,11 @@
       description: "Selects between two inputs",
     },
     {
+      name: "DMux",
+      hdl: "DMux(in = ,sel = ,a = ,b = );",
+      description: "Routes the input to one of two outputs",
+    },
+    {
       name: "DFF",
       hdl: "DFF(in = ,out = );",
       description: "Data flip-flop gate",

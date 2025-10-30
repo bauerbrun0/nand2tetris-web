@@ -101,6 +101,16 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 			v = a
 		}
 		node.OutputPins["out"].Bits[0].Bit.Value = v
+	case "DMux":
+		in := node.InputPins["in"].Bits[0].Bit.Value
+		sel := node.InputPins["sel"].Bits[0].Bit.Value
+		if sel {
+			node.OutputPins["b"].Bits[0].Bit.Value = in
+			node.OutputPins["a"].Bits[0].Bit.Value = false
+		} else {
+			node.OutputPins["a"].Bits[0].Bit.Value = in
+			node.OutputPins["b"].Bits[0].Bit.Value = false
+		}
 	case "DFF":
 		if node.State == nil {
 			node.State = make(map[string][]bool)
