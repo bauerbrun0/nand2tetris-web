@@ -20,6 +20,7 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
+	"github.com/bauerbrun0/nand2tetris-web/db"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
@@ -28,6 +29,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
@@ -80,7 +82,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		migrator, err := migrate.NewWithDatabaseInstance("file://./db/migrations", "postgres", driver)
+		source, err := iofs.New(db.MigrationFiles, "migrations")
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		migrator, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
 		if err != nil {
 			logger.Error(err.Error())
 			os.Exit(1)

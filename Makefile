@@ -107,7 +107,7 @@ build/wasm:
 
 # build go web server for production
 build/web:
-	go build -o build/bin/web ./cmd/web
+	go build -o bin/web ./cmd/web
 
 build/convert-translations:
 	go run ./scripts/converttranslations.go

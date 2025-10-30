@@ -64,5 +64,5 @@ $ docker exec -it development-db sh
 Run migrations on the production database:
 
 ```bash
-$ ./build/bin/web -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
+$ ./bin/web -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
 ```
