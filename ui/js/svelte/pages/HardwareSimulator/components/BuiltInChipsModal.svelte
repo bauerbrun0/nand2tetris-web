@@ -116,6 +116,11 @@
       description: "Data flip-flop gate",
     },
     {
+      name: "Bit",
+      hdl: "Bit(in = ,load = ,out = );",
+      description: "1-bit register",
+    },
+    {
       name: "RAM64",
       hdl: "RAM64(in = ,load = ,address = ,out = );",
       description: "64-word RAM",

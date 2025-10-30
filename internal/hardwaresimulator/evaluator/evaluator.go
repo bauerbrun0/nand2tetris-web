@@ -323,6 +323,13 @@ func (e *Evaluator) evaluateNode(node *graphbuilder.Node) {
 
 		// DFF logic: output the current state
 		node.OutputPins["out"].Bits[0].Bit.Value = node.State["out"][0]
+	case "Bit":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = []bool{false} // initial state
+		}
+
+		node.OutputPins["out"].Bits[0].Bit.Value = node.State["out"][0]
 	case "RAM64":
 		addressBits := node.InputPins["address"].Bits
 		address := 0
@@ -367,6 +374,18 @@ func (e *Evaluator) commitNode(node *graphbuilder.Node) {
 		}
 
 		// DFF logic: store the input value into state
+		node.State["out"][0] = node.InputPins["in"].Bits[0].Bit.Value
+	case "Bit":
+		if node.State == nil {
+			node.State = make(map[string][]bool)
+			node.State["out"] = []bool{false} // initial state
+		}
+
+		load := node.InputPins["load"].Bits[0].Bit.Value
+		if !load {
+			return // do not store if load is false
+		}
+
 		node.State["out"][0] = node.InputPins["in"].Bits[0].Bit.Value
 	case "RAM64":
 		addressBits := node.InputPins["address"].Bits

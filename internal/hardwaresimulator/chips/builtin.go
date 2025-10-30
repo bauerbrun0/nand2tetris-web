@@ -203,6 +203,15 @@ var BuiltInChips = map[string]Chip{
 			"out": {Width: 1},
 		},
 	},
+	"Bit": {
+		Inputs: map[string]IO{
+			"in":   {Width: 1},
+			"load": {Width: 1},
+		},
+		Outputs: map[string]IO{
+			"out": {Width: 1},
+		},
+	},
 	"RAM64": {
 		Inputs: map[string]IO{
 			"in":      {Width: 16},
@@ -222,6 +231,8 @@ func IsSequentialBit(chipName string, signalName string, bitIndex int) bool {
 
 	switch chipName {
 	case "DFF":
+		return signalName == "out" && bitIndex == 0
+	case "Bit":
 		return signalName == "out" && bitIndex == 0
 	case "RAM64":
 		return signalName == "out" && bitIndex >= 0 && bitIndex < 16
