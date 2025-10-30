@@ -178,10 +178,12 @@
         <CloseModalButton modalId={id} />
       </div>
       <div>
-        <p>
+        <p class="w-full md:w-3/4">
           These are the built-in chips currently available in the Hardware
-          Simulator. You can use these chips in your HDL designs without needing
-          to define them yourself.
+          Simulator. You can use them in your HDL designs without needing to
+          implement them yourself. Note that the following chips from the
+          Nand2Tetris course are not implemented: ALU, CPU, ARegister,
+          DRegister, Memory, ROM32K, Screen and Keyboard.
         </p>
         <div class="mt-4 max-h-[70vh] space-y-6 overflow-y-auto">
           {#each builtInChips as chip (chip.name)}
