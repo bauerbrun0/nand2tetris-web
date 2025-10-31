@@ -34,16 +34,24 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/n2t-web:${{ github.sha }}
           platforms: linux/amd64
 
-      - name: Set up SSH port forwarding for DB migrations
-        uses: selfagency/ssh-port-forward-action@v1.0.5
-        with:
-          ssh-key: ${{ secrets.DB_MIGRATOR_SSH_KEY }}
-          ssh-host: ${{ secrets.DB_MIGRATOR_SSH_HOST }}
-          ssh-port: ${{ secrets.DB_MIGRATOR_SSH_PORT }}
-          ssh-user: ${{ secrets.DB_MIGRATOR_SSH_USER }}
-          local-port: 5432
-          remote-host: localhost
-          remote-port: 5432
+      - name: Set up SSH key for tunnel
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.DB_MIGRATOR_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          touch ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.DB_MIGRATOR_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create SSH tunnel
+        run: |
+          ssh -fN \
+            -L 5432:localhost:5432 \
+            -i ~/.ssh/id_ed25519 \
+            -o StrictHostKeyChecking=yes \
+            -o ExitOnForwardFailure=yes \
+            ${{ secrets.DB_MIGRATOR_SSH_USER }}@${{ secrets.DB_MIGRATOR_SSH_HOST }}
 
       - name: Wait for port forwarding to be ready
         run: |
