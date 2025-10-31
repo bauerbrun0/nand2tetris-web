@@ -61,8 +61,16 @@ To attach to the postgres container:
 $ docker exec -it development-db sh
 ```
 
+## Production
+
+Build docker image for production:
+
+```bash
+$ docker build -t nand2tetris_web:latest -f ./build/package/Dockerfile .
+```
+
 Run migrations on the production database:
 
 ```bash
-$ ./bin/web -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
+$ docker run --rm bauerbrun0/nand2tetris_web:latest -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
 ```

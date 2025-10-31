@@ -42,13 +42,14 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	err := godotenv.Load()
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		logger.Info("Could not load .env file, proceesding with environment variables or flags", "error", err.Error())
 	}
-	port, err := strconv.Atoi(os.Getenv("PORT"))
+	var port int
+	portEnv, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		port = 8080
+	} else {
+		port = portEnv
 	}
 
 	var cfg application.Config
