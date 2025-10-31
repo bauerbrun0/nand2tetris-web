@@ -107,15 +107,22 @@ build/wasm:
 
 # build go web server for production
 build/web:
-	go build -o build/bin/web ./cmd/web
+	go build -o bin/web ./cmd/web
+
+# build go web server for production with static linking
+build/web/static:
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/web ./cmd/web
 
 build/convert-translations:
 	go run ./scripts/converttranslations.go
 
 # build for production
 build/prod:
-	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec wasm/build build/tailwind db/sqlc build/web
+	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web
 
+# build for production with a statically linked binary
+build/prod/static:
+	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web/static
 
 ##########
 ### db ###
@@ -127,10 +134,10 @@ db/sqlc:
 	go tool sqlc generate
 
 # migrate db
-db/migrate:
+db/dev/migrate:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" up
 
-db/migrate/down:
+db/dev/migrate/down:
 	migrate -path=./db/migrations -database="postgres://nand2tetris_web_migration:password@localhost/nand2tetris_web?sslmode=disable" down
 
 

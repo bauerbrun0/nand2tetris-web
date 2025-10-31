@@ -2,6 +2,11 @@
 
 node_modules
 
+.husky/
+.git/
+.gitignore
+README.md
+
 # esbuild generated js files
 ui/static/js/*
 
@@ -29,9 +34,16 @@ tmp/
 bin/
 
 .env
+.env.example
 
 # mockery generated mock files
 **/mocks/generated.go
 
 # json translation files which are converted from the internal/translations/ yaml files
 ui/js/translations/
+
+# The Dockerfile used for building the production image
+build/package/Dockerfile
+
+# Ignore everything in the development folder
+development

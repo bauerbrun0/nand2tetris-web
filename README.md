@@ -36,10 +36,11 @@ Start docker compose:
 $ docker compose -f development/docker-compose.yaml up -d
 ```
 
-Run migrations:
+Run migrations on the development database:
 
 ```bash
-$ make db/migrate
+$ make db/dev/migrate
+$ make db/dev/migrate/down
 ```
 
 Generate mock files for testing:
@@ -57,26 +58,19 @@ $ make dev
 To attach to the postgres container:
 
 ```bash
-$ docker exec -it develpment-db sh
+$ docker exec -it development-db sh
 ```
 
-You can generate a TLS certificate for local development using:
+## Production
+
+Build docker image for production:
 
 ```bash
-./scripts/generate-tls.sh
-# Or specify your local IP to access the server from your network:
-./scripts/generate-tls.sh
+$ docker build -t nand2tetris_web:latest -f ./build/package/Dockerfile .
 ```
 
-You can generate a TLS certificate for local development using:
+Run migrations on the production database:
 
 ```bash
-./scripts/generate-tls.sh
-# Or specify your local IP to access the server from your network:
-./scripts/generate-tls.sh --local-ip <your-local-ip>
+$ docker run --rm bauerbrun0/nand2tetris_web:latest -migrate -dsn=postgres://nand2tetris_web_migration:<PASSWORD>@<HOST>/nand2tetris_web
 ```
-
-> **Note:**
->
-> - This only works with production builds (`make build/prod`). The Templ proxy does not support HTTPS.
-> - OAuth will not work because `https://localhost` is not registered as a redirect URL in GitHub or Google.

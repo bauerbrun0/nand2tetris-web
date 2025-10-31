@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
+	"database/sql"
 	"encoding/gob"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -19,12 +20,18 @@ import (
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/handlers/userhandlers"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/middleware"
 	"github.com/bauerbrun0/nand2tetris-web/cmd/web/routes"
+	"github.com/bauerbrun0/nand2tetris-web/db"
 	"github.com/bauerbrun0/nand2tetris-web/internal"
 	"github.com/bauerbrun0/nand2tetris-web/internal/models"
 	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
@@ -35,17 +42,19 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	err := godotenv.Load()
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		logger.Info("Could not load .env file, proceesding with environment variables or flags", "error", err.Error())
 	}
-	port, err := strconv.Atoi(os.Getenv("PORT"))
+	var port int
+	portEnv, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		port = 8080
+	} else {
+		port = portEnv
 	}
 
 	var cfg application.Config
 	flag.IntVar(&cfg.Port, "port", port, "HTTP server port")
+	flag.BoolVar(&cfg.Migrate, "migrate", false, "Run database migrations")
 	flag.StringVar(&cfg.Env, "env", os.Getenv("ENV"), "Environment (development|production )")
 	flag.StringVar(&cfg.Dsn, "dsn", os.Getenv("DSN"), "Database Connection String")
 	flag.StringVar(&cfg.BaseUrl, "base-url", os.Getenv("BASE_URL"), "The base URL of the application")
@@ -65,6 +74,42 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
+
+	// Run database migrations if the migrate flag is set
+	if cfg.Migrate {
+		driver, err := postgres.WithInstance(sql.OpenDB(stdlib.GetPoolConnector(pool)), &postgres.Config{})
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		source, err := iofs.New(db.MigrationFiles, "migrations")
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		migrator, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		err = migrator.Up()
+
+		if err != nil && errors.Is(err, migrate.ErrNoChange) {
+			logger.Info("No database migrations to run")
+			os.Exit(0)
+		}
+
+		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			logger.Error(err.Error())
+			os.Exit(1)
+		}
+
+		logger.Info("Database migrations ran successfully")
+		os.Exit(0)
+	}
 
 	gob.Register([]pages.Toast{})
 	gob.Register(userhandlers.Action(""))
@@ -125,15 +170,10 @@ func main() {
 	middleware := middleware.NewMiddleware(app)
 	routes := routes.GetRoutes(app, middleware, handlers)
 
-	tlsConfig := &tls.Config{
-		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
-	}
-
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Handler:      routes,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
-		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -141,11 +181,7 @@ func main() {
 
 	logger.Info("Starting application", slog.String("env", cfg.Env), slog.Int("port", cfg.Port))
 
-	if cfg.Env == "production" {
-		err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
-	} else {
-		err = srv.ListenAndServe()
-	}
+	err = srv.ListenAndServe()
 
 	logger.Error(err.Error())
 	os.Exit(1)
