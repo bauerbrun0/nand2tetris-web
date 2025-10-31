@@ -63,7 +63,7 @@ jobs:
           nc -z localhost 5432
 
       - name: Run DB migrations
-        run: docker run --rm ${{ secrets.DOCKERHUB_USERNAME }}/n2t-web:${{ github.sha }} -migrate -dsn="${{ secrets.DB_MIGRATOR_DSN }}"
+        run: docker run --rm --network=host ${{ secrets.DOCKERHUB_USERNAME }}/n2t-web:${{ github.sha }} -migrate -dsn="${{ secrets.DB_MIGRATOR_DSN }}"
 
       - name: Deploy to production
         uses: benbristow/dokploy-deploy-action@0.0.1
