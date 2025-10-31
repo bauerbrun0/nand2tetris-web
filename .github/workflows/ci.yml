@@ -43,11 +43,11 @@ jobs:
       - name: Run lint checks
         run: make lint/check
 
-      - name: Run tests
-        run: make test/all
-
       - name: Run Svelte type & buildability checks
         run: make build/svelte-check
 
       - name: Test full production build
         run: make build/prod/static
+
+      - name: Run tests
+        run: make test/all
