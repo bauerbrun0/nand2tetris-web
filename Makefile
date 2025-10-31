@@ -118,11 +118,11 @@ build/convert-translations:
 
 # build for production
 build/prod:
-	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web
+	make build/templ build/convert-translations build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web
 
 # build for production with a statically linked binary
 build/prod/static:
-	make build/templ build/convert-translations build/svelte-check build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web/static
+	make build/templ build/convert-translations build/esbuild build/esbuild/svelte cp/wasm-exec build/wasm build/tailwind db/sqlc build/web/static
 
 ##########
 ### db ###

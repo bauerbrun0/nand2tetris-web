@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate:
+    name: Run formatting, linting, tests and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.1"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.22"
+
+      - name: Print Go and Bun versions
+        run: |
+          go version
+          bun --version
+          bunx --version
+
+      - name: Install Go dependencies
+        run: go mod download
+
+      - name: Install JS dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check formatting
+        run: make format/check
+
+      - name: Run lint checks
+        run: make lint/check
+
+      - name: Run tests
+        run: make test/all
+
+      - name: Run Svelte type & buildability checks
+        run: make build/svelte-check
+
+      - name: Test full production build
+        run: make build/prod/static
