@@ -52,5 +52,8 @@ jobs:
       - name: Test full production build
         run: make build/prod/static
 
+      - name: Generate mocks for tests
+        run: make test/generate
+
       - name: Run tests
         run: make test/all
