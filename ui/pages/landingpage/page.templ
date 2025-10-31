@@ -1,0 +1,58 @@
+package landingpage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+templ Page(data pages.PageData) {
+	@layouts.BaseLayout(data) {
+		<div class="inner-container flex flex-1 flex-col justify-center space-y-[50px] py-8 md:space-y-[60px] md:py-10">
+			<h1 class="w-full text-center text-xl font-bold md:text-5xl">{ ctxi18n.T(ctx, "landing_page.title_first_row") }<br/>{ ctxi18n.T(ctx, "landing_page.title_second_row") }</h1>
+			<p class="text:lg mx-auto max-w-[1000px] text-center md:text-xl">
+				{ ctxi18n.T(ctx, "landing_page.introduction_first_part") }
+				<a
+					href="https://www.nand2tetris.org/"
+					target="_blank"
+					class="text-link dark:text-link-dark underline"
+				>
+					Nand2Tetris
+				</a>
+				{ ctxi18n.T(ctx, "landing_page.introduction_second_part") }
+			</p>
+			<div class="mx-auto flex max-w-[300px] justify-between">
+				<a href="/user/register" class="mr-10 md:mr-15">
+					<button
+						type="button"
+						class={ `
+							hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
+							focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg
+							text-sm px-5 py-2.5 text-center dark:border-white dark:text-white dark:hover:text-primary-700
+						 	dark:focus:ring-primary-800 w-[100px]
+						` }
+					>
+						{ ctxi18n.T(ctx, "button.register") }
+					</button>
+				</a>
+				<a href="/user/login">
+					<button
+						type="button"
+						class={ `
+							hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+							focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+							text-sm px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+							dark:focus:ring-primary-800 w-[100px]
+						` }
+					>
+						{ ctxi18n.T(ctx, "button.login") }
+					</button>
+				</a>
+			</div>
+			<p class="mx-auto max-w-[1000px] text-center text-sm md:text-base">
+				<strong>{ ctxi18n.T(ctx, "text.note") }</strong>
+				{ ctxi18n.T(ctx, "landing_page.note") }
+			</p>
+		</div>
+	}
+}

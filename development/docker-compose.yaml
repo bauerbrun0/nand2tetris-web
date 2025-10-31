@@ -1,0 +1,22 @@
+services:
+  db:
+    container_name: development-db
+    image: postgres:16.9-bookworm
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../db/init:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+
+  adminer:
+    container_name: development-adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+
+volumes:
+  pgdata:

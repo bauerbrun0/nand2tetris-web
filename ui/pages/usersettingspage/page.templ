@@ -1,0 +1,329 @@
+package usersettingspage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+	"slices"
+)
+
+type UserSettingsPageData struct {
+	Action         Action
+	ChangePassword struct {
+		CurrentPassword         string
+		NewPassword             string
+		NewPasswordConfirmation string
+	}
+	ChangeEmail struct {
+		Password string
+		NewEmail string
+	}
+	ChangeEmailSendCode struct {
+		Code string
+	}
+	DeleteAccount struct {
+		Email    string
+		Password string
+	}
+	CreatePassword struct {
+		Password             string
+		PasswordConfirmation string
+	}
+	LinkGoogle struct {
+		Password string
+	}
+	UnlinkGoogle struct {
+		Password string
+	}
+	LinkGithub struct {
+		Password string
+	}
+	UnlinkGithub struct {
+		Password string
+	}
+	Verification        VerificationMethod
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
+}
+
+type VerificationMethod string
+
+const (
+	VerificationPassword VerificationMethod = "password"
+	VerificationGitHub   VerificationMethod = "github"
+	VerificationGoogle   VerificationMethod = "google"
+)
+
+type Action string
+
+const (
+	ActionChangePassword      Action = "change-password"
+	ActionChangeEmail         Action = "change-email"
+	ActionChangeEmailSendCode Action = "change-email-send-code"
+	ActionDeleteAccount       Action = "delete-account"
+	ActionCreatePassword      Action = "create-password"
+	ActionLinkGoogleAccount   Action = "link-google-account"
+	ActionUnlinkGoogleAccount Action = "unlink-google-account"
+	ActionLinkGithubAccount   Action = "link-github-account"
+	ActionUnlinkGithubAccount Action = "unlink-github-account"
+)
+
+templ Page(data UserSettingsPageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container-small flex-1 py-6">
+			<h1 class="text-xl font-bold md:text-2xl">
+				{ ctxi18n.T(ctx, "text.settings") }
+			</h1>
+			<h2 class="my-6 text-lg md:text-xl">
+				{ ctxi18n.T(ctx, "user_settings_page.account") }
+			</h2>
+			<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
+			@accountSection(data)
+			<h2 class="mt-12 mb-6 md:text-lg">
+				{ ctxi18n.T(ctx, "user_settings_page.account_security") }
+			</h2>
+			<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
+			if data.UserInfo.IsPasswordSet {
+				@emailSection(data)
+				@passwordSection(data)
+			} else {
+				@createPasswordSection(data)
+			}
+			<h2 class="mt-12 mb-6 md:text-lg">
+				{ ctxi18n.T(ctx, "user_settings_page.linked_accounts") }
+			</h2>
+			<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
+			if !slices.Contains(data.UserInfo.LinkedAccounts, "Google") {
+				@linkGoogleAccountSection(data)
+			} else if data.UserInfo.IsPasswordSet || len(data.UserInfo.LinkedAccounts) >= 2 {
+				@unlinkGoogleAccountSection(data)
+			}
+			if !slices.Contains(data.UserInfo.LinkedAccounts, "GitHub") {
+				@linkGithubAccountSection(data)
+			} else if data.UserInfo.IsPasswordSet || len(data.UserInfo.LinkedAccounts) >= 2 {
+				@unlinkGithubAccountSection(data)
+			}
+			<h2 class="mt-12 mb-6 md:text-lg">
+				{ ctxi18n.T(ctx, "user_settings_page.danger_zone") }
+			</h2>
+			<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
+			@deleteAccountSection(data)
+		</div>
+	}
+}
+
+templ accountSection(data UserSettingsPageData) {
+	<div class="my-6 flex items-center space-x-3 md:space-x-6 md:pr-6">
+		<div class="bg-silver-50 flex h-10 w-10 items-center rounded-full md:h-14 md:w-14 dark:bg-white">
+			@components.UserIcon("text-silver-900 w-4 h-4 md:w-8 md:h-8 mx-auto")
+		</div>
+		<div class="flex flex-col space-y-2">
+			<span class="text-left font-medium">{ data.UserInfo.Username }</span>
+			<span class="text-left">{ data.UserInfo.Email }</span>
+		</div>
+	</div>
+}
+
+templ linkGoogleAccountSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.link_google_account") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.link_google_account_note") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "link-google-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				InitialTrigger: data.Action == ActionLinkGoogleAccount,
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "link-google-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_google_account"),
+				PasswordFieldName:  "LinkGoogle.Password",
+				Action:             ActionLinkGoogleAccount,
+			})
+		</div>
+	</div>
+}
+
+templ unlinkGoogleAccountSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.unlink_google_account") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.unlink_google_account_note") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "unlink-google-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				InitialTrigger: data.Action == ActionUnlinkGoogleAccount,
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "unlink-google-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_google_account"),
+				PasswordFieldName:  "UnlinkGoogle.Password",
+				Action:             ActionUnlinkGoogleAccount,
+			})
+		</div>
+	</div>
+}
+
+templ linkGithubAccountSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.link_github_account") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.link_github_account_note") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "link-github-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				InitialTrigger: data.Action == ActionLinkGithubAccount,
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "link-github-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.link_github_account"),
+				PasswordFieldName:  "LinkGithub.Password",
+				Action:             ActionLinkGithubAccount,
+			})
+		</div>
+	</div>
+}
+
+templ unlinkGithubAccountSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.unlink_github_account") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.unlink_github_account_note") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "unlink-github-account-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				InitialTrigger: data.Action == ActionUnlinkGithubAccount,
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "unlink-github-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.unlink_github_account"),
+				PasswordFieldName:  "UnlinkGithub.Password",
+				Action:             ActionUnlinkGithubAccount,
+			})
+		</div>
+	</div>
+}
+
+templ createPasswordSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "user_settings_page.create_password") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.create_password_note") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "create-password-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.create_password"),
+				InitialTrigger: data.Action == ActionCreatePassword,
+			})
+			@createPasswordModal(data)
+		</div>
+	</div>
+}
+
+templ emailSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "text.email") }</span>
+			<span class="text-sm font-light">{ data.UserInfo.Email }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "email-change-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.change_email"),
+				InitialTrigger: data.Action == ActionChangeEmail,
+			})
+			@emailChangeModal(data)
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "email-change-send-code-modal",
+				InitialTrigger: data.Action == ActionChangeEmailSendCode,
+			})
+			@emailChangeSendCodeModal(data)
+		</div>
+	</div>
+}
+
+templ passwordSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span>{ ctxi18n.T(ctx, "text.password") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.want_to_change_password") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:        "password-change-modal",
+				Text:           ctxi18n.T(ctx, "user_settings_page.change_password"),
+				InitialTrigger: data.Action == ActionChangePassword,
+			})
+			@passwordChangeModal(data)
+		</div>
+	</div>
+}
+
+templ DeleteAccountEmailInput(data UserSettingsPageData) {
+	<p class="text-center text-sm">
+		{ ctxi18n.T(ctx, "user_settings_page.delete_account_cannot_be_undone") }
+		{ ctxi18n.T(ctx, "user_settings_page.type_in") }
+		<strong>
+			{ data.UserInfo.Email }
+		</strong> { ctxi18n.T(ctx, "user_settings_page.to_confirm") }
+	</p>
+	@components.Input(components.InputOptions{
+		Label:       ctxi18n.T(ctx, "text.email"),
+		Name:        "DeleteAccount.Email",
+		Value:       data.DeleteAccount.Email,
+		Placeholder: data.UserInfo.Email,
+		FieldType:   "email",
+		Icon:        components.EmailIcon("w-4 h-4"),
+		Err:         data.FieldErrors["DeleteAccount.Email"],
+	})
+}
+
+templ deleteAccountSection(data UserSettingsPageData) {
+	<div class="my-6 flex justify-between">
+		<div class="flex flex-col space-y-4">
+			<span class="text-red-500">{ ctxi18n.T(ctx, "user_settings_page.delete_my_account") }</span>
+			<span class="text-sm font-light">{ ctxi18n.T(ctx, "user_settings_page.delete_account_permanently") }</span>
+		</div>
+		<div class="ml-5 flex items-center">
+			@components.ToggleModalButton(components.ToggleModalButtonOptions{
+				ModalId:           "delete-account-modal",
+				Text:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
+				InitialTrigger:    data.Action == ActionDeleteAccount,
+				AdditionalClasses: "hover:text-red-500 dark:hover:text-red-500 hover:border-red-500",
+			})
+			@authenticatedActionModal(AuthenticatedActionModalOptions{
+				ModalId:            "delete-account-modal",
+				Data:               data,
+				Title:              ctxi18n.T(ctx, "user_settings_page.delete_account"),
+				Note:               ctxi18n.T(ctx, "user_settings_page.authenticated_modal_verify"),
+				PasswordButtonText: ctxi18n.T(ctx, "user_settings_page.delete_account"),
+				PasswordFieldName:  "DeleteAccount.Password",
+				Action:             ActionDeleteAccount,
+				AdditionalInputs:   DeleteAccountEmailInput(data),
+			})
+		</div>
+	</div>
+}

@@ -1,0 +1,61 @@
+package layouts
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+templ head(sveltePage pages.SveltePage) {
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width"/>
+		<title>Nand2Tetris Web App</title>
+		<link rel="icon" type="image/svg+xml" href="/static/images/logo.svg"/>
+		<link rel="stylesheet" href="/static/css/main.css"/>
+		<script>
+			// setting the initial theme
+			// best to add inline in `head` to avoid FOUC
+			if (
+				localStorage.getItem("color-theme") === "dark" ||
+				(!("color-theme" in localStorage) &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches)
+			) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+		</script>
+		switch sveltePage {
+			case pages.SveltePageNone:
+				<script defer src="/static/js/main.js"></script>
+			case pages.SveltePageHardwareSimulator:
+				<link rel="stylesheet" href="/static/js/main-hardware-simulator.css"/>
+				<script defer src="/static/js/wasm_exec.js"></script>
+				<script type="module" defer src="/static/js/main-hardware-simulator.js"></script>
+			case pages.SveltePageProjects:
+				<script type="module" defer src="/static/js/main-projects.js"></script>
+		}
+	</head>
+}
+
+templ BaseLayout(data pages.PageData) {
+	<!DOCTYPE html>
+	<html class="">
+		@head(data.SveltePage)
+		<body
+			class="bg-bg dark:bg-bg-dark text-text dark:text-text-dark flex min-h-[calc(100dvh)] flex-col"
+			x-data={ templ.JSONString(data) }
+			x-init="initialToasts.forEach(t => showToast(t))"
+		>
+			@components.Header(data)
+			if data.SveltePage == pages.SveltePageNone {
+				{ children... }
+			} else {
+				<div id="svelte-app" class="inner-container flex-1"></div>
+			}
+			if data.ShowFooter {
+				@components.Footer(data)
+			}
+		</body>
+	</html>
+}

@@ -1,0 +1,7 @@
+make format/check
+
+make lint/check
+
+make build/svelte-check
+
+make test/all

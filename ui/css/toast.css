@@ -1,0 +1,51 @@
+.toast-container {
+  @apply fixed bottom-16 left-1/2 z-50 flex w-fit min-w-72 -translate-x-1/2 flex-col items-center;
+}
+
+.toast-element {
+  @apply text-text dark:text-text-dark dark:bg-silver-900 -mt-10 flex min-h-8 w-fit max-w-sm min-w-xs items-center rounded-lg bg-white p-4 opacity-0;
+}
+
+.toast-element > .icon-container {
+  @apply me-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg;
+}
+
+.toast-element > .icon-container > svg {
+  @apply h-6 w-6;
+}
+
+.toast-element > .icon-container.success {
+  @apply bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200;
+}
+
+.toast-element > .icon-container.error {
+  @apply bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200;
+}
+
+.toast-element > .icon-container.warning {
+  @apply bg-yellow-100 text-yellow-500 dark:bg-yellow-800 dark:text-yellow-200;
+}
+
+.toast-element > .icon-container.info {
+  @apply bg-blue-100 text-blue-500 dark:bg-blue-800 dark:text-blue-200;
+}
+
+.toast-element > .text-container {
+  @apply mr-2 text-base font-normal;
+}
+
+.toast-element > .close-button {
+  @apply text-silver-200 hover:text-text dark:text-silver-700 hover:dark:text-text-dark focus:ring-silver-300 hover:bg-silver-100 dark:hover:bg-silver-700 -mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg p-1.5 focus:ring-2;
+}
+
+.toast-element {
+  transform: scale(0.9) translateY(50px);
+  transition:
+    margin-top 0.25s,
+    transform 0.25s,
+    opacity 0.25s;
+}
+
+.toast-element.open {
+  @apply mt-2 translate-y-0 scale-100 opacity-100;
+}

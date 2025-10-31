@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "Checking formatting of .go files..."
+
+unformatted=$(gofmt -l .)
+
+if [ -n "$unformatted" ]; then
+  echo "The following .go files are not properly formatted:"
+  echo "$unformatted"
+  echo "run: gofmt -l -s -w ."
+  exit 1
+fi

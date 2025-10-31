@@ -1,0 +1,37 @@
+.zed/
+
+node_modules
+
+# esbuild generated js files
+ui/static/js/*
+
+# tailwind generated css files
+ui/static/css/*
+
+# generated wasm files
+ui/static/wasm/*
+
+# templ generated _templ.go and _templ.txt files
+*_templ.go
+*_templ.txt
+
+# sqlc generated database access files
+internal/models/*
+!internal/models/errors.go
+!internal/models/queries.go
+!internal/models/transactions.go
+!internal/models/mocks/
+
+# tmp directory
+tmp/
+
+# bin directory
+bin/
+
+.env
+
+# mockery generated mock files
+**/mocks/generated.go
+
+# json translation files which are converted from the internal/translations/ yaml files
+ui/js/translations/

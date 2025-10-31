@@ -1,0 +1,16 @@
+package components
+
+templ FormSubmitButton(text string) {
+	<button
+		type="submit"
+		class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+	>
+		{ text }
+	</button>
+}

@@ -1,0 +1,118 @@
+package verifyemailpage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+type VerifyEmailPageData struct {
+	Code                string `form:"code"`
+	Email               string `form:"email"`
+	validator.Validator `form:"-"`
+	pages.PageData      `form:"-"`
+}
+
+templ Page(data VerifyEmailPageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container flex flex-1 items-center justify-center">
+			<div class="bg-white-500 dark:bg-silver-900 my-10 w-full max-w-sm rounded-lg p-4 sm:p-6 md:my-15 md:p-8">
+				if data.Email != "" {
+					@formWithEmail(data)
+				} else {
+					@formWithNoEmail(data)
+				}
+			</div>
+		</div>
+	}
+}
+
+templ formWithEmail(data VerifyEmailPageData) {
+	<form class="space-y-6" action="/user/verify-email" method="POST" novalidate>
+		<h5 class="text-text dark:text-text-dark w-full text-center text-xl font-medium">
+			{ ctxi18n.T(ctx, "verify_email_page.almost_done") }
+		</h5>
+		<p class="text-center text-sm">
+			{ ctxi18n.T(ctx, "verify_email_page.sent_verification_code_to") } <strong>{ data.Email }</strong>.
+			{ ctxi18n.T(ctx, "verify_email_page.enter_code_below") }
+		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
+		<input type="hidden" id="email" name="email" value={ data.Email }/>
+		@components.Input(components.InputOptions{
+			Label:       "",
+			Name:        "code",
+			Value:       data.Code,
+			Placeholder: ctxi18n.T(ctx, "text.verification_code"),
+			FieldType:   "text",
+			Icon:        nil,
+			Err:         data.FieldErrors["code"],
+		})
+		<button
+			type="submit"
+			class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+		>
+			{ ctxi18n.T(ctx, "verify_email_page.verify_email") }
+		</button>
+	</form>
+	<form action="/user/verify-email/send-code" method="POST">
+		@components.CSRFTokenInput(data.CSRFToken)
+		<input type="hidden" id="email" name="email" value={ data.Email }/>
+		<div class="text-silver-600 mt-6 text-sm font-medium">
+			{ ctxi18n.T(ctx, "text.did_not_receive_email") }
+			<button
+				type="submit"
+				class="text-link dark:text-link-dark cursor-pointer"
+			>
+				{ ctxi18n.T(ctx, "text.resend_code") }
+			</button>
+		</div>
+	</form>
+}
+
+templ formWithNoEmail(data VerifyEmailPageData) {
+	<form class="space-y-6" action="/user/verify-email" method="POST" novalidate>
+		<h5 class="text-text dark:text-text-dark w-full text-center text-xl font-medium">Verify your email!</h5>
+		<p class="text-center text-sm">
+			{ ctxi18n.T(ctx, "verify_email_page.sent_verification_code_to_your_email") }
+		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
+		@components.Input(components.InputOptions{
+			Label:       "",
+			Name:        "code",
+			Value:       data.Code,
+			Placeholder: ctxi18n.T(ctx, "text.verification_code"),
+			FieldType:   "text",
+			Icon:        nil,
+			Err:         data.FieldErrors["code"],
+		})
+		<button
+			type="submit"
+			class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+		>
+			{ ctxi18n.T(ctx, "verify_email_page.verify_email") }
+		</button>
+		<div class="text-silver-600 text-sm font-medium">
+			{ ctxi18n.T(ctx, "text.did_not_receive_email") }
+			<a
+				href="/user/verify-email/send-code"
+				class="text-link dark:text-link-dark cursor-pointer"
+			>
+				{ ctxi18n.T(ctx, "text.resend_code") }
+			</a>
+		</div>
+	</form>
+}

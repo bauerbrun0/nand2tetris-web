@@ -1,0 +1,70 @@
+package resetpasswordpage
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/validator"
+	"github.com/bauerbrun0/nand2tetris-web/ui/components"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+type ResetPasswordPageData struct {
+	NewPassword             string `form:"new-password"`
+	NewPasswordConfirmation string `form:"new-password-confirmation"`
+	Code                    string `form:"code"`
+	validator.Validator     `form:"-"`
+	pages.PageData          `form:"-"`
+}
+
+templ Page(data ResetPasswordPageData) {
+	@layouts.BaseLayout(data.PageData) {
+		<div class="inner-container flex flex-1 items-center justify-center">
+			<div class="bg-white-500 dark:bg-silver-900 my-10 w-full max-w-sm rounded-lg p-4 sm:p-6 md:my-15 md:p-8">
+				@form(data)
+			</div>
+		</div>
+	}
+}
+
+templ form(data ResetPasswordPageData) {
+	<form class="space-y-6" action="/user/reset-password" method="POST" novalidate>
+		<h5 class="text-text dark:text-text-dark w-full text-center text-xl font-medium">
+			{ ctxi18n.T(ctx, "reset_password_page.create_new_password") }
+		</h5>
+		<p class="text-center text-sm">
+			{ ctxi18n.T(ctx, "reset_password_page.enter_new_password_below") }
+		</p>
+		@components.CSRFTokenInput(data.CSRFToken)
+		<input type="hidden" name="code" value={ data.Code }/>
+		@components.Input(components.InputOptions{
+			Label:       "",
+			Name:        "new-password",
+			Value:       "",
+			Placeholder: ctxi18n.T(ctx, "reset_password_page.enter_new_password"),
+			FieldType:   "password",
+			Icon:        components.KeyIcon("w-4 h-4"),
+			Err:         data.FieldErrors["new-password"],
+		})
+		@components.Input(components.InputOptions{
+			Label:       "",
+			Name:        "new-password-confirmation",
+			Value:       "",
+			Placeholder: ctxi18n.T(ctx, "reset_password_page.re_enter_new_password"),
+			FieldType:   "password",
+			Icon:        components.KeyIcon("w-4 h-4"),
+			Err:         data.FieldErrors["new-password-confirmation"],
+		})
+		<button
+			type="submit"
+			class={ `
+				w-full
+				hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+				focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+				px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+				dark:focus:ring-primary-800
+			` }
+		>
+			{ ctxi18n.T(ctx, "reset_password_page.reset_password") }
+		</button>
+	</form>
+}

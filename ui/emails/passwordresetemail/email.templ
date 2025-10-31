@@ -1,0 +1,29 @@
+package passwordresetemail
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/ui/emails"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+)
+
+type PasswordResetEmailData struct {
+	Code string
+	emails.EmailData
+}
+
+templ Email(data PasswordResetEmailData) {
+	@layouts.EmailBaseLayout(data.EmailData) {
+		<h1 class="title" style="font-size:26px; font-weight:bold; margin:0">
+			{ data.T("password_reset_email.title") }
+		</h1>
+		<p>{ data.T("password_reset_email.code_is") }</p>
+		<div
+			class="code"
+			style="background-color:#00aeda; border-radius:6px; color:#ffffff; display:inline-block; font-size:22px; font-weight:600; letter-spacing:6px; margin:25px 0; max-width:100%; padding:16px 30px; text-align:center; white-space:normal; word-break:break-word"
+			bgcolor="#00aeda"
+			align="center"
+		>
+			{ data.Code }
+		</div>
+		<p>{ data.T("password_reset_email.did_not_reset_password") }</p>
+	}
+}

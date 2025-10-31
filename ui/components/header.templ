@@ -1,0 +1,100 @@
+package components
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
+)
+
+templ Header(data pages.PageData) {
+	<div id="header" class="h-(--header-height) max-h-(--header-height)">
+		<div class="inner-container py-3">
+			<div class="relative flex justify-between">
+				@title()
+				if data.IsAuthenticated {
+					@profileButton(data)
+					@profileDropDown(data)
+				} else {
+					@navigation()
+				}
+			</div>
+		</div>
+		<hr class="bg-divider dark:bg-divider-dark h-px border-0"/>
+	</div>
+}
+
+templ title() {
+	<div>
+		<a href="/" class="flex items-center space-x-3">
+			<img src="/static/images/logo.svg" alt="Logo" class="h-11 w-11"/>
+			<h1 class="hidden font-medium md:block">Nand2Tetris Web App</h1>
+		</a>
+	</div>
+}
+
+templ profileButton(data pages.PageData) {
+	<button
+		x-data
+		@click="$store.profileDropDown = !$store.profileDropDown"
+		aria-label="profile-button"
+		class="md:hover:dark:bg-silver-900 md:hover:bg-silver-100 flex cursor-pointer items-center space-x-3 rounded-full md:pr-6"
+	>
+		<div class="bg-silver-50 flex h-10 w-10 items-center rounded-full dark:bg-white">
+			@UserIcon("text-silver-900 w-6 h-6 mx-auto")
+		</div>
+		<div class="hidden flex-col space-y-1 md:flex">
+			<span class="text-left text-sm font-medium">{ data.UserInfo.Username }</span>
+			<span class="text-left text-sm">{ data.UserInfo.Email }</span>
+		</div>
+	</button>
+}
+
+templ navigation() {
+	<div class="flex items-center space-x-3 md:space-x-5">
+		@themeToggle()
+		<a href="/user/register">
+			<button
+				type="button"
+				class={ `
+					hover:cursor-pointer text-text hover:text-primary-700 border border-black hover:border-primary-700
+					focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg
+					text-sm px-5 py-2.5 text-center dark:border-white dark:text-white dark:hover:text-primary-700
+				 	dark:focus:ring-primary-800
+				` }
+			>
+				{ ctxi18n.T(ctx, "button.register") }
+			</button>
+		</a>
+		<a href="/user/login">
+			<button
+				type="button"
+				class={ `
+					hover:cursor-pointer text-white bg-primary-700 hover:bg-primary-600
+					focus:ring-4 focus:ring-primary-300 font-medium rounded-lg
+					text-sm px-5 py-2.5 dark:hover:bg-primary-800 focus:outline-none
+					dark:focus:ring-primary-800
+				` }
+			>
+				{ ctxi18n.T(ctx, "button.login") }
+			</button>
+		</a>
+	</div>
+}
+
+templ themeToggle() {
+	<template x-data x-if="$store.theme.current === 'dark'">
+		<button
+			@click="$store.theme.switchTheme('light')"
+			class="hover:text-primary-700 hover:cursor-pointer"
+		>
+			@SunIcon("w-6 h-6")
+		</button>
+	</template>
+	<template x-data x-if="$store.theme.current === 'light'">
+		<button
+			@click="$store.theme.switchTheme('dark')"
+			class="hover:stroke-primary-700 hover:cursor-pointer"
+		>
+			@MoonIcon("w-6 h-6 hover:text-primary-700 stroke-[1.5px]")
+		</button>
+	</template>
+}

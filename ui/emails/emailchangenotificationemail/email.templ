@@ -1,0 +1,15 @@
+package emailchangenotificationemail
+
+import (
+	"github.com/bauerbrun0/nand2tetris-web/ui/emails"
+	"github.com/bauerbrun0/nand2tetris-web/ui/layouts"
+)
+
+templ Email(data emails.EmailData) {
+	@layouts.EmailBaseLayout(data) {
+		<h1 class="title" style="font-size:26px; font-weight:bold; margin:0">
+			{ data.T("email_change_notification_email.title") }
+		</h1>
+		<p>{ data.T("email_change_email.message") }</p>
+	}
+}
