@@ -27,6 +27,7 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 	mux.Handle("GET /ping", http.HandlerFunc(h.Ping))
 
 	dynamicChain := alice.New(app.SessionManager.LoadAndSave, m.Language, m.Authenticate, m.GetToasts)
+	apiDynamicChain := alice.New(app.SessionManager.LoadAndSave, m.Language, m.Authenticate, m.GetToasts)
 	if app.Config.Env == "production" || app.Config.Env == "test" {
 		dynamicChain = dynamicChain.Append(m.NoSurf)
 	}
@@ -63,6 +64,7 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 		Append(m.GetIPRateLimiter(10, time.Minute)).ThenFunc(h.User.UserVerifyEmailResendCodePost))
 
 	protectedChain := dynamicChain.Append(m.RequireAuthentication)
+	apiProtectedChain := apiDynamicChain.Append(m.RequireAuthentication)
 
 	mux.Handle("POST /user/logout", protectedChain.ThenFunc(h.User.UserLogoutPost))
 	mux.Handle("GET /user/settings", protectedChain.ThenFunc(h.User.UserSettings))
@@ -75,17 +77,17 @@ func GetRoutes(app *application.Application, m *middleware.Middleware, h *handle
 
 	mux.Handle("GET /projects/{projectSlug}", protectedChain.ThenFunc(h.HardwareSimulator))
 
-	mux.Handle("GET /api/projects", protectedChain.ThenFunc(h.Project.HandleGetProjects))
-	mux.Handle("GET /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleGetProject))
-	mux.Handle("GET /api/projects/{slug}/by-slug", protectedChain.ThenFunc(h.Project.HandleGetProjectBySlug))
-	mux.Handle("DELETE /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleDeleteProject))
-	mux.Handle("PATCH /api/projects/{id}", protectedChain.ThenFunc(h.Project.HandleUpdateProject))
-	mux.Handle("POST /api/projects", protectedChain.ThenFunc(h.Project.HandleCreateProject))
+	mux.Handle("GET /api/projects", apiProtectedChain.ThenFunc(h.Project.HandleGetProjects))
+	mux.Handle("GET /api/projects/{id}", apiProtectedChain.ThenFunc(h.Project.HandleGetProject))
+	mux.Handle("GET /api/projects/{slug}/by-slug", apiProtectedChain.ThenFunc(h.Project.HandleGetProjectBySlug))
+	mux.Handle("DELETE /api/projects/{id}", apiProtectedChain.ThenFunc(h.Project.HandleDeleteProject))
+	mux.Handle("PATCH /api/projects/{id}", apiProtectedChain.ThenFunc(h.Project.HandleUpdateProject))
+	mux.Handle("POST /api/projects", apiProtectedChain.ThenFunc(h.Project.HandleCreateProject))
 
-	mux.Handle("POST /api/projects/{projectId}/chips", protectedChain.ThenFunc(h.Chip.HandleCreateChip))
-	mux.Handle("GET /api/projects/{projectId}/chips", protectedChain.ThenFunc(h.Chip.HandleGetChips))
-	mux.Handle("DELETE /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleDeleteChip))
-	mux.Handle("PATCH  /api/projects/{projectId}/chips/{chipId}", protectedChain.ThenFunc(h.Chip.HandleUpdateChip))
+	mux.Handle("POST /api/projects/{projectId}/chips", apiProtectedChain.ThenFunc(h.Chip.HandleCreateChip))
+	mux.Handle("GET /api/projects/{projectId}/chips", apiProtectedChain.ThenFunc(h.Chip.HandleGetChips))
+	mux.Handle("DELETE /api/projects/{projectId}/chips/{chipId}", apiProtectedChain.ThenFunc(h.Chip.HandleDeleteChip))
+	mux.Handle("PATCH  /api/projects/{projectId}/chips/{chipId}", apiProtectedChain.ThenFunc(h.Chip.HandleUpdateChip))
 
 	mux.Handle("GET /projects", protectedChain.ThenFunc(h.Projects))
 
