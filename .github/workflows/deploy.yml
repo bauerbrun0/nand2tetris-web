@@ -66,8 +66,10 @@ jobs:
         run: docker run --rm --network=host ${{ secrets.DOCKERHUB_USERNAME }}/n2t-web:${{ github.sha }} -migrate -dsn="${{ secrets.DB_MIGRATOR_DSN }}"
 
       - name: Deploy to production
-        uses: benbristow/dokploy-deploy-action@0.0.1
-        with:
-          auth_token: ${{ secrets.DOKPLOY_AUTH_TOKEN }}
-          application_id: ${{ secrets.DOKPLOY_APPLICATION_ID }}
-          dokploy_url: ${{ secrets.DOKPLOY_URL }}
+        run: |
+          curl -X 'POST' \
+            "${{ secrets.DOKPLOY_URL }}/api/application.deploy" \
+            -H 'accept: application/json' \
+            -H "x-api-key: ${{ secrets.DOKPLOY_AUTH_TOKEN }}" \
+            -H 'Content-Type: application/json' \
+            -d '{"applicationId": "${{ secrets.DOKPLOY_APPLICATION_ID }}"}'
