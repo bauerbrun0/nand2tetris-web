@@ -312,7 +312,6 @@ func TestProject3ChipsSimulation(t *testing.T) {
 			expectedInputsAfterProcess:  map[string]int{"in": 16, "load": 1, "address": 9},
 			expectedOutputsAfterProcess: map[string]int{"out": 16},
 			afterProcess: func(t *testing.T, hs *HardwareSimulator) {
-				start := time.Now()
 				in := testutils.StringToBoolArray("0000000000000001")
 				load := []bool{false}
 				address := testutils.StringToBoolArray("000000000")
@@ -325,9 +324,6 @@ func TestProject3ChipsSimulation(t *testing.T) {
 				expectedOutputs = map[string][]bool{"out": testutils.StringToBoolArray("0000000000000000")}
 				assert.Equal(t, expectedOutputs, outputs)
 
-				t.Logf("RAM512 first tick/tock took %v\n", time.Since(start))
-				start = time.Now()
-
 				load = []bool{true}
 				outputs, _ = hs.Tick(map[string][]bool{"in": in, "load": load, "address": address})
 				expectedOutputs = map[string][]bool{"out": testutils.StringToBoolArray("0000000000000000")}
@@ -336,7 +332,6 @@ func TestProject3ChipsSimulation(t *testing.T) {
 				outputs, _ = hs.Tock(map[string][]bool{"in": in, "load": load, "address": address})
 				expectedOutputs = map[string][]bool{"out": testutils.StringToBoolArray("0000000000000001")}
 				assert.Equal(t, expectedOutputs, outputs)
-				t.Logf("RAM512 second tick/tock took %v\n", time.Since(start))
 
 				in = testutils.StringToBoolArray("1000000000000000")
 				load = []bool{true}

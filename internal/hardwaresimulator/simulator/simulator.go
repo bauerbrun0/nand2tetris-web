@@ -67,6 +67,7 @@ func (hs *HardwareSimulator) Process(chipName string) (outputs map[string]int, i
 	}
 
 	e := evaluator.New(g)
+	e.InitializeNodeStates()
 	hs.Evaluator = e
 
 	return inputs, outputs, internals, nil
@@ -81,12 +82,16 @@ func (hs *HardwareSimulator) Evaluate(inputs map[string][]bool) (map[string][]bo
 
 func (hs *HardwareSimulator) Tick(inputs map[string][]bool) (map[string][]bool, map[string][]bool) {
 	hs.Evaluator.SetInputs(inputs)
-	hs.Evaluator.Evaluate()
-	hs.Evaluator.Commit()
+	hs.Evaluator.Apply()
+	hs.Evaluator.EvaluateAndCommit()
 	outputs, internalPins := hs.Evaluator.GetOutputsAndInternalPins()
 	return outputs, internalPins
 }
 
 func (hs *HardwareSimulator) Tock(inputs map[string][]bool) (map[string][]bool, map[string][]bool) {
-	return hs.Evaluate(inputs)
+	hs.Evaluator.SetInputs(inputs)
+	hs.Evaluator.Apply()
+	hs.Evaluator.Evaluate()
+	outputs, internalPins := hs.Evaluator.GetOutputsAndInternalPins()
+	return outputs, internalPins
 }

@@ -161,6 +161,8 @@ func TestEvaluate(t *testing.T) {
 			},
 			afterGraphBuild: func(t *testing.T, g *graphbuilder.Graph) {
 				e := New(g)
+				e.InitializeNodeStates()
+
 				// set the input to true
 				e.SetInputs(map[string][]bool{"in": {true}})
 
@@ -172,7 +174,8 @@ func TestEvaluate(t *testing.T) {
 				outputs, _ = e.GetOutputsAndInternalPins()
 				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "after second evaluate, expected out to still be false")
 
-				e.Commit()
+				e.EvaluateAndCommit()
+				e.Apply()
 				e.Evaluate()
 				outputs, _ = e.GetOutputsAndInternalPins()
 				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "after tick-tock, expected out to be true")
@@ -188,8 +191,9 @@ func TestEvaluate(t *testing.T) {
 				outputs, _ = e.GetOutputsAndInternalPins()
 				assert.Equal(t, map[string][]bool{"out": {true}}, outputs, "after setting input to false and evaluate, expected out to still be true")
 
-				e.Commit()   // tick
-				e.Evaluate() // tock
+				e.EvaluateAndCommit()
+				e.Apply()
+				e.Evaluate()
 				outputs, _ = e.GetOutputsAndInternalPins()
 				assert.Equal(t, map[string][]bool{"out": {false}}, outputs, "after tick-tock with input false, expected out to be false again")
 			},
