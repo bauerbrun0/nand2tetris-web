@@ -71,6 +71,8 @@ func TestAdditionalChipsSimulation(t *testing.T) {
 			afterProcess: func(t *testing.T, hs *HardwareSimulator) {
 				in := []bool{true}
 				hs.Evaluator.SetInputs(map[string][]bool{"in": in})
+
+				// plain Evaluate()
 				hs.Evaluator.Evaluate()
 				outputs, internalPins := hs.Evaluator.GetOutputsAndInternalPins()
 				expectedOutputs := map[string][]bool{"out": {false}, "outnot": {true}}
@@ -78,25 +80,23 @@ func TestAdditionalChipsSimulation(t *testing.T) {
 				expectedInternalPins := map[string][]bool{"dffout": {false}}
 				assert.Equal(t, expectedInternalPins, internalPins)
 
-				hs.Evaluator.Commit()
+				// Tick()
+				hs.Evaluator.Apply()
+				hs.Evaluator.EvaluateAndCommit()
 				outputs, internalPins = hs.Evaluator.GetOutputsAndInternalPins()
 				expectedOutputs = map[string][]bool{"out": {false}, "outnot": {true}}
 				assert.Equal(t, expectedOutputs, outputs)
 				expectedInternalPins = map[string][]bool{"dffout": {false}}
 				assert.Equal(t, expectedInternalPins, internalPins)
 
+				// Tock()
+				hs.Evaluator.Apply()
 				hs.Evaluator.Evaluate()
 				outputs, internalPins = hs.Evaluator.GetOutputsAndInternalPins()
 				expectedOutputs = map[string][]bool{"out": {true}, "outnot": {false}}
 				assert.Equal(t, expectedOutputs, outputs)
 				expectedInternalPins = map[string][]bool{"dffout": {true}}
 				assert.Equal(t, expectedInternalPins, internalPins)
-
-				// outputs, internalPins = hs.Tock(map[string][]bool{"in": in})
-				// expectedOutputs = map[string][]bool{"out": {true}, "outnot": {false}}
-				// assert.Equal(t, expectedOutputs, outputs)
-				// expectedInternalPins = map[string][]bool{"dffout": {true}}
-				// assert.Equal(t, expectedInternalPins, internalPins)
 			},
 		},
 	}

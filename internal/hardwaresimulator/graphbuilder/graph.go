@@ -12,6 +12,8 @@ type Graph struct {
 	InternalPins map[string]*InternalPin
 
 	Edges map[*Node][]*Node // adjacency, node -> dependent nodes
+
+	StatesInitialized bool
 }
 
 type Node struct {
