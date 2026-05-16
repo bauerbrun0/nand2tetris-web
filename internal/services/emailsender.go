@@ -1,13 +1,12 @@
 package services
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
-	"github.com/mailgun/mailgun-go/v5"
+	"github.com/go-resty/resty/v2"
 )
 
 type EmailSender interface {
@@ -33,31 +32,56 @@ func (es *ConsoleEmailSender) Send(from, to, subject, body string) error {
 	return nil
 }
 
-type MailGunEmailSender struct {
-	logger *slog.Logger
-	domain string
-	client *mailgun.Client
+type MailtrapEmailSender struct {
+	logger     *slog.Logger
+	domain     string
+	token      string
+	restClient *resty.Client
 }
 
-func NewMailGunEmailSender(logger *slog.Logger, domain, apiKey string) *MailGunEmailSender {
-	mg := mailgun.NewMailgun(apiKey)
-	return &MailGunEmailSender{
-		logger: logger,
-		domain: domain,
-		client: mg,
+func NewMailtrapEmailSender(logger *slog.Logger, domain, token string) *MailtrapEmailSender {
+	client := resty.New()
+	return &MailtrapEmailSender{
+		logger:     logger,
+		domain:     domain,
+		token:      token,
+		restClient: client,
 	}
 }
 
-func (mg *MailGunEmailSender) Send(from, to, subject, body string) error {
-	message := mailgun.NewMessage(mg.domain, from, subject, "", to)
-	message.SetHTML(body)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
+func (mt *MailtrapEmailSender) Send(from, to, subject, body string) error {
+	requestBody := map[string]any{
+		"from": map[string]string{
+			"email": from,
+		},
+		"to": []map[string]string{
+			{
+				"email": to,
+			},
+		},
+		"subject": subject,
+		"text":    body,
+		"html":    body,
+	}
 
-	_, err := mg.client.Send(ctx, message)
+	resp, err := mt.restClient.R().
+		SetBody(requestBody).
+		SetHeader("Accept", "application/json").
+		SetAuthToken(mt.token).
+		Post("https://send.api.mailtrap.io/api/send")
+
 	if err != nil {
-		mg.logger.Error("An error occured while sending email", "error", err)
+		mt.logger.Error("An error occured while sending email with Mailtrap", "error", err)
 		return err
 	}
+
+	if resp.IsError() {
+		mt.logger.Error("An error occured while sending email with Mailtrap",
+			"status", resp.Status(),
+			"body", string(resp.Body()),
+		)
+		return fmt.Errorf("mailtrap returned %s", resp.Status())
+	}
+
 	return nil
 }

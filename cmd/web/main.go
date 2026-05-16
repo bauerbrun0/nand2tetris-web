@@ -63,8 +63,8 @@ func main() {
 	flag.StringVar(&cfg.GoogleClientId, "google-client-id", os.Getenv("GOOGLE_CLIENT_ID"), "Google Client ID for OAuth")
 	flag.StringVar(&cfg.GoogleClientSecret, "google-client-secret", os.Getenv("GOOGLE_CLIENT_SECRET"), "Google Client Secret for OAuth")
 	flag.StringVar(&cfg.NoreplyEmail, "no-reply-email", os.Getenv("NOREPLY_EMAIL"), "No-reply email for sending emails to users")
-	flag.StringVar(&cfg.MailgunDomain, "mailgun-domain", os.Getenv("MAILGUN_DOMAIN"), "Mailgun domain")
-	flag.StringVar(&cfg.MailgunAPIKey, "mailgun-api-key", os.Getenv("MAILGUN_API_KEY"), "Mailgun private api key")
+	flag.StringVar(&cfg.MailtrapDomain, "mailtrap-domain", os.Getenv("MAILTRAP_DOMAIN"), "Mailtrap domain")
+	flag.StringVar(&cfg.MailtrapToken, "mailtrap-token", os.Getenv("MAILTRAP_TOKEN"), "Mailtrap api token")
 	flag.Parse()
 
 	ctx := context.Background()
@@ -124,7 +124,7 @@ func main() {
 	var emailSender services.EmailSender
 
 	if cfg.Env == "production" {
-		emailSender = services.NewMailGunEmailSender(logger, cfg.MailgunDomain, cfg.MailgunAPIKey)
+		emailSender = services.NewMailtrapEmailSender(logger, cfg.MailtrapDomain, cfg.MailtrapToken)
 	} else {
 		emailSender = services.NewConsoleEmailSender(logger)
 	}
