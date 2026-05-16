@@ -20,8 +20,8 @@ type Config struct {
 	GoogleClientId     string
 	GoogleClientSecret string
 	NoreplyEmail       string
-	MailgunDomain      string
-	MailgunAPIKey      string
+	MailtrapDomain     string
+	MailtrapToken      string
 }
 
 type Application struct {

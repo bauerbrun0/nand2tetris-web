@@ -73,8 +73,8 @@
 # langing_page
 "landing_page.title_first_row": "Build a Computer From the Ground Up"
 "landing_page.title_second_row": "In Your Browser"
-"landing_page.introduction_first_part": "Welcome to the Nand2Tetris Web App – a free, browser-based platform for working through the"
-"landing_page.introduction_second_part": "course. This is an independently developed implementation of the tools and learning environment used throughout the course, designed to run entirely in the browser with no installation required."
+"landing_page.introduction_first_part": "Welcome to the Nand2Tetris Web App – a free, browser-based hardware simulator built on top of the "
+"landing_page.introduction_second_part": "HDL. It provides an in-browser environment for designing and building digital chips using HDL, with no installation required. You can use it to create and experiment with both course-related and custom chip designs."
 "landing_page.note": "This is not the official course website, and I am not the author of the course. The original Nand2Tetris curriculum was created by Noam Nisan and Shimon Schocken and is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. This webapp follows the same license and is intended for educational, non-commercial use."
 
 # login_page
