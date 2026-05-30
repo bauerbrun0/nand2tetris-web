@@ -31,7 +31,7 @@ func (m *Middleware) UserLoginPostRateLimiter(next http.Handler) http.Handler {
 			if len(username) > 100 {
 				username = username[:100]
 			}
-			ip := r.Header.Get("X-Real-IP")
+			ip := GetClientIp(r)
 
 			return username + ip
 		}))
@@ -52,8 +52,10 @@ func (m *Middleware) GetIPRateLimiter(limit int64, period time.Duration) func(ne
 				Period: period,
 				Limit:  limit,
 			}
-			instance := limiter.New(store, rate, limiter.WithClientIPHeader("X-Real-IP"), limiter.WithTrustForwardHeader(true))
-			mw := stdlib.NewMiddleware(instance)
+			instance := limiter.New(store, rate, limiter.WithTrustForwardHeader(true))
+			mw := stdlib.NewMiddleware(instance, stdlib.WithKeyGetter(func(r *http.Request) string {
+				return GetClientIp(r)
+			}))
 			mw.Handler(next).ServeHTTP(w, r)
 		})
 	}

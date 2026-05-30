@@ -27,7 +27,7 @@ func NewMiddleware(app *application.Application) *Middleware {
 func (m *Middleware) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
-			ip     = r.RemoteAddr
+			ip     = GetClientIp(r)
 			proto  = r.Proto
 			method = r.Method
 			uri    = r.URL.RequestURI()
