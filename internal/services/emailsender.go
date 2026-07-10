@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 
@@ -49,39 +48,47 @@ func NewMailtrapEmailSender(logger *slog.Logger, domain, token string) *Mailtrap
 	}
 }
 
+var ErrEmailSendingDisabled = errors.New("email sending is temporarily disabled")
+
 func (mt *MailtrapEmailSender) Send(from, to, subject, body string) error {
-	requestBody := map[string]any{
-		"from": map[string]string{
-			"email": from,
-		},
-		"to": []map[string]string{
-			{
-				"email": to,
+	// temporarily disable email sending by returning an error here due to bots
+	// until I implement reCAPTCHA
+	return ErrEmailSendingDisabled
+
+	/*
+		requestBody := map[string]any{
+			"from": map[string]string{
+				"email": from,
 			},
-		},
-		"subject": subject,
-		"text":    body,
-		"html":    body,
-	}
+			"to": []map[string]string{
+				{
+					"email": to,
+				},
+			},
+			"subject": subject,
+			"text":    body,
+			"html":    body,
+		}
 
-	resp, err := mt.restClient.R().
-		SetBody(requestBody).
-		SetHeader("Accept", "application/json").
-		SetAuthToken(mt.token).
-		Post("https://send.api.mailtrap.io/api/send")
+		resp, err := mt.restClient.R().
+			SetBody(requestBody).
+			SetHeader("Accept", "application/json").
+			SetAuthToken(mt.token).
+			Post("https://send.api.mailtrap.io/api/send")
 
-	if err != nil {
-		mt.logger.Error("An error occured while sending email with Mailtrap", "error", err)
-		return err
-	}
+		if err != nil {
+			mt.logger.Error("An error occured while sending email with Mailtrap", "error", err)
+			return err
+		}
 
-	if resp.IsError() {
-		mt.logger.Error("An error occured while sending email with Mailtrap",
-			"status", resp.Status(),
-			"body", string(resp.Body()),
-		)
-		return fmt.Errorf("mailtrap returned %s", resp.Status())
-	}
+		if resp.IsError() {
+			mt.logger.Error("An error occured while sending email with Mailtrap",
+				"status", resp.Status(),
+				"body", string(resp.Body()),
+			)
+			return fmt.Errorf("mailtrap returned %s", resp.Status())
+		}
 
-	return nil
+		return nil
+	*/
 }

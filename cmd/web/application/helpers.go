@@ -14,6 +14,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/bauerbrun0/nand2tetris-web/internal/appctx"
 	"github.com/bauerbrun0/nand2tetris-web/internal/ctxi18n"
+	"github.com/bauerbrun0/nand2tetris-web/internal/services"
 	"github.com/bauerbrun0/nand2tetris-web/ui/pages"
 	"github.com/go-playground/form"
 	"github.com/justinas/nosurf"
@@ -34,6 +35,11 @@ func (app *Application) ServerError(w http.ResponseWriter, r *http.Request, err 
 	)
 
 	app.Logger.Error(err.Error(), slog.String("method", method), slog.String("uri", uri))
+	if errors.Is(err, services.ErrEmailSendingDisabled) {
+		http.Error(w, "Email sending is temporarily disabled due to bots spamming. I will be implementing CAPTCHA in the future. In the meantime, try registering with GitHub or Google.", http.StatusInternalServerError)
+		return
+	}
+
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 

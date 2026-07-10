@@ -400,7 +400,7 @@ func (s *userService) SendPasswordResetCode(email string) (*models.PasswordReset
 	}
 
 	err = s.emailService.SendPasswordResetEmail(user.Email, code)
-	if err != nil {
+	if err != nil && !errors.Is(err, ErrEmailSendingDisabled) {
 		return nil, err
 	}
 
